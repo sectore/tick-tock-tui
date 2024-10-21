@@ -1,5 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module TUI where
 
@@ -35,6 +37,9 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Functor ((<&>))
 import Data.Text (pack, toUpper, unpack)
 import GHC.Conc (ThreadId)
+import Graphics.Vty
+  ( Vty,
+  )
 import Graphics.Vty qualified as V
 import Lens.Micro ((^.))
 import Lens.Micro.Mtl
@@ -133,11 +138,11 @@ appEvent outCh e =
     AppEvent Counter -> do
       stCounter %= (+ 1)
       stLastBrickEvent .= Just e
-    AppEvent Tick -> do
+    AppEvent ev | ev == tickEvent -> do
       -- count `tick` by 1, but don't count it endless.
       -- Set it back to 0 if `tick` > 216000 (1h at 60 FPS)
       tick %= (`mod` 216001) . (+ 1)
-      tick %= (+ 1)
+      -- tick %= (+ 1)
       currentTick <- use tick
       lastFetch <- use lastFetchTime
       -- 10800 ticks = 3min seconds at 60 FPS
@@ -162,39 +167,6 @@ appEvent outCh e =
     AppEvent (FeesUpdated f) -> do
       fees .= f
     _ -> return ()
-
-initialState :: TUIState
-initialState =
-  TUIState
-    { _stLastBrickEvent = Nothing,
-      _stCounter = 0,
-      _tick = 0,
-      _price = NotAsked,
-      _fees = NotAsked,
-      _lastFetchTime = 0,
-      _selectedCurrency = EUR
-    }
-
-theApp :: TChan ClientEvent -> App TUIState TUIEvent ()
-theApp outCh =
-  App
-    { appDraw = drawUI,
-      appChooseCursor = showFirstCursor,
-      appHandleEvent = appEvent outCh,
-      appStartEvent = do
-        -- fetch all data at start
-        liftIO $ wFetchData outCh
-        pure (),
-      appAttrMap = const $ attrMap V.defAttr []
-    }
-
-loop :: BChan TUIEvent -> IO ()
-loop c = forever $ do
-  writeBChan c Tick
-  threadDelay delay
-  where
-    fps = 60
-    delay = 1_000_000 `div` fps -- 60 FPS
 
 fetchPrices :: String -> BChan TUIEvent -> IO ()
 fetchPrices url inCh = do
@@ -224,15 +196,37 @@ fetchData inCh = do
   fId <- forkIO $ fetchFees "https://mempool.space/api/v1/fees/recommended" inCh
   pure [pId, fId]
 
+-- Creates a Brick application by providing an `TickEvent`
+-- which is sent to the Brick application by a custom defined time interval
+-- TODO: Extract to a (simple) library??
+customMainWithInterval ::
+  (Ord n, HasTickEvent e) =>
+  -- | interval in microseconds
+  Int ->
+  -- | Custom event channel sending into Brick app
+  Maybe (BChan e) ->
+  -- | Brick application
+  App s e n ->
+  -- | Initial application state
+  s ->
+  IO (s, Vty)
+customMainWithInterval ms mUserChan app initialAppState = do
+  inCh <- case mUserChan of
+    Nothing -> liftIO $ newBChan 10
+    Just uc -> pure uc
+
+  _ <- forkIO $ forever $ do
+    writeBChan inCh tickEvent
+    threadDelay ms
+
+  customMainWithDefaultVty (Just inCh) app initialAppState
+
 run :: IO ()
 run = do
   outCh <- newTChanIO
   -- \^ out channel to send messages out of TUI app
   inCh <- newBChan 10
   -- \^ in(to) channel to send messages into TUI app
-
-  -- run `Tick` in separate thread
-  tickId <- forkIO $ loop inCh
 
   -- listen for messages outcoming from TUI app
   foreverId <- forkIO $ forever $ do
@@ -244,8 +238,33 @@ run = do
         pure ()
 
   -- run TUI app
-  _ <- customMainWithDefaultVty (Just inCh) (theApp outCh) initialState
+  _ <- customMainWithInterval interval (Just inCh) (theApp outCh) initialState
 
   -- kill threads
-  killThread tickId
   killThread foreverId
+  where
+    interval = 1_000_000 `div` 60 -- 60 FPS
+    initialState :: TUIState
+    initialState =
+      TUIState
+        { _stLastBrickEvent = Nothing,
+          _stCounter = 0,
+          _tick = 0,
+          _price = NotAsked,
+          _fees = NotAsked,
+          _lastFetchTime = 0,
+          _selectedCurrency = EUR
+        }
+
+    theApp :: TChan ClientEvent -> App TUIState TUIEvent ()
+    theApp outCh =
+      App
+        { appDraw = drawUI,
+          appChooseCursor = showFirstCursor,
+          appHandleEvent = appEvent outCh,
+          appStartEvent = do
+            -- fetch all data at start
+            liftIO $ wFetchData outCh
+            pure (),
+          appAttrMap = const $ attrMap V.defAttr []
+        }

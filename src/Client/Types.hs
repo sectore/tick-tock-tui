@@ -6,25 +6,25 @@ import Text.Printf (printf)
 
 data Currency = BTC | SATS | EUR | USD
 
-newtype Amount a = Amount {unAmount :: Float}
+newtype Amount (a :: Currency) = Amount {unAmount :: Float}
   deriving (Eq)
 
-instance Show (Amount USD) where
+instance Show (Amount 'USD) where
   show = printf "$ %.2f" . unAmount
 
-instance Show (Amount EUR) where
+instance Show (Amount 'EUR) where
   show = printf "%.2f €" . unAmount
 
-instance Show (Amount BTC) where
+instance Show (Amount 'BTC) where
   show = printf "%.8f ₿" . unAmount
 
-instance Show (Amount SATS) where
+instance Show (Amount 'SATS) where
   show = printf "%.0f sat" . unAmount
 
 newtype Price a = Price {unPrice :: Float}
-  deriving (Show)
+  deriving (Show, Eq)
 
-class Conversion a where
+class Conversion (a :: Currency) where
   toBtc :: Amount a -> Price a -> Amount BTC
   toSats :: Amount a -> Price a -> Amount SATS
 
@@ -57,7 +57,7 @@ data RemoteData e a
   | Loading (Maybe a)
   | Failure e
   | Success a
-  deriving (Show)
+  deriving (Show, Eq)
 
 data ClientEvent = FetchData
   deriving (Eq, Show)

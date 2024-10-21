@@ -13,13 +13,13 @@ data Prices = Prices
   { eur :: Price EUR,
     usd :: Price USD
   }
-  deriving (Show)
+  deriving (Show, Eq)
 
 instance FromJSON Prices where
-  parseJSON (Object v) =
+  parseJSON (Object o) =
     Prices
-      <$> (Price <$> v .: "EUR")
-      <*> (Price <$> v .: "USD")
+      <$> (Price <$> o .: "EUR")
+      <*> (Price <$> o .: "USD")
   parseJSON v = fail $ "Could not parse PriceData from " ++ show v
 
 type PricesRD = RemoteData String Prices
@@ -29,16 +29,16 @@ data Fees = Fees
     medium :: Int,
     slow :: Int
   }
-  deriving (Show)
+  deriving (Show, Eq)
 
 type FeesRD = RemoteData String Fees
 
 instance FromJSON Fees where
-  parseJSON (Object v) =
+  parseJSON (Object o) =
     Fees
-      <$> v .: "fastestFee"
-      <*> v .: "halfHourFee"
-      <*> v .: "hourFee"
+      <$> o .: "fastestFee"
+      <*> o .: "halfHourFee"
+      <*> o .: "hourFee"
   parseJSON v = fail $ "Could not parse Fees from " ++ show v
 
 fetchData :: (FromJSON a) => String -> IO (Either String a)
