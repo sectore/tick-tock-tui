@@ -2,7 +2,7 @@
 
 module Main (main) where
 
-import Client.Types
+import TUI.Service.Types
 import Test.Hspec
 import Text.Printf (printf)
 

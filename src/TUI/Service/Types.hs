@@ -1,8 +1,42 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 
-module Client.Types where
+module TUI.Service.Types where
 
+import Data.Aeson
 import Text.Printf (printf)
+
+data Prices = Prices
+  { eur :: Price EUR,
+    usd :: Price USD
+  }
+  deriving (Show, Eq)
+
+instance FromJSON Prices where
+  parseJSON (Object o) =
+    Prices
+      <$> (Price <$> o .: "EUR")
+      <*> (Price <$> o .: "USD")
+  parseJSON v = fail $ "Could not parse PriceData from " ++ show v
+
+type PricesRD = RemoteData String Prices
+
+data Fees = Fees
+  { fast :: Int,
+    medium :: Int,
+    slow :: Int
+  }
+  deriving (Show, Eq)
+
+type FeesRD = RemoteData String Fees
+
+instance FromJSON Fees where
+  parseJSON (Object o) =
+    Fees
+      <$> o .: "fastestFee"
+      <*> o .: "halfHourFee"
+      <*> o .: "hourFee"
+  parseJSON v = fail $ "Could not parse Fees from " ++ show v
 
 data Currency = BTC | SATS | EUR | USD
 
@@ -59,5 +93,5 @@ data RemoteData e a
   | Success a
   deriving (Show, Eq)
 
-data ClientEvent = FetchData
+data ApiEvent = FetchData
   deriving (Eq, Show)

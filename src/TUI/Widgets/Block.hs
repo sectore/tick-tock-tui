@@ -1,0 +1,18 @@
+module TUI.Widgets.Block (drawBlock) where
+
+import Brick.Types
+  ( Widget,
+  )
+import Brick.Widgets.Core
+  ( str,
+    vBox,
+  )
+import Lens.Micro ((^.))
+import TUI.Types (TUIState, price)
+
+drawBlock :: TUIState -> Widget ()
+drawBlock st =
+  vBox
+    [ str "Block",
+      str . show $ st ^. price
+    ]

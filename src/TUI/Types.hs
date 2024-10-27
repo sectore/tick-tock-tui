@@ -3,11 +3,10 @@
 module TUI.Types where
 
 import Brick.Types
-  ( BrickEvent (..),
+  (
   )
-import Client.Client (FeesRD, PricesRD)
-import Client.Types (Currency)
 import Lens.Micro.TH (makeLenses)
+import TUI.Service.Types (Currency, FeesRD, PricesRD)
 
 class HasTickEvent e where
   tickEvent :: e
@@ -23,15 +22,16 @@ instance HasTickEvent TUIEvent where
   tickEvent = FPSTick
 
 data TUIEvent
-  = Counter
-  | PriceUpdated PricesRD
+  = PriceUpdated PricesRD
   | FeesUpdated FeesRD
   | FPSTick
   deriving (Show, Eq)
 
+data View = FeesView | PriceView | BlockView | ConverterView | DraftView
+  deriving (Eq)
+
 data TUIState = TUIState
-  { _stLastBrickEvent :: Maybe (BrickEvent () TUIEvent),
-    _stCounter :: Int,
+  { _currentView :: View,
     _tick :: Int,
     _price :: PricesRD,
     _fees :: FeesRD,
