@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module TUI.Types where
@@ -6,7 +7,7 @@ import Brick.Types
   (
   )
 import Lens.Micro.TH (makeLenses)
-import TUI.Service.Types (Currency, FeesRD, PricesRD)
+import TUI.Service.Types (Currency (..), FeesRD, PricesRD)
 
 class HasTickEvent e where
   tickEvent :: e
@@ -33,7 +34,7 @@ data View = FeesView | PriceView | BlockView | ConverterView | DraftView
 data TUIState = TUIState
   { _currentView :: View,
     _tick :: Int,
-    _price :: PricesRD,
+    _prices :: PricesRD,
     _fees :: FeesRD,
     _lastFetchTime :: Int,
     _selectedCurrency :: Currency

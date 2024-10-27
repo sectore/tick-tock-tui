@@ -5,6 +5,8 @@ import Brick.Main
   ( App (..),
     customMainWithDefaultVty,
   )
+import Brick.Types (Widget)
+import Brick.Widgets.Core (str)
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever)
 import Control.Monad.IO.Class (liftIO)
@@ -37,6 +39,15 @@ customMainWithInterval ms mUserChan app initialAppState = do
     threadDelay ms
 
   customMainWithDefaultVty (Just inCh) app initialAppState
+
+loadingString :: String
+loadingString = "⣀"
+
+loadingStr :: forall n. Widget n
+loadingStr = str loadingString
+
+emptyStr :: forall n. Widget n
+emptyStr = str " "
 
 type RgbColor = (Double, Double, Double)
 
