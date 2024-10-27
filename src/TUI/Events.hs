@@ -88,17 +88,9 @@ handleAppEvent e = do
       -- 10800 ticks = 3min seconds at 60 FPS
       when (currentTick - lastFetch >= 10800) $ do
         -- set `Loading` price
-        mCurrentPrice <-
-          use prices <&> \case
-            Success pr -> Just pr
-            _ -> Nothing
-        prices .= Loading mCurrentPrice
+        setLoading prices
         -- set `Loading` fees
-        mCurrentFees <-
-          use fees <&> \case
-            Success pr -> Just pr
-            _ -> Nothing
-        fees .= Loading mCurrentFees
+        setLoading fees
         -- reset last fetch time
         lastFetchTime .= currentTick
         -- load all data
