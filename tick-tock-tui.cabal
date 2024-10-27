@@ -1,0 +1,78 @@
+cabal-version:      3.0
+name:               tick-tock-tui
+version:            0.1.0.0
+synopsis:           bitcoin ticker tui
+-- description:
+homepage:           https://github.com/BitcoinBeachTravemuende/tick-tock-tui
+license:            MIT
+license-file:       LICENSE
+author:             jk
+-- maintainer:
+-- copyright:
+category:           TUI
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common warnings
+    ghc-options: -Wall
+
+library
+    import:           warnings
+    exposed-modules:    TUI
+    other-modules:      TUI.Attr
+                    ,   TUI.Service.API
+                    ,   TUI.Service.Types
+                    ,   TUI.Service.Mempool
+                    ,   TUI.Events
+                    ,   TUI.Types
+                    ,   TUI.Utils
+                    ,   TUI.Widgets.App
+                    ,   TUI.Widgets.Block
+                    ,   TUI.Widgets.Converter
+                    ,   TUI.Widgets.Draft
+                    ,   TUI.Widgets.Fees
+                    ,   TUI.Widgets.Footer
+                    ,   TUI.Widgets.Price
+    -- other-extensions:
+    build-depends:      base ^>=4.18.2.1
+                    ,   aeson >=0.8
+                    ,   async
+                    ,   brick ^>=2.4
+                    ,   http-conduit >= 2.3.9
+                    ,   microlens >= 0.3.0.0
+                    ,   microlens-th
+                    ,   microlens-mtl
+                    ,   mtl
+                    ,   stm
+                    ,   text
+                    ,   vty
+                    ,   vty-crossplatform
+    hs-source-dirs: src
+    default-language: GHC2021
+
+executable tick-tock-tui
+    import:           warnings
+    main-is:          Main.hs
+    -- other-modules:
+    -- other-extensions:
+    build-depends:
+        base ^>=4.18.2.1,
+        tick-tock-tui
+
+    hs-source-dirs:   app
+    ghc-options:    -threaded -Wall -Wcompat -O2
+    default-language: GHC2021
+
+test-suite tick-tock-tui-test
+    import:           warnings
+    default-language: GHC2021
+    other-modules:      TUI.Service.Types
+    -- other-extensions:
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test, src
+    main-is:          Main.hs
+    build-depends:
+        ,   base ^>=4.18.2.1
+        ,   hspec
+        ,   tick-tock-tui

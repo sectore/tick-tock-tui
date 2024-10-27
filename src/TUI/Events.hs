@@ -1,0 +1,82 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
+
+module TUI.Events where
+
+import Brick.Main
+  ( halt,
+  )
+import Brick.Types
+  ( BrickEvent (..),
+    EventM,
+  )
+import Control.Concurrent.STM qualified as STM
+import Control.Concurrent.STM.TChan (TChan)
+import Control.Monad (when)
+import Control.Monad.IO.Class (liftIO)
+import Data.Functor ((<&>))
+import Graphics.Vty qualified as V
+import Lens.Micro.Mtl
+import TUI.Service.Types (ApiEvent (..), RemoteData (..))
+import TUI.Types
+
+wFetchData :: TChan ApiEvent -> IO ()
+wFetchData outCh = STM.atomically $ STM.writeTChan outCh FetchData
+
+startEvent :: TChan ApiEvent -> EventM () TUIState ()
+startEvent outCh = do
+  -- fetch all data at start
+  liftIO $ wFetchData outCh
+  pure ()
+
+appEvent :: TChan ApiEvent -> BrickEvent () TUIEvent -> EventM () TUIState ()
+appEvent outCh e =
+  case e of
+    VtyEvent ve -> handleKeyEvent ve
+    AppEvent ae -> handleAppEvent ae outCh
+    _ -> return ()
+
+handleKeyEvent :: V.Event -> EventM () TUIState ()
+handleKeyEvent e = do
+  case e of
+    V.EvKey (V.KChar '1') [] -> currentView .= FeesView
+    V.EvKey (V.KChar '2') [] -> currentView .= PriceView
+    V.EvKey (V.KChar '3') [] -> currentView .= BlockView
+    V.EvKey (V.KChar '4') [] -> currentView .= ConverterView
+    V.EvKey (V.KChar '5') [] -> currentView .= DraftView
+    V.EvKey V.KEsc [] -> halt
+    V.EvKey (V.KChar 'q') [] -> halt
+    _ -> return ()
+
+handleAppEvent :: TUIEvent -> TChan ApiEvent -> EventM n TUIState ()
+handleAppEvent e outCh = do
+  case e of
+    ev | ev == tickEvent -> do
+      -- count `tick` by 1, but don't count it endless.
+      -- Set it back to 0 if `tick` > 216000 (1h at 60 FPS)
+      tick %= (`mod` 216001) . (+ 1)
+      -- tick %= (+ 1)
+      currentTick <- use tick
+      lastFetch <- use lastFetchTime
+      -- 10800 ticks = 3min seconds at 60 FPS
+      when (currentTick - lastFetch >= 10800) $ do
+        -- set `Loading` price
+        mCurrentPrice <-
+          use price <&> \case
+            Success pr -> Just pr
+            _ -> Nothing
+        price .= Loading mCurrentPrice
+        -- set `Loading` fees
+        mCurrentFees <-
+          use fees <&> \case
+            Success pr -> Just pr
+            _ -> Nothing
+        fees .= Loading mCurrentFees
+        -- reset last fetch time
+        lastFetchTime .= currentTick
+        liftIO $ wFetchData outCh
+    PriceUpdated p -> do
+      price .= p
+    FeesUpdated f -> do
+      fees .= f
+    _ -> return ()
