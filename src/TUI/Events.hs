@@ -14,6 +14,7 @@ import Control.Concurrent.STM qualified as STM
 import Control.Concurrent.STM.TChan (TChan)
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Reader (MonadTrans (lift), ReaderT (runReaderT), asks)
 import Data.Functor ((<&>))
 import Graphics.Vty qualified as V
 import Lens.Micro (Lens')
@@ -21,25 +22,17 @@ import Lens.Micro.Mtl
 import TUI.Service.Types (ApiEvent (..), Currency (..), RemoteData (..))
 import TUI.Types
 
-sendApiEvent :: TChan ApiEvent -> ApiEvent -> IO ()
-sendApiEvent outCh e = STM.atomically $ STM.writeTChan outCh e
-
-wFetchAllData :: TChan ApiEvent -> IO ()
-wFetchAllData outCh = sendApiEvent outCh FetchAllData
-
-wFetchFees :: TChan ApiEvent -> IO ()
-wFetchFees outCh = sendApiEvent outCh FetchFees
-
-wFetchPrices :: TChan ApiEvent -> IO ()
-wFetchPrices outCh = sendApiEvent outCh FetchPrices
+sendApiEvent :: ApiEvent -> AppEventM ()
+sendApiEvent e = do
+  ch <- asks outChan
+  liftIO $ STM.atomically $ STM.writeTChan ch e
 
 startEvent :: TChan ApiEvent -> EventM () TUIState ()
 startEvent outCh = do
   -- fetch all data at start
-  liftIO $ wFetchAllData outCh
-  pure ()
+  runReaderT (sendApiEvent FetchAllData) (AppEventEnv outCh)
 
-setLoading :: Lens' TUIState (RemoteData e a) -> EventM () TUIState ()
+setLoading :: Lens' TUIState (RemoteData e a) -> AppEventM ()
 setLoading lens = do
   mCurrent <-
     use lens <&> \case
@@ -49,13 +42,15 @@ setLoading lens = do
 
 appEvent :: TChan ApiEvent -> BrickEvent () TUIEvent -> EventM () TUIState ()
 appEvent outCh e =
-  case e of
-    VtyEvent ve -> handleKeyEvent ve outCh
-    AppEvent ae -> handleAppEvent ae outCh
-    _ -> return ()
+  runReaderT handleEvent (AppEventEnv outCh)
+  where
+    handleEvent = case e of
+      VtyEvent ve -> handleKeyEvent ve
+      AppEvent ae -> handleAppEvent ae
+      _ -> return ()
 
-handleKeyEvent :: V.Event -> TChan ApiEvent -> EventM () TUIState ()
-handleKeyEvent e outCh = do
+handleKeyEvent :: V.Event -> AppEventM ()
+handleKeyEvent e = do
   currentView' <- use currentView
   case e of
     V.EvKey (V.KChar '1') [] -> currentView .= FeesView
@@ -69,17 +64,19 @@ handleKeyEvent e outCh = do
     V.EvKey (V.KChar 'r') [] -> case currentView' of
       FeesView -> do
         setLoading fees
-        liftIO $ wFetchFees outCh
+        -- fetch fees
+        sendApiEvent FetchFees
       PriceView -> do
         setLoading prices
-        liftIO $ wFetchPrices outCh
+        -- fetch prices
+        sendApiEvent FetchPrices
       _ -> return ()
-    V.EvKey V.KEsc [] -> halt
-    V.EvKey (V.KChar 'q') [] -> halt
+    V.EvKey V.KEsc [] -> lift halt
+    V.EvKey (V.KChar 'q') [] -> lift halt
     _ -> return ()
 
-handleAppEvent :: TUIEvent -> TChan ApiEvent -> EventM n TUIState ()
-handleAppEvent e outCh = do
+handleAppEvent :: TUIEvent -> AppEventM ()
+handleAppEvent e = do
   case e of
     ev | ev == tickEvent -> do
       -- count `tick` by 1, but don't count it endless.
@@ -91,20 +88,13 @@ handleAppEvent e outCh = do
       -- 10800 ticks = 3min seconds at 60 FPS
       when (currentTick - lastFetch >= 10800) $ do
         -- set `Loading` price
-        mCurrentPrice <-
-          use prices <&> \case
-            Success pr -> Just pr
-            _ -> Nothing
-        prices .= Loading mCurrentPrice
+        setLoading prices
         -- set `Loading` fees
-        mCurrentFees <-
-          use fees <&> \case
-            Success pr -> Just pr
-            _ -> Nothing
-        fees .= Loading mCurrentFees
+        setLoading fees
         -- reset last fetch time
         lastFetchTime .= currentTick
-        liftIO $ wFetchAllData outCh
+        -- load all data
+        sendApiEvent FetchAllData
     PriceUpdated p -> do
       prices .= p
     FeesUpdated f -> do

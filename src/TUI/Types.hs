@@ -3,11 +3,20 @@
 
 module TUI.Types where
 
+import Brick (EventM)
 import Brick.Types
   (
   )
+import Control.Concurrent.STM (TChan)
+import Control.Monad.Reader (ReaderT)
 import Lens.Micro.TH (makeLenses)
-import TUI.Service.Types (Currency (..), FeesRD, PricesRD)
+import TUI.Service.Types (ApiEvent, Currency (..), FeesRD, PricesRD)
+
+newtype AppEventEnv = AppEventEnv
+  { outChan :: TChan ApiEvent
+  }
+
+type AppEventM = ReaderT AppEventEnv (EventM () TUIState)
 
 class HasTickEvent e where
   tickEvent :: e

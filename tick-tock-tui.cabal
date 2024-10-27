@@ -44,8 +44,9 @@ library
                     ,   microlens-th
                     ,   microlens-mtl
                     ,   mtl
-                    ,   stm
                     ,   text
+                    ,   transformers
+                    ,   stm
                     ,   vty
                     ,   vty-crossplatform
     hs-source-dirs: src
