@@ -8,11 +8,11 @@ import Brick.Widgets.Core
     vBox,
   )
 import Lens.Micro ((^.))
-import TUI.Types (TUIState, price)
+import TUI.Types (TUIState, prices)
 
 drawBlock :: TUIState -> Widget ()
 drawBlock st =
   vBox
     [ str "Block",
-      str . show $ st ^. price
+      str . show $ st ^. prices
     ]

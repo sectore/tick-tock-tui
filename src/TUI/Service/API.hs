@@ -3,11 +3,10 @@
 module TUI.Service.API where
 
 import Brick.BChan (BChan, writeBChan)
-import Control.Concurrent (forkIO, threadDelay)
+import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async.Internal (tryAll)
 import Control.Exception (try)
 import Data.Aeson qualified as A
-import GHC.Conc (ThreadId)
 import Network.HTTP.Client.Conduit (HttpException, parseRequest)
 import Network.HTTP.Simple (getResponseBody, httpLBS)
 import TUI.Service.Types (RemoteData (..))

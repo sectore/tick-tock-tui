@@ -52,9 +52,9 @@ run = do
     initialState :: TUIState
     initialState =
       TUIState
-        { _currentView = FeesView,
+        { _currentView = PriceView,
           _tick = 0,
-          _price = NotAsked,
+          _prices = NotAsked,
           _fees = NotAsked,
           _lastFetchTime = 0,
           _selectedCurrency = EUR

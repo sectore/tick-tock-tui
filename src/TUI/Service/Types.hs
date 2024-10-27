@@ -42,6 +42,7 @@ instance FromJSON Fees where
   parseJSON v = fail $ "Could not parse Fees from " ++ show v
 
 data Currency = BTC | SATS | EUR | USD
+  deriving (Eq)
 
 newtype Amount (a :: Currency) = Amount {unAmount :: Float}
   deriving (Eq)
@@ -92,6 +93,10 @@ data RemoteData e a
   | Failure e
   | Success a
   deriving (Show, Eq)
+
+isLoading :: RemoteData e a -> Bool
+isLoading (Loading _) = True
+isLoading _ = False
 
 data ApiEvent = FetchAllData | FetchPrices | FetchFees
   deriving (Eq, Show)
