@@ -6,6 +6,9 @@ module TUI.Service.Types where
 import Data.Aeson
 import Text.Printf (printf)
 
+newtype Price a = Price {unPrice :: Float}
+  deriving (Show, Eq)
+
 data Prices = Prices
   { eur :: Price EUR,
     usd :: Price USD
@@ -55,9 +58,6 @@ instance Show (Amount 'BTC) where
 instance Show (Amount 'SATS) where
   show = printf "%.0f sat" . unAmount
 
-newtype Price a = Price {unPrice :: Float}
-  deriving (Show, Eq)
-
 class Conversion (a :: Currency) where
   toBtc :: Amount a -> Price a -> Amount BTC
   toSats :: Amount a -> Price a -> Amount SATS
@@ -93,5 +93,5 @@ data RemoteData e a
   | Success a
   deriving (Show, Eq)
 
-data ApiEvent = FetchData
+data ApiEvent = FetchAllData | FetchPrices | FetchFees
   deriving (Eq, Show)

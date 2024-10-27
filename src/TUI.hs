@@ -31,7 +31,13 @@ run = do
   foreverId <- forkIO $ forever $ do
     e <- STM.atomically $ STM.readTChan outCh
     case e of
-      FetchData -> do
+      FetchFees -> do
+        _ <- M.fetchFees inCh
+        pure ()
+      FetchPrices -> do
+        _ <- M.fetchPrices inCh
+        pure ()
+      FetchAllData -> do
         _ <- M.fetchPrices inCh
         _ <- M.fetchFees inCh
         pure ()

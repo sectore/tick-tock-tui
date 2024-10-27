@@ -20,13 +20,13 @@ import Lens.Micro.Mtl
 import TUI.Service.Types (ApiEvent (..), RemoteData (..))
 import TUI.Types
 
-wFetchData :: TChan ApiEvent -> IO ()
-wFetchData outCh = STM.atomically $ STM.writeTChan outCh FetchData
+wFetchAllData :: TChan ApiEvent -> IO ()
+wFetchAllData outCh = STM.atomically $ STM.writeTChan outCh FetchAllData
 
 startEvent :: TChan ApiEvent -> EventM () TUIState ()
 startEvent outCh = do
   -- fetch all data at start
-  liftIO $ wFetchData outCh
+  liftIO $ wFetchAllData outCh
   pure ()
 
 appEvent :: TChan ApiEvent -> BrickEvent () TUIEvent -> EventM () TUIState ()
@@ -74,7 +74,7 @@ handleAppEvent e outCh = do
         fees .= Loading mCurrentFees
         -- reset last fetch time
         lastFetchTime .= currentTick
-        liftIO $ wFetchData outCh
+        liftIO $ wFetchAllData outCh
     PriceUpdated p -> do
       price .= p
     FeesUpdated f -> do
