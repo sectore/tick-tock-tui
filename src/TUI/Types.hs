@@ -4,6 +4,7 @@
 module TUI.Types where
 
 import Brick (EventM)
+import Brick.BChan (BChan)
 import Brick.Types
   (
   )
@@ -17,6 +18,13 @@ newtype AppEventEnv = AppEventEnv
   }
 
 type AppEventM = ReaderT AppEventEnv (EventM () TUIState)
+
+data ServiceEnv = ServiceEnv
+  { envMempoolUrl :: String,
+    envInChan :: BChan TUIEvent
+  }
+
+type ServiceM a = ReaderT ServiceEnv IO a
 
 class HasTickEvent e where
   tickEvent :: e
