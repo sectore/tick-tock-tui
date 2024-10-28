@@ -59,7 +59,7 @@ run = do
           _prices = NotAsked,
           _fees = NotAsked,
           _lastFetchTime = 0,
-          _selectedCurrency = EUR
+          _selectedFiat = FiatEUR
         }
 
     theApp :: TChan ApiEvent -> App TUIState TUIEvent ()

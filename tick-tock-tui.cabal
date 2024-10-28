@@ -77,5 +77,6 @@ test-suite tick-tock-tui-test
     main-is:          Main.hs
     build-depends:
         ,   base ^>=4.18.2.1
+        ,   aeson >=0.8
         ,   hspec
         ,   tick-tock-tui
