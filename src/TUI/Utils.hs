@@ -13,6 +13,7 @@ import Control.Monad.IO.Class (liftIO)
 import Graphics.Vty
   ( Vty,
   )
+import TUI.Service.Types
 import TUI.Types
 
 -- Creates a Brick application by providing an `TickEvent`
@@ -48,6 +49,16 @@ loadingStr = str loadingString
 
 emptyStr :: forall n. Widget n
 emptyStr = str " "
+
+getPriceByFiat :: Fiat -> Prices -> WPrice
+getPriceByFiat fiat p = case fiat of
+  FiatEUR -> WPrice (pEUR p)
+  FiatUSD -> WPrice (pUSD p)
+  FiatGBP -> WPrice (pGBP p)
+  FiatCAD -> WPrice (pCAD p)
+  FiatCHF -> WPrice (pCHF p)
+  FiatAUD -> WPrice (pAUD p)
+  FiatJPY -> WPrice (pJPY p)
 
 type RgbColor = (Double, Double, Double)
 

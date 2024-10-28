@@ -1,4 +1,3 @@
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module TUI.Types where
@@ -11,7 +10,7 @@ import Brick.Types
 import Control.Concurrent.STM (TChan)
 import Control.Monad.Reader (ReaderT)
 import Lens.Micro.TH (makeLenses)
-import TUI.Service.Types (ApiEvent, Currency (..), FeesRD, PricesRD)
+import TUI.Service.Types (ApiEvent, FeesRD, Fiat, PricesRD)
 
 newtype AppEventEnv = AppEventEnv
   { outChan :: TChan ApiEvent
@@ -54,7 +53,7 @@ data TUIState = TUIState
     _prices :: PricesRD,
     _fees :: FeesRD,
     _lastFetchTime :: Int,
-    _selectedCurrency :: Currency
+    _selectedFiat :: Fiat
   }
 
 makeLenses ''TUIState

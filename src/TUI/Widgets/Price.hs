@@ -8,9 +8,9 @@ import Brick.Widgets.Core
 import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
-import TUI.Service.Types (Currency (..), Price (..), Prices (..), PricesRD, RemoteData (..), unPrice)
-import TUI.Types (TUIState (..), prices, selectedCurrency)
-import TUI.Utils (emptyStr, loadingStr)
+import TUI.Service.Types (Prices (..), PricesRD, RemoteData (..))
+import TUI.Types (TUIState (..), prices, selectedFiat)
+import TUI.Utils (emptyStr, getPriceByFiat, loadingStr)
 
 drawPrice :: TUIState -> Widget ()
 drawPrice st =
@@ -23,11 +23,8 @@ drawPrice st =
               columnBorders False $
                 setDefaultColAlignment AlignLeft $
                   table
-                    [ [ col1Pad $ withBold $ str "1 BTC",
-                        col2Pad $ withBold $ rdToStr rdPrices isUSD
-                      ],
-                      [ col1Pad $ str "",
-                        col2Pad $ rdToStr rdPrices (not isUSD)
+                    [ [ padRight (Pad 10) $ withBold $ str "1 BTC",
+                        padLeft (Pad 10) $ withBold $ rdToStr rdPrices
                       ]
                     ]
     ]
@@ -36,21 +33,12 @@ drawPrice st =
     loadingAnimation = case rdPrices of
       Loading _ -> loadingStr
       _ -> emptyStr
-    isUSD = (st ^. selectedCurrency) == USD
-    col1Pad = padRight (Pad 10)
-    col2Pad = padLeft (Pad 10)
-    priceStr :: Bool -> Prices -> Widget n
-    priceStr renderUSD prices' =
-      if renderUSD
-        then str "$ " <+> (str . show . unPrice . usd) prices'
-        else (str . show . unPrice . eur) prices' <+> str " EUR"
-    loadingStr' renderUSD =
-      if renderUSD
-        then str "$ " <+> loadingStr
-        else loadingStr <+> str " EUR"
-    rdToStr :: forall n. PricesRD -> Bool -> Widget n
-    rdToStr rd renderUSD = case rd of
-      NotAsked -> loadingStr' renderUSD
-      Loading ma -> maybe (loadingStr' renderUSD) (priceStr renderUSD) ma
+    fiat = st ^. selectedFiat
+    priceStr :: Prices -> Widget n
+    priceStr = str . show . getPriceByFiat fiat
+    rdToStr :: forall n. PricesRD -> Widget n
+    rdToStr rd = case rd of
+      NotAsked -> loadingStr
+      Loading ma -> maybe loadingStr priceStr ma
       Failure _ -> withError $ str "error"
-      Success a -> priceStr renderUSD a
+      Success a -> priceStr a
