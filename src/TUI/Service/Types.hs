@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module TUI.Service.Types where
@@ -12,58 +13,47 @@ data Bitcoin = BTC | SATS
 data Fiat = FiatEUR | FiatUSD | FiatGBP | FiatCAD | FiatCHF | FiatAUD | FiatJPY
   deriving (Eq, Enum, Bounded)
 
-data Currency = Bitcoin | Fiat
-  deriving (Eq)
-
 newtype Price (a :: Fiat) = Price {unPrice :: Float}
   deriving (Eq)
 
-showFiatUSD :: Float -> String
-showFiatUSD = printf "$%.0f"
+showFiat :: Fiat -> Float -> String
+showFiat fiat = printf (fiatSymbol fiat <> "%.0f")
 
-showFiatEUR :: Float -> String
-showFiatEUR = printf "€%.0f"
-
-showFiatGBP :: Float -> String
-showFiatGBP = printf "£%.0f"
-
-showFiatCAD :: Float -> String
-showFiatCAD = printf "C$%.0f"
-
-showFiatCHF :: Float -> String
-showFiatCHF = printf "CHF %.0f"
-
-showFiatAUD :: Float -> String
-showFiatAUD = printf "A$%.0f"
-
-showFiatJPY :: Float -> String
-showFiatJPY = printf "¥%.0f"
+fiatSymbol :: Fiat -> String
+fiatSymbol = \case
+  FiatEUR -> "€"
+  FiatUSD -> "$"
+  FiatGBP -> "£"
+  FiatCAD -> "C$"
+  FiatCHF -> "CHF"
+  FiatAUD -> "A$"
+  FiatJPY -> "¥"
 
 instance Show (Price 'FiatEUR) where
-  show = showFiatEUR . unPrice
+  show = showFiat FiatEUR . unPrice
 
 instance Show (Price 'FiatUSD) where
-  show = showFiatUSD . unPrice
+  show = showFiat FiatUSD . unPrice
 
 instance Show (Price 'FiatGBP) where
-  show = showFiatGBP . unPrice
+  show = showFiat FiatGBP . unPrice
 
 instance Show (Price 'FiatCAD) where
-  show = showFiatCAD . unPrice
+  show = showFiat FiatCAD . unPrice
 
 instance Show (Price 'FiatCHF) where
-  show = showFiatCHF . unPrice
+  show = showFiat FiatCHF . unPrice
 
 instance Show (Price 'FiatAUD) where
-  show = showFiatAUD . unPrice
+  show = showFiat FiatAUD . unPrice
 
 instance Show (Price 'FiatJPY) where
-  show = showFiatJPY . unPrice
+  show = showFiat FiatJPY . unPrice
 
--- Sometimes `Fiat` is used as type-level value (e.g. ` Price (a :: Fiat)` in  `Service.Types`),
+-- Sometimes `Fiat` is used as type-level value (e.g. `Price (a :: Fiat)` in  `Service.Types`),
 -- but also as runtime value (e.g. `selectedFiat` in `TUIState`)
 -- Both can't be used in a function w/o some extra effort (via TypeFamilies etc.)
--- That's  a simple GADT approach might help here
+-- That's a simple GADT approach might help here
 data WPrice where
   WPrice :: forall (f :: Fiat). (Show (Price f)) => Price f -> WPrice
 
@@ -125,25 +115,25 @@ newtype Amount (a :: k) = Amount {unAmount :: Float}
   deriving (Eq)
 
 instance Show (Amount 'FiatUSD) where
-  show = showFiatUSD . unAmount
+  show = showFiat FiatUSD . unAmount
 
 instance Show (Amount 'FiatEUR) where
-  show = showFiatEUR . unAmount
+  show = showFiat FiatEUR . unAmount
 
 instance Show (Amount 'FiatGBP) where
-  show = showFiatGBP . unAmount
+  show = showFiat FiatGBP . unAmount
 
 instance Show (Amount 'FiatCHF) where
-  show = showFiatCHF . unAmount
+  show = showFiat FiatCHF . unAmount
 
 instance Show (Amount 'FiatCAD) where
-  show = showFiatCAD . unAmount
+  show = showFiat FiatCAD . unAmount
 
 instance Show (Amount 'FiatAUD) where
-  show = showFiatAUD . unAmount
+  show = showFiat FiatAUD . unAmount
 
 instance Show (Amount 'FiatJPY) where
-  show = showFiatJPY . unAmount
+  show = showFiat FiatJPY . unAmount
 
 instance Show (Amount 'BTC) where
   show = printf "%.8f ₿" . unAmount
