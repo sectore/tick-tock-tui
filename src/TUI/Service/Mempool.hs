@@ -9,13 +9,13 @@ fetchPrices :: ServiceM ()
 fetchPrices = do
   baseUrl <- asks envMempoolUrl
   inCh <- asks envInChan
-  liftIO $ API.fetchPrices (baseUrl <> "/v1/api/prices") inCh
+  liftIO $ API.fetchPrices (baseUrl <> "/api/v1/prices") inCh
 
 fetchFees :: ServiceM ()
 fetchFees = do
   baseUrl <- asks envMempoolUrl
   inCh <- asks envInChan
-  liftIO $ API.fetchFees (baseUrl <> "/v1/api/fees/recommended") inCh
+  liftIO $ API.fetchFees (baseUrl <> "/api/v1/fees/recommended") inCh
 
 fetchAllData :: ServiceM ()
 fetchAllData = do

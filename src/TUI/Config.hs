@@ -12,7 +12,7 @@ data Config = Config
 loadConfig :: IO Config
 loadConfig = do
   _ <- loadFile Configuration.Dotenv.defaultConfig
-  url <- fromMaybe "https://mempool.space/api" <$> lookupEnv "MEMPOOL_API"
+  url <- fromMaybe "https://mempool.space" <$> lookupEnv "MEMPOOL_URL"
   pure
     Config
       { cfgMempoolUrl = url
