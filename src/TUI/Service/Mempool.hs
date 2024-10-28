@@ -1,19 +1,23 @@
 module TUI.Service.Mempool where
 
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Reader (asks)
 import TUI.Service.API qualified as API
-import GHC.Conc (ThreadId)
-import Brick.BChan (BChan)
-import TUI.Types (TUIEvent)
-import Control.Concurrent (forkIO)
+import TUI.Types (ServiceEnv (..), ServiceM)
 
-fetchPrices :: BChan TUIEvent -> IO ()
-fetchPrices = API.fetchPrices "https://mempool.space/api/v1/prices"
+fetchPrices :: ServiceM ()
+fetchPrices = do
+  baseUrl <- asks envMempoolUrl
+  inCh <- asks envInChan
+  liftIO $ API.fetchPrices (baseUrl <> "/v1/api/prices") inCh
 
-fetchFees :: BChan TUIEvent -> IO ()
-fetchFees = API.fetchFees "https://mempool.space/api/v1/fees/recommended"
+fetchFees :: ServiceM ()
+fetchFees = do
+  baseUrl <- asks envMempoolUrl
+  inCh <- asks envInChan
+  liftIO $ API.fetchFees (baseUrl <> "/v1/api/fees/recommended") inCh
 
-fetchAllData :: BChan TUIEvent -> IO [ThreadId]
-fetchAllData inCh = do
-  pId <- forkIO $ fetchPrices inCh
-  fId <- forkIO $ fetchFees inCh
-  pure [pId, fId]
+fetchAllData :: ServiceM ()
+fetchAllData = do
+  fetchPrices
+  fetchFees
