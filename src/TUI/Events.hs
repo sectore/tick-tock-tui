@@ -19,7 +19,7 @@ import Data.Functor ((<&>))
 import Graphics.Vty qualified as V
 import Lens.Micro (Lens')
 import Lens.Micro.Mtl
-import TUI.Service.Types (ApiEvent (..), RemoteData (..))
+import TUI.Service.Types (ApiEvent (..), Bitcoin (..), RemoteData (..))
 import TUI.Types
 
 sendApiEvent :: ApiEvent -> AppEventM ()
@@ -58,12 +58,20 @@ handleKeyEvent e = do
     V.EvKey (V.KChar '3') [] -> currentView .= BlockView
     V.EvKey (V.KChar '4') [] -> currentView .= ConverterView
     V.EvKey (V.KChar '5') [] -> currentView .= DraftView
-    V.EvKey (V.KChar 't') [] -> when (currentView' == PriceView) $
-      selectedFiat %= next
+    V.EvKey (V.KChar 's') [] ->
+      when (currentView' == PriceView) $
+        selectedFiat %= next
       where
         next f
           | f == maxBound = minBound
           | otherwise = succ f
+    V.EvKey (V.KChar 't') [] ->
+      when (currentView' == PriceView) $
+        selectedBitcoin %= toggle
+      where
+        toggle b
+          | b == BTC = SATS
+          | otherwise = BTC
     V.EvKey (V.KChar 'r') [] -> case currentView' of
       FeesView -> do
         setLoading fees

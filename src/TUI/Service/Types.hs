@@ -17,7 +17,7 @@ newtype Price (a :: Fiat) = Price {unPrice :: Float}
   deriving (Eq)
 
 showFiat :: Fiat -> Float -> String
-showFiat fiat = printf (fiatSymbol fiat <> "%.0f")
+showFiat fiat = printf (fiatSymbol fiat <> "%.2f")
 
 fiatSymbol :: Fiat -> String
 fiatSymbol = \case

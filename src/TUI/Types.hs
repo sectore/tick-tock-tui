@@ -10,7 +10,7 @@ import Brick.Types
 import Control.Concurrent.STM (TChan)
 import Control.Monad.Reader (ReaderT)
 import Lens.Micro.TH (makeLenses)
-import TUI.Service.Types (ApiEvent, FeesRD, Fiat, PricesRD)
+import TUI.Service.Types (ApiEvent, Bitcoin, FeesRD, Fiat, PricesRD)
 
 newtype AppEventEnv = AppEventEnv
   { outChan :: TChan ApiEvent
@@ -53,7 +53,8 @@ data TUIState = TUIState
     _prices :: PricesRD,
     _fees :: FeesRD,
     _lastFetchTime :: Int,
-    _selectedFiat :: Fiat
+    _selectedFiat :: Fiat,
+    _selectedBitcoin :: Bitcoin
   }
 
 makeLenses ''TUIState

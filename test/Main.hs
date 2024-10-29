@@ -19,14 +19,14 @@ main = hspec $ do
         printf $ show amount
         toBtc amount `shouldBe` Amount 0.12345678
     describe "EUR" $ do
-      let amount = (Amount 50_000 :: Amount FiatEUR)
+      let amount = (Amount 50_000 :: Amount EUR)
       it "to BTC" $ do
         printf $ show amount
         fiatToBtc amount (Price 100_000) `shouldBe` Amount 0.5
       it "to SATS" $
         fiatToSats amount (Price 100_000) `shouldBe` Amount 50_000_000
     describe "USD" $ do
-      let amount = (Amount 50_000 :: Amount FiatUSD)
+      let amount = (Amount 50_000 :: Amount USD)
       it "to BTC" $ do
         printf $ show amount
         fiatToBtc amount (Price 200_000) `shouldBe` Amount 0.25

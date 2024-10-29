@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+
 module TUI.Widgets.Price (drawPrice) where
 
 import Brick.Types
@@ -8,9 +10,9 @@ import Brick.Widgets.Core
 import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
-import TUI.Service.Types (Fiat (..), Prices (..), RemoteData (..))
-import TUI.Types (TUIState (..), prices, selectedFiat)
-import TUI.Utils (emptyStr, loadingStr)
+import TUI.Service.Types (Amount (..), Bitcoin (..), Fiat (..), Price (..), Prices (..), RemoteData (..))
+import TUI.Types (TUIState (..), prices, selectedBitcoin, selectedFiat)
+import TUI.Utils (emptyStr, loadingStr, toBtc)
 
 drawPrice :: TUIState -> Widget ()
 drawPrice st =
@@ -23,26 +25,36 @@ drawPrice st =
               columnBorders False $
                 setDefaultColAlignment AlignLeft $
                   table
-                    [ [ padRight (Pad 10) $ withBold $ str "1 BTC",
+                    [ [ padRight (Pad 10) $ withBold $ btcStr,
                         padLeft (Pad 10) $ rdToStr rdPrices
                       ]
                     ]
     ]
   where
     rdPrices = st ^. prices
-
+    sFiat = st ^. selectedFiat
+    sBitcoin = st ^. selectedBitcoin
+    btcSelected = sBitcoin == BTC
+    sAmount :: Amount SATS
+    sAmount = Amount 1000
+    btcStr = str $ if btcSelected then "1 BTC" else show sAmount
     loadingAnimation = case rdPrices of
       Loading _ -> loadingStr
       _ -> emptyStr
 
-    priceStr = case st ^. selectedFiat of
-      EUR -> str . show . pEUR
-      USD -> str . show . pUSD
-      GBP -> str . show . pGBP
-      CAD -> str . show . pCAD
-      CHF -> str . show . pCHF
-      AUD -> str . show . pAUD
-      JPY -> str . show . pJPY
+    calcP :: Price a -> Price a
+    calcP p@(Price v) =
+      if btcSelected
+        then p
+        else Price (v * unAmount (toBtc sAmount))
+    priceStr = case sFiat of
+      EUR -> str . show . calcP . pEUR
+      USD -> str . show . calcP . pUSD
+      GBP -> str . show . calcP . pGBP
+      CAD -> str . show . calcP . pCAD
+      CHF -> str . show . calcP . pCHF
+      AUD -> str . show . calcP . pAUD
+      JPY -> str . show . calcP . pJPY
 
     rdToStr rd = case rd of
       NotAsked -> loadingStr
