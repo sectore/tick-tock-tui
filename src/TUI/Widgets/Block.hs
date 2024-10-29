@@ -29,7 +29,6 @@ drawBlock :: TUIState -> Widget ()
 drawBlock st =
   vBox
     [ hCenter $ padBottom (Pad 2) $ withBold $ str "Latest block " <+> loadingAnimation,
-      -- str $ show rdBlock,
       hCenter $
         renderTable $
           surroundingBorder False $
