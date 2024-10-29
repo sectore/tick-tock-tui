@@ -9,8 +9,9 @@ import Brick.Types
   )
 import Control.Concurrent.STM (TChan)
 import Control.Monad.Reader (ReaderT)
+import Data.Time.LocalTime (TimeZone)
 import Lens.Micro.TH (makeLenses)
-import TUI.Service.Types (ApiEvent, Bitcoin, FeesRD, Fiat, PricesRD)
+import TUI.Service.Types (ApiEvent, Bitcoin, BlockRD, FeesRD, Fiat, PricesRD)
 
 newtype AppEventEnv = AppEventEnv
   { outChan :: TChan ApiEvent
@@ -41,6 +42,7 @@ instance HasTickEvent TUIEvent where
 data TUIEvent
   = PriceUpdated PricesRD
   | FeesUpdated FeesRD
+  | BlockUpdated BlockRD
   | FPSTick
   deriving (Show, Eq)
 
@@ -48,10 +50,12 @@ data View = FeesView | PriceView | BlockView | ConverterView | DraftView
   deriving (Eq)
 
 data TUIState = TUIState
-  { _currentView :: View,
+  { _timeZone :: TimeZone,
+    _currentView :: View,
     _tick :: Int,
     _prices :: PricesRD,
     _fees :: FeesRD,
+    _block :: BlockRD,
     _lastFetchTime :: Int,
     _selectedFiat :: Fiat,
     _selectedBitcoin :: Bitcoin

@@ -24,24 +24,27 @@ fetchData url = do
         Left err -> return $ Left $ "JSON parsing error: " ++ err
         Right value -> return $ Right value
 
-fetchPrices :: String -> BChan TUIEvent -> IO ()
-fetchPrices url inCh = do
+fetchAndNotify ::
+  (A.FromJSON a) =>
+  (RemoteData String a -> TUIEvent) ->
+  String ->
+  BChan TUIEvent ->
+  IO ()
+fetchAndNotify toEvent url inCh = do
   -- TODO: Remove delay
   threadDelay 1_000_000
-  priceResult <- tryAll $ fetchData url
-  rd <- case priceResult of
+  result <- tryAll $ fetchData url
+  rd <- case result of
     Left e -> return $ Failure $ "Async error: " ++ show e
     Right (Left err) -> return $ Failure $ "HTTP/Parsing error: " ++ err
-    Right (Right pd) -> return $ Success pd
-  writeBChan inCh (PriceUpdated rd)
+    Right (Right v) -> return $ Success v
+  writeBChan inCh (toEvent rd)
+
+fetchPrices :: String -> BChan TUIEvent -> IO ()
+fetchPrices = fetchAndNotify PriceUpdated
 
 fetchFees :: String -> BChan TUIEvent -> IO ()
-fetchFees url inCh = do
-  -- TODO: Remove delay
-  threadDelay 1_000_000
-  feesResult <- tryAll $ fetchData url
-  rd <- case feesResult of
-    Left e -> return $ Failure $ "Async error: " ++ show e
-    Right (Left err) -> return $ Failure $ "HTTP/Parsing error: " ++ err
-    Right (Right pd) -> return $ Success pd
-  writeBChan inCh (FeesUpdated rd)
+fetchFees = fetchAndNotify FeesUpdated
+
+fetchBlock :: String -> BChan TUIEvent -> IO ()
+fetchBlock = fetchAndNotify BlockUpdated

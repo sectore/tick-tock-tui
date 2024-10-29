@@ -32,19 +32,20 @@ drawFees st =
                 setDefaultColAlignment AlignLeft $
                   table
                     [ [ col1Left (str "fast") <+> col1Right (str "~10min"),
-                        col2Left (rdToStr fast (st ^. fees)) <+> col1Right (str "sat/vB")
+                        col2Left (rdToStr fast rdFees) <+> col1Right (str "sat/vB")
                       ],
                       [ col1Left (str "medium") <+> col1Right (str "~30min"),
-                        col2Left (rdToStr medium (st ^. fees)) <+> col1Right (str "sat/vB")
+                        col2Left (rdToStr medium rdFees) <+> col1Right (str "sat/vB")
                       ],
                       [ col1Left (str "slow") <+> col1Right (str "~60min"),
-                        col2Left (rdToStr slow (st ^. fees)) <+> col1Right (str "sat/vB")
+                        col2Left (rdToStr slow rdFees) <+> col1Right (str "sat/vB")
                       ]
                     ]
     ]
   where
     rdFees = st ^. fees
     loadingAnimation = case rdFees of
+      NotAsked -> loadingStr
       Loading _ -> loadingStr
       _ -> emptyStr
     col1Left = withBold . padRight (Pad 1)

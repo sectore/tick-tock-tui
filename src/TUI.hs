@@ -14,6 +14,7 @@ import Control.Concurrent.STM.TChan (TChan)
 import Control.Monad (forever)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ReaderT (..))
+import Data.Time.LocalTime (getCurrentTimeZone)
 import TUI.Attr (tuiAttrMap)
 import TUI.Config (Config (..), loadConfig)
 import TUI.Events (appEvent, startEvent)
@@ -42,8 +43,23 @@ run = do
     case e of
       FetchFees -> M.fetchFees
       FetchPrices -> M.fetchPrices
+      FetchBlock -> M.fetchBlock
       FetchAllData -> M.fetchAllData
 
+  initialState <-
+    getCurrentTimeZone >>= \tz ->
+      pure
+        TUIState
+          { _timeZone = tz,
+            _currentView = BlockView,
+            _tick = 0,
+            _prices = NotAsked,
+            _fees = NotAsked,
+            _block = NotAsked,
+            _lastFetchTime = 0,
+            _selectedFiat = EUR,
+            _selectedBitcoin = BTC
+          }
   -- run TUI app
   _ <- customMainWithInterval interval (Just inCh) (theApp outCh) initialState
 
@@ -51,18 +67,6 @@ run = do
   killThread foreverId
   where
     interval = 1_000_000 `div` 60 -- 60 FPS
-    initialState :: TUIState
-    initialState =
-      TUIState
-        { _currentView = PriceView,
-          _tick = 0,
-          _prices = NotAsked,
-          _fees = NotAsked,
-          _lastFetchTime = 0,
-          _selectedFiat = EUR,
-          _selectedBitcoin = BTC
-        }
-
     theApp :: TChan ApiEvent -> App TUIState TUIEvent ()
     theApp outCh =
       App

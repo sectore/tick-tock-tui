@@ -17,7 +17,14 @@ fetchFees = do
   inCh <- asks envInChan
   liftIO $ API.fetchFees (baseUrl <> "/api/v1/fees/recommended") inCh
 
+fetchBlock :: ServiceM ()
+fetchBlock = do
+  baseUrl <- asks envMempoolUrl
+  inCh <- asks envInChan
+  liftIO $ API.fetchBlock (baseUrl <> "/api/v1/blocks") inCh
+
 fetchAllData :: ServiceM ()
 fetchAllData = do
   fetchPrices
   fetchFees
+  fetchBlock

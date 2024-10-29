@@ -5,6 +5,11 @@
 module TUI.Service.Types where
 
 import Data.Aeson
+import Data.Aeson.Types (Parser)
+import Data.Foldable (toList)
+import Data.Text (Text)
+import Data.Time.Clock (UTCTime)
+import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Text.Printf (printf)
 
 data Bitcoin = BTC | SATS
@@ -122,6 +127,49 @@ instance Show (Amount 'BTC) where
 instance Show (Amount 'SATS) where
   show = printf "%.0f sat" . unAmount
 
+data Block = Block
+  { time :: UTCTime,
+    height :: Int,
+    txs :: Int,
+    size :: Int,
+    poolName :: Text,
+    poolFees :: Amount SATS,
+    reward :: Amount SATS
+  }
+  deriving (Show, Eq)
+
+type BlockRD = RemoteData String Block
+
+instance FromJSON Block where
+  parseJSON = withArray "Blocks" $ \arr ->
+    case toList arr of
+      (firstBlock : _) ->
+        withObject
+          "Block"
+          ( \o -> do
+              timestamp <- o .: "timestamp" :: Parser Integer
+              height <- o .: "height"
+              size <- o .: "size"
+              txs <- o .: "tx_count"
+              extras <- o .: "extras"
+              fees <- extras .: "expectedFees"
+              pool <- extras .: "pool"
+              name <- pool .: "name"
+              reward <- extras .: "reward"
+              pure
+                Block
+                  { height = height,
+                    txs = txs,
+                    size = size,
+                    time = posixSecondsToUTCTime (fromIntegral timestamp),
+                    poolName = name,
+                    poolFees = Amount fees,
+                    reward = Amount reward
+                  }
+          )
+          firstBlock
+      [] -> fail "Empty array of blocks"
+
 data RemoteData e a
   = NotAsked
   | Loading (Maybe a)
@@ -133,5 +181,9 @@ isLoading :: RemoteData e a -> Bool
 isLoading (Loading _) = True
 isLoading _ = False
 
-data ApiEvent = FetchAllData | FetchPrices | FetchFees
+data ApiEvent
+  = FetchAllData
+  | FetchPrices
+  | FetchFees
+  | FetchBlock
   deriving (Eq, Show)
