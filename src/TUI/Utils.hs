@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+
 module TUI.Utils where
 
 import Brick.BChan
@@ -49,6 +51,20 @@ loadingStr = str loadingString
 
 emptyStr :: forall n. Widget n
 emptyStr = str " "
+
+toBtc :: Amount SATS -> Amount BTC
+toBtc (Amount a) = Amount $ a / 100_000_000
+
+toSats :: Amount BTC -> Amount SATS
+toSats (Amount a) = Amount $ a * 100000000
+
+-- helper to convert Fiat to BTC
+fiatToBtc :: forall (a :: Fiat). Amount a -> Price a -> Amount BTC
+fiatToBtc (Amount a) (Price p) = Amount $ a / p
+
+-- helper to convert Fiat to Sats
+fiatToSats :: forall (a :: Fiat). Amount a -> Price a -> Amount SATS
+fiatToSats a p = toSats $ fiatToBtc a p
 
 getPriceByFiat :: Fiat -> Prices -> WPrice
 getPriceByFiat fiat p = case fiat of

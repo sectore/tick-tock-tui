@@ -141,58 +141,6 @@ instance Show (Amount 'BTC) where
 instance Show (Amount 'SATS) where
   show = printf "%.0f sat" . unAmount
 
-class FiatConversion (f :: Fiat) where
-  fiatToBtc :: Amount f -> Price f -> Amount BTC
-  fiatToSats :: Amount f -> Price f -> Amount SATS
-
-class BitcoinConversion (a :: Bitcoin) where
-  toBtc :: Amount a -> Amount BTC
-  toSats :: Amount a -> Amount SATS
-
-instance BitcoinConversion BTC where
-  toBtc = id
-  toSats (Amount a) = Amount $ a * 100000000
-
-instance BitcoinConversion SATS where
-  toBtc (Amount a) = Amount $ a / 100_000_000
-  toSats = id
-
--- helper to convert Fiat to BTC
-fiatToBtc' :: Amount a -> Price a -> Amount BTC
-fiatToBtc' (Amount a) (Price p) = Amount $ a / p
-
--- helper to convert Fiat to Sats
-fiatToSats' :: forall (a :: Fiat). (FiatConversion a) => Amount a -> Price a -> Amount SATS
-fiatToSats' a p = toSats $ fiatToBtc a p
-
-instance FiatConversion FiatEUR where
-  fiatToBtc = fiatToBtc'
-  fiatToSats = fiatToSats'
-
-instance FiatConversion FiatUSD where
-  fiatToBtc = fiatToBtc'
-  fiatToSats = fiatToSats'
-
-instance FiatConversion FiatGBP where
-  fiatToBtc = fiatToBtc'
-  fiatToSats = fiatToSats'
-
-instance FiatConversion FiatCAD where
-  fiatToBtc = fiatToBtc'
-  fiatToSats = fiatToSats'
-
-instance FiatConversion FiatCHF where
-  fiatToBtc = fiatToBtc'
-  fiatToSats = fiatToSats'
-
-instance FiatConversion FiatAUD where
-  fiatToBtc = fiatToBtc'
-  fiatToSats = fiatToSats'
-
-instance FiatConversion FiatJPY where
-  fiatToBtc = fiatToBtc'
-  fiatToSats = fiatToSats'
-
 data RemoteData e a
   = NotAsked
   | Loading (Maybe a)
