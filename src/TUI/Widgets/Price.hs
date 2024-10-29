@@ -8,7 +8,7 @@ import Brick.Widgets.Core
 import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
-import TUI.Service.Types (Fiat (..), Prices (..), PricesRD, RemoteData (..))
+import TUI.Service.Types (Fiat (..), Prices (..), RemoteData (..))
 import TUI.Types (TUIState (..), prices, selectedFiat)
 import TUI.Utils (emptyStr, loadingStr)
 
@@ -36,13 +36,13 @@ drawPrice st =
       _ -> emptyStr
 
     priceStr = case st ^. selectedFiat of
-      FiatEUR -> str . show . pEUR
-      FiatUSD -> str . show . pUSD
-      FiatGBP -> str . show . pGBP
-      FiatCAD -> str . show . pCAD
-      FiatCHF -> str . show . pCHF
-      FiatAUD -> str . show . pAUD
-      FiatJPY -> str . show . pJPY
+      EUR -> str . show . pEUR
+      USD -> str . show . pUSD
+      GBP -> str . show . pGBP
+      CAD -> str . show . pCAD
+      CHF -> str . show . pCHF
+      AUD -> str . show . pAUD
+      JPY -> str . show . pJPY
 
     rdToStr rd = case rd of
       NotAsked -> loadingStr

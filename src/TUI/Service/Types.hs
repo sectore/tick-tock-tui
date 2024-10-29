@@ -10,7 +10,7 @@ import Text.Printf (printf)
 data Bitcoin = BTC | SATS
   deriving (Eq)
 
-data Fiat = FiatEUR | FiatUSD | FiatGBP | FiatCAD | FiatCHF | FiatAUD | FiatJPY
+data Fiat = EUR | USD | GBP | CAD | CHF | AUD | JPY
   deriving (Eq, Enum, Bounded)
 
 newtype Price (a :: Fiat) = Price {unPrice :: Float}
@@ -21,43 +21,43 @@ showFiat fiat = printf (fiatSymbol fiat <> "%.0f")
 
 fiatSymbol :: Fiat -> String
 fiatSymbol = \case
-  FiatEUR -> "€"
-  FiatUSD -> "$"
-  FiatGBP -> "£"
-  FiatCAD -> "C$"
-  FiatCHF -> "CHF"
-  FiatAUD -> "A$"
-  FiatJPY -> "¥"
+  EUR -> "€"
+  USD -> "$"
+  GBP -> "£"
+  CAD -> "C$"
+  CHF -> "CHF"
+  AUD -> "A$"
+  JPY -> "¥"
 
-instance Show (Price 'FiatEUR) where
-  show = showFiat FiatEUR . unPrice
+instance Show (Price 'EUR) where
+  show = showFiat EUR . unPrice
 
-instance Show (Price 'FiatUSD) where
-  show = showFiat FiatUSD . unPrice
+instance Show (Price 'USD) where
+  show = showFiat USD . unPrice
 
-instance Show (Price 'FiatGBP) where
-  show = showFiat FiatGBP . unPrice
+instance Show (Price 'GBP) where
+  show = showFiat GBP . unPrice
 
-instance Show (Price 'FiatCAD) where
-  show = showFiat FiatCAD . unPrice
+instance Show (Price 'CAD) where
+  show = showFiat CAD . unPrice
 
-instance Show (Price 'FiatCHF) where
-  show = showFiat FiatCHF . unPrice
+instance Show (Price 'CHF) where
+  show = showFiat CHF . unPrice
 
-instance Show (Price 'FiatAUD) where
-  show = showFiat FiatAUD . unPrice
+instance Show (Price 'AUD) where
+  show = showFiat AUD . unPrice
 
-instance Show (Price 'FiatJPY) where
-  show = showFiat FiatJPY . unPrice
+instance Show (Price 'JPY) where
+  show = showFiat JPY . unPrice
 
 data Prices = Prices
-  { pEUR :: Price FiatEUR,
-    pUSD :: Price FiatUSD,
-    pGBP :: Price FiatGBP,
-    pCAD :: Price FiatCAD,
-    pCHF :: Price FiatCHF,
-    pAUD :: Price FiatAUD,
-    pJPY :: Price FiatJPY
+  { pEUR :: Price EUR,
+    pUSD :: Price USD,
+    pGBP :: Price GBP,
+    pCAD :: Price CAD,
+    pCHF :: Price CHF,
+    pAUD :: Price AUD,
+    pJPY :: Price JPY
   }
   deriving (Show, Eq)
 
@@ -74,12 +74,6 @@ instance FromJSON Prices where
   parseJSON v = fail $ "Could not parse PriceData from " ++ show v
 
 type PricesRD = RemoteData String Prices
-
-class GetPrice (f :: Fiat) where
-  getPrice :: Fiat -> Prices -> Price f
-
-instance GetPrice FiatEUR where
-  getPrice _ = pEUR
 
 data Fees = Fees
   { fast :: Int,
@@ -98,29 +92,29 @@ instance FromJSON Fees where
       <*> o .: "hourFee"
   parseJSON v = fail $ "Could not parse Fees from " ++ show v
 
-newtype Amount (a :: k) = Amount {unAmount :: Float}
+newtype Amount a = Amount {unAmount :: Float}
   deriving (Eq)
 
-instance Show (Amount 'FiatUSD) where
-  show = showFiat FiatUSD . unAmount
+instance Show (Amount 'USD) where
+  show = showFiat USD . unAmount
 
-instance Show (Amount 'FiatEUR) where
-  show = showFiat FiatEUR . unAmount
+instance Show (Amount 'EUR) where
+  show = showFiat EUR . unAmount
 
-instance Show (Amount 'FiatGBP) where
-  show = showFiat FiatGBP . unAmount
+instance Show (Amount 'GBP) where
+  show = showFiat GBP . unAmount
 
-instance Show (Amount 'FiatCHF) where
-  show = showFiat FiatCHF . unAmount
+instance Show (Amount 'CHF) where
+  show = showFiat CHF . unAmount
 
-instance Show (Amount 'FiatCAD) where
-  show = showFiat FiatCAD . unAmount
+instance Show (Amount 'CAD) where
+  show = showFiat CAD . unAmount
 
-instance Show (Amount 'FiatAUD) where
-  show = showFiat FiatAUD . unAmount
+instance Show (Amount 'AUD) where
+  show = showFiat AUD . unAmount
 
-instance Show (Amount 'FiatJPY) where
-  show = showFiat FiatJPY . unAmount
+instance Show (Amount 'JPY) where
+  show = showFiat JPY . unAmount
 
 instance Show (Amount 'BTC) where
   show = printf "%.8f ₿" . unAmount
