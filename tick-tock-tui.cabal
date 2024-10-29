@@ -49,6 +49,7 @@ library
                     ,   text
                     ,   transformers
                     ,   stm
+                    ,   time
                     ,   vty
                     ,   vty-crossplatform
     hs-source-dirs: src

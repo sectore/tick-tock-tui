@@ -39,9 +39,9 @@ drawFooter v =
           | (v', label) <- viewLabels
         ]
     actionLabels = case v of
-      FeesView -> ["[r] Reload fees", "[t] Toggle value", "[a] Toggle animation"]
+      FeesView -> ["[r] Reload fees", "[t] Toggle value"]
       PriceView -> ["[r] Reload price", "[t] Toggle BTC|sats", "[s] Switch fiat"]
-      BlockView -> ["[r] Reload block data", "[a] Toggle animation"]
-      ConverterView -> ["[r] Reload price", "[t] Toggle USD|EUR", "[a] Toggle animation"]
+      BlockView -> ["[r] Reload block"]
+      ConverterView -> ["[r] Reload price", "[t] Toggle BTC|sats", "[s] Switch fiat"]
       DraftView -> [""]
     actions = foldWithSpace $ str <$> actionLabels

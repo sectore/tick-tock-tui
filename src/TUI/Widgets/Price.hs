@@ -39,6 +39,7 @@ drawPrice st =
     sAmount = Amount 1000
     btcStr = str $ if btcSelected then "1 BTC" else show sAmount
     loadingAnimation = case rdPrices of
+      NotAsked -> loadingStr
       Loading _ -> loadingStr
       _ -> emptyStr
 

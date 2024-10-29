@@ -28,7 +28,7 @@ sendApiEvent e = do
   liftIO $ STM.atomically $ STM.writeTChan ch e
 
 startEvent :: TChan ApiEvent -> EventM () TUIState ()
-startEvent outCh = do
+startEvent outCh =
   -- fetch all data at start
   runReaderT (sendApiEvent FetchAllData) (AppEventEnv outCh)
 
@@ -81,6 +81,10 @@ handleKeyEvent e = do
         setLoading prices
         -- fetch prices
         sendApiEvent FetchPrices
+      BlockView -> do
+        setLoading block
+        -- fetch block data
+        sendApiEvent FetchBlock
       _ -> return ()
     V.EvKey V.KEsc [] -> lift halt
     V.EvKey (V.KChar 'q') [] -> lift halt
@@ -110,4 +114,6 @@ handleAppEvent e = do
       prices .= p
     FeesUpdated f -> do
       fees .= f
+    BlockUpdated b -> do
+      block .= b
     _ -> return ()
