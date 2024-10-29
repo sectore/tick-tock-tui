@@ -50,19 +50,6 @@ instance Show (Price 'FiatAUD) where
 instance Show (Price 'FiatJPY) where
   show = showFiat FiatJPY . unPrice
 
--- Sometimes `Fiat` is used as type-level value (e.g. `Price (a :: Fiat)` in  `Service.Types`),
--- but also as runtime value (e.g. `selectedFiat` in `TUIState`)
--- Both can't be used in a function w/o some extra effort (via TypeFamilies etc.)
--- That's a simple GADT approach might help here
-data WPrice where
-  WPrice :: forall (f :: Fiat). (Show (Price f)) => Price f -> WPrice
-
-instance Show WPrice where
-  show (WPrice p) = show p
-
-unWPrice :: WPrice -> Float
-unWPrice (WPrice p) = unPrice p
-
 data Prices = Prices
   { pEUR :: Price FiatEUR,
     pUSD :: Price FiatUSD,

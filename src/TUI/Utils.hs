@@ -66,16 +66,6 @@ fiatToBtc (Amount a) (Price p) = Amount $ a / p
 fiatToSats :: forall (a :: Fiat). Amount a -> Price a -> Amount SATS
 fiatToSats a p = toSats $ fiatToBtc a p
 
-getPriceByFiat :: Fiat -> Prices -> WPrice
-getPriceByFiat fiat p = case fiat of
-  FiatEUR -> WPrice (pEUR p)
-  FiatUSD -> WPrice (pUSD p)
-  FiatGBP -> WPrice (pGBP p)
-  FiatCAD -> WPrice (pCAD p)
-  FiatCHF -> WPrice (pCHF p)
-  FiatAUD -> WPrice (pAUD p)
-  FiatJPY -> WPrice (pJPY p)
-
 type RgbColor = (Double, Double, Double)
 
 type RgbaColor = (Double, Double, Double, Double)

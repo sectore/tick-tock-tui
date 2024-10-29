@@ -71,6 +71,8 @@ test-suite tick-tock-tui-test
     import:           warnings
     default-language: GHC2021
     other-modules:      TUI.Service.Types
+                    ,   TUI.Types
+                    ,   TUI.Utils
     -- other-extensions:
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test, src
