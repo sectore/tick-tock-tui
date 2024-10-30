@@ -37,27 +37,27 @@ drawBlock st =
                 setDefaultColAlignment AlignLeft $
                   table
                     [ -- block data
-                      [ col1Left (str "Height"),
-                        col2Left (rdToStr height show rdBlock)
+                      [ col1 (str "Height"),
+                        col2 (rdToStr height show rdBlock)
                       ],
-                      [ col1Left (str "Timestamp"),
-                        col2Left (rdToStr time formatLocalTime rdBlock)
+                      [ col1 (str "Timestamp"),
+                        col2 (rdToStr time formatLocalTime rdBlock)
                       ],
-                      [ col1Left (str "Size"),
-                        col2Left (rdToStr size formatSize rdBlock)
+                      [ col1 (str "Size"),
+                        col2 (rdToStr size formatSize rdBlock)
                       ],
-                      [ col1Left (str "Txs"),
-                        col2Left (rdToStr txs show rdBlock)
+                      [ col1 (str "Txs"),
+                        col2 (rdToStr txs show rdBlock)
                       ],
                       -- miner data
-                      [ padTop (Pad 2) $ col1Left (str "Miner"),
-                        padTop (Pad 2) $ col2Left (rdToStr poolName unpack rdBlock)
+                      [ padTop (Pad 2) $ col1 (str "Miner"),
+                        padTop (Pad 2) $ col2 (rdToStr poolName unpack rdBlock)
                       ],
-                      [ col1Left (str "Total fees"),
-                        col2Left (rdToStr poolFees (show . toBtc) rdBlock)
+                      [ col1 (str "Fees"),
+                        col2 (rdToStr poolFees (show . toBtc) rdBlock)
                       ],
-                      [ col1Left (str "Reward"),
-                        col2Left (rdToStr reward (show . toBtc) rdBlock)
+                      [ col1 (str "Reward"),
+                        col2 (rdToStr reward (show . toBtc) rdBlock)
                       ]
                     ]
     ]
@@ -67,9 +67,9 @@ drawBlock st =
       NotAsked -> loadingStr
       Loading _ -> loadingStr
       _ -> emptyStr
-    col1Left = padRight (Pad 1)
-    col2Left = padLeft (Pad 10) . padRight (Pad 1)
-    formatLocalTime = formatTime defaultTimeLocale "%H:%M:%S" . utcToLocalTime (st ^. timeZone)
+    col1 = withBold . padRight (Pad 1)
+    col2 = padLeft (Pad 10) . padRight (Pad 1)
+    formatLocalTime = formatTime defaultTimeLocale "%d-%m-%y %H:%M:%S" . utcToLocalTime (st ^. timeZone)
     -- Format block `size` using decimal (SI) system (similar to Mempool.com)
     -- Others (e.g. Blockstream.com) might use binary (1024-based) based formats
     formatSize bytes
@@ -81,4 +81,4 @@ drawBlock st =
       NotAsked -> loadingStr
       Loading ma -> maybe loadingStr (str . show' . l) ma
       Failure _ -> withError $ str "error"
-      Success a -> withBold . str $ show' $ l a
+      Success a -> str $ show' $ l a

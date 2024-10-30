@@ -52,11 +52,11 @@ data View = FeesView | PriceView | BlockView | ConverterView | DraftView
 data TUIState = TUIState
   { _timeZone :: TimeZone,
     _currentView :: View,
-    _tick :: Int,
+    _fetchTick :: Int,
+    _lastFetchTick :: Int,
     _prices :: PricesRD,
     _fees :: FeesRD,
     _block :: BlockRD,
-    _lastFetchTime :: Int,
     _selectedFiat :: Fiat,
     _selectedBitcoin :: Bitcoin
   }

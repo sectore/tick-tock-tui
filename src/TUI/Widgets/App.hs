@@ -28,5 +28,5 @@ drawApp st = [ui]
       vBox
         [ str "header",
           hCenter $ vCenter main,
-          drawFooter cv
+          drawFooter st
         ]

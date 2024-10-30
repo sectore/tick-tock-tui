@@ -21,6 +21,7 @@ import Lens.Micro (Lens')
 import Lens.Micro.Mtl
 import TUI.Service.Types (ApiEvent (..), Bitcoin (..), RemoteData (..))
 import TUI.Types
+import TUI.Utils (maxFetchTick)
 
 sendApiEvent :: ApiEvent -> AppEventM ()
 sendApiEvent e = do
@@ -94,22 +95,20 @@ handleAppEvent :: TUIEvent -> AppEventM ()
 handleAppEvent e = do
   case e of
     ev | ev == tickEvent -> do
-      -- count `tick` by 1, but don't count it endless.
-      -- Set it back to 0 if `tick` > 216000 (1h at 60 FPS)
-      tick %= (`mod` 216001) . (+ 1)
-      -- tick %= (+ 1)
-      currentTick <- use tick
-      lastFetch <- use lastFetchTime
-      -- 10800 ticks = 3min seconds at 60 FPS
-      when (currentTick - lastFetch >= 10800) $ do
-        -- set `Loading` price
-        setLoading prices
-        -- set `Loading` fees
-        setLoading fees
+      currentF <- use fetchTick
+      lastF <- use lastFetchTick
+      -- trigger reload data
+      when (currentF - lastF >= maxFetchTick) $ do
         -- reset last fetch time
-        lastFetchTime .= currentTick
+        lastFetchTick .= 0
+        -- update loading states
+        setLoading prices
+        setLoading fees
+        setLoading block
         -- load all data
         sendApiEvent FetchAllData
+
+      fetchTick %= (`mod` (maxFetchTick + 1)) . (+ 1)
     PriceUpdated p -> do
       prices .= p
     FeesUpdated f -> do
