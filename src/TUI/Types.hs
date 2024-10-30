@@ -46,12 +46,13 @@ data TUIEvent
   | FPSTick
   deriving (Show, Eq)
 
-data View = FeesView | PriceView | BlockView | ConverterView | DraftView
+data View = FeesView | PriceView | BlockView | ConverterView
   deriving (Eq)
 
 data TUIState = TUIState
   { _timeZone :: TimeZone,
     _currentView :: View,
+    _animate :: Bool,
     _tick :: Int,
     _fetchTick :: Int,
     _lastFetchTick :: Int,

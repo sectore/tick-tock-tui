@@ -54,11 +54,11 @@ handleKeyEvent :: V.Event -> AppEventM ()
 handleKeyEvent e = do
   currentView' <- use currentView
   case e of
-    V.EvKey (V.KChar '1') [] -> currentView .= FeesView
-    V.EvKey (V.KChar '2') [] -> currentView .= PriceView
+    V.EvKey (V.KChar '1') [] -> currentView .= PriceView
+    V.EvKey (V.KChar '2') [] -> currentView .= FeesView
     V.EvKey (V.KChar '3') [] -> currentView .= BlockView
     V.EvKey (V.KChar '4') [] -> currentView .= ConverterView
-    V.EvKey (V.KChar '5') [] -> currentView .= DraftView
+    V.EvKey (V.KChar 'a') [] -> animate %= not
     V.EvKey (V.KChar 's') [] ->
       when (currentView' == PriceView) $
         selectedFiat %= next

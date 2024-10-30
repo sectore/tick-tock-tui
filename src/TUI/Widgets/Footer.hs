@@ -27,17 +27,17 @@ drawFooter st =
         columnBorders False $
           setDefaultColAlignment AlignLeft $
             table
-              [ [col1 $ str "Actions", actions],
-                [col1 $ str "Screens", views],
-                [col1 $ str "Next reload", progress <+> tickTime]
+              [ [col1 $ str "Screens", views],
+                [col1 $ str "Actions", actions],
+                [col1 $ str "Auto reload", progress <+> tickTime]
               ]
   where
     v = st ^. currentView
     col1 = padRight (Pad 6) . withBold
     foldWithSpace = foldl1 (\x y -> x <+> (padLeft $ Pad 3) y)
     viewLabels =
-      [ (FeesView, "[1] Fees"),
-        (PriceView, "[2] Price"),
+      [ (PriceView, "[1] Price"),
+        (FeesView, "[2] Fees"),
         (BlockView, "[3] Block"),
         (ConverterView, "[4] Converter")
       ]
@@ -51,11 +51,10 @@ drawFooter st =
           | (v', label) <- viewLabels
         ]
     actionLabels = case v of
-      FeesView -> ["[r] Reload fees", "[t] Toggle value"]
-      PriceView -> ["[r] Reload price", "[t] Toggle BTC|sats", "[s] Switch fiat"]
+      FeesView -> ["[r] Reload fees", "[t] Toggle value, [a] Toggle animation"]
+      PriceView -> ["[r] Reload price", "[t] Toggle B|sats", "[s] Switch fiat, [a] Toggle animation"]
       BlockView -> ["[r] Reload block"]
-      ConverterView -> ["[r] Reload price", "[t] Toggle BTC|sats", "[s] Switch fiat"]
-      DraftView -> [""]
+      ConverterView -> ["[r] Reload data", "[t] Toggle B|sats", "[s] Switch fiat, [a] Toggle animation"]
     actions = foldWithSpace $ str <$> actionLabels
     remainingTick = maxFetchTick - (st ^. fetchTick - st ^. lastFetchTick)
     percent :: Float

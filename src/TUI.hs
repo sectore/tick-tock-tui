@@ -51,14 +51,15 @@ run = do
       pure
         TUIState
           { _timeZone = tz,
-            _currentView = BlockView,
+            _currentView = PriceView,
+            _animate = True,
             _tick = 0,
             _fetchTick = 0,
             _lastFetchTick = 0,
             _prices = NotAsked,
             _fees = NotAsked,
             _block = NotAsked,
-            _selectedFiat = EUR,
+            _selectedFiat = USD,
             _selectedBitcoin = BTC
           }
   -- run TUI app

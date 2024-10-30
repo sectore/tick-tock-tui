@@ -31,9 +31,9 @@ library
                     ,   TUI.Widgets.App
                     ,   TUI.Widgets.Block
                     ,   TUI.Widgets.Converter
-                    ,   TUI.Widgets.Draft
                     ,   TUI.Widgets.Fees
                     ,   TUI.Widgets.Footer
+                    ,   TUI.Widgets.Header
                     ,   TUI.Widgets.Loader
                     ,   TUI.Widgets.Price
     -- other-extensions:

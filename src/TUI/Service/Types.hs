@@ -125,7 +125,7 @@ instance Show (Amount 'BTC) where
   show = printf "%.8f ₿" . unAmount
 
 instance Show (Amount 'SATS) where
-  show = printf "%.0f sat" . unAmount
+  show = printf "%.0f sats" . unAmount
 
 data Block = Block
   { time :: UTCTime,

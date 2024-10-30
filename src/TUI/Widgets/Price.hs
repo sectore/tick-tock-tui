@@ -38,7 +38,7 @@ drawPrice st =
     btcSelected = sBitcoin == BTC
     sAmount :: Amount SATS
     sAmount = Amount 1000
-    btcStr = str $ if btcSelected then "1 BTC" else show sAmount
+    btcStr = str $ if btcSelected then "1 B" else show sAmount
     loadingAnimation =
       let spinner = drawSpinner (st ^. tick)
        in case rdPrices of

@@ -9,9 +9,9 @@ import Lens.Micro ((^.))
 import TUI.Types
 import TUI.Widgets.Block (drawBlock)
 import TUI.Widgets.Converter (drawConverter)
-import TUI.Widgets.Draft (drawDraft)
 import TUI.Widgets.Fees (drawFees)
 import TUI.Widgets.Footer (drawFooter)
+import TUI.Widgets.Header (drawHeader)
 import TUI.Widgets.Price (drawPrice)
 
 drawApp :: TUIState -> [Widget ()]
@@ -23,10 +23,9 @@ drawApp st = [ui]
       PriceView -> drawPrice st
       BlockView -> drawBlock st
       ConverterView -> drawConverter st
-      DraftView -> drawDraft st
     ui =
       vBox
-        [ str "header",
+        [ drawHeader st,
           hCenter $ vCenter main,
           drawFooter st
         ]
