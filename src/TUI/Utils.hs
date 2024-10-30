@@ -22,7 +22,7 @@ fps :: Int
 fps = 60
 
 maxFetchTick :: Int
-maxFetchTick = 10 * fps
+maxFetchTick = 3 * 60 * fps -- 3min
 
 -- Creates a Brick application by providing an `TickEvent`
 -- which is sent to the Brick application by a custom defined time interval

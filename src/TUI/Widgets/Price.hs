@@ -11,8 +11,9 @@ import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Amount (..), Bitcoin (..), Fiat (..), Price (..), Prices (..), RemoteData (..))
-import TUI.Types (TUIState (..), prices, selectedBitcoin, selectedFiat)
+import TUI.Types (TUIState (..), prices, selectedBitcoin, selectedFiat, tick)
 import TUI.Utils (emptyStr, loadingStr, toBtc)
+import TUI.Widgets.Loader (drawSpinner)
 
 drawPrice :: TUIState -> Widget ()
 drawPrice st =
@@ -38,11 +39,12 @@ drawPrice st =
     sAmount :: Amount SATS
     sAmount = Amount 1000
     btcStr = str $ if btcSelected then "1 BTC" else show sAmount
-    loadingAnimation = case rdPrices of
-      NotAsked -> loadingStr
-      Loading _ -> loadingStr
-      _ -> emptyStr
-
+    loadingAnimation =
+      let spinner = drawSpinner (st ^. tick)
+       in case rdPrices of
+            NotAsked -> spinner
+            Loading _ -> spinner
+            _ -> emptyStr
     calcP :: Price a -> Price a
     calcP p@(Price v) =
       if btcSelected

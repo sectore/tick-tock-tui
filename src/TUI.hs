@@ -52,6 +52,7 @@ run = do
         TUIState
           { _timeZone = tz,
             _currentView = BlockView,
+            _tick = 0,
             _fetchTick = 0,
             _lastFetchTick = 0,
             _prices = NotAsked,

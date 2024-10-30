@@ -17,8 +17,9 @@ import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Fees (..), FeesRD, RemoteData (..))
-import TUI.Types (TUIState (..), fees)
+import TUI.Types (TUIState (..), fees, tick)
 import TUI.Utils (emptyStr, loadingStr)
+import TUI.Widgets.Loader (drawSpinner)
 
 drawFees :: TUIState -> Widget ()
 drawFees st =
@@ -44,10 +45,12 @@ drawFees st =
     ]
   where
     rdFees = st ^. fees
-    loadingAnimation = case rdFees of
-      NotAsked -> loadingStr
-      Loading _ -> loadingStr
-      _ -> emptyStr
+    loadingAnimation =
+      let spinner = drawSpinner (st ^. tick)
+       in case rdFees of
+            NotAsked -> spinner
+            Loading _ -> spinner
+            _ -> emptyStr
     col1Left = withBold . padRight (Pad 1)
     col1Right = padRight (Pad 10)
     col2Left = padLeft (Pad 10) . padRight (Pad 1)

@@ -75,14 +75,20 @@ handleKeyEvent e = do
           | otherwise = BTC
     V.EvKey (V.KChar 'r') [] -> case currentView' of
       FeesView -> do
+        fetchTick .= 0
+        lastFetchTick .= 0
         setLoading fees
         -- fetch fees
         sendApiEvent FetchFees
       PriceView -> do
+        fetchTick .= 0
+        lastFetchTick .= 0
         setLoading prices
         -- fetch prices
         sendApiEvent FetchPrices
       BlockView -> do
+        fetchTick .= 0
+        lastFetchTick .= 0
         setLoading block
         -- fetch block data
         sendApiEvent FetchBlock
@@ -95,6 +101,10 @@ handleAppEvent :: TUIEvent -> AppEventM ()
 handleAppEvent e = do
   case e of
     ev | ev == tickEvent -> do
+      -- don't count `tick` endlessly, but set it back to 0 if > 216000 (1h at 60 FPS)
+      -- just to save memory (not sure if it makes really sense ...)
+      tick %= (`mod` 216001) . (+ 1)
+
       currentF <- use fetchTick
       lastF <- use lastFetchTick
       -- trigger reload data

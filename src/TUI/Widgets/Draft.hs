@@ -10,7 +10,7 @@ import Brick.Widgets.Core
   )
 import Data.Text (pack, toUpper, unpack)
 import Lens.Micro ((^.))
-import TUI.Types (TUIState, tick)
+import TUI.Types (TUIState)
 
 -- eighthBlocks :: (Eq a, Num a, Ord a) => a -> Char
 -- eighthBlocks n
@@ -72,23 +72,24 @@ clock :: [Char]
 clock = ['🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛']
 
 drawDraft :: TUIState -> Widget ()
-drawDraft st =
+drawDraft _ =
   vBox
-    [ str "Draft",
-      a
+    [ str "Draft"
+    -- a
     ]
-  where
-    t = st ^. tick `div` 5
-    tsl = st ^. tick `div` 40
-    sl = mod tsl $ length slogan
-    b :: Int = mod t $ length blocks
-    bb :: Int = mod t $ length bar
-    s :: Int = mod t $ length spinner
-    c = mod tsl $ length clock
-    a =
-      str ("tick: " <> show (st ^. tick))
-        <=> str ("" <> show b)
-        <=> str ("" <> [spinner !! s])
-        <=> str ("" <> [blocks !! b])
-        <=> str (bar !! bb)
-        <=> str ([clock !! c] <> " " <> (unpack . toUpper . pack $ slogan !! sl))
+
+-- where
+--   t = st ^. tick `div` 5
+--   tsl = st ^. tick `div` 40
+--   sl = mod tsl $ length slogan
+--   b :: Int = mod t $ length blocks
+--   bb :: Int = mod t $ length bar
+--   s :: Int = mod t $ length spinner
+--   c = mod tsl $ length clock
+--   a =
+--     str ("tick: " <> show (st ^. tick))
+--       <=> str ("" <> show b)
+--       <=> str ("" <> [spinner !! s])
+--       <=> str ("" <> [blocks !! b])
+--       <=> str (bar !! bb)
+--       <=> str ([clock !! c] <> " " <> (unpack . toUpper . pack $ slogan !! sl))

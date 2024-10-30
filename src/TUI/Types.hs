@@ -52,6 +52,7 @@ data View = FeesView | PriceView | BlockView | ConverterView | DraftView
 data TUIState = TUIState
   { _timeZone :: TimeZone,
     _currentView :: View,
+    _tick :: Int,
     _fetchTick :: Int,
     _lastFetchTick :: Int,
     _prices :: PricesRD,
