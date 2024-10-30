@@ -21,6 +21,7 @@ import Lens.Micro (Lens')
 import Lens.Micro.Mtl
 import TUI.Service.Types (ApiEvent (..), Bitcoin (..), RemoteData (..))
 import TUI.Types
+import TUI.Utils (maxFetchTick)
 
 sendApiEvent :: ApiEvent -> AppEventM ()
 sendApiEvent e = do
@@ -53,11 +54,11 @@ handleKeyEvent :: V.Event -> AppEventM ()
 handleKeyEvent e = do
   currentView' <- use currentView
   case e of
-    V.EvKey (V.KChar '1') [] -> currentView .= FeesView
-    V.EvKey (V.KChar '2') [] -> currentView .= PriceView
+    V.EvKey (V.KChar '1') [] -> currentView .= PriceView
+    V.EvKey (V.KChar '2') [] -> currentView .= FeesView
     V.EvKey (V.KChar '3') [] -> currentView .= BlockView
     V.EvKey (V.KChar '4') [] -> currentView .= ConverterView
-    V.EvKey (V.KChar '5') [] -> currentView .= DraftView
+    V.EvKey (V.KChar 'a') [] -> animate %= not
     V.EvKey (V.KChar 's') [] ->
       when (currentView' == PriceView) $
         selectedFiat %= next
@@ -74,14 +75,20 @@ handleKeyEvent e = do
           | otherwise = BTC
     V.EvKey (V.KChar 'r') [] -> case currentView' of
       FeesView -> do
+        fetchTick .= 0
+        lastFetchTick .= 0
         setLoading fees
         -- fetch fees
         sendApiEvent FetchFees
       PriceView -> do
+        fetchTick .= 0
+        lastFetchTick .= 0
         setLoading prices
         -- fetch prices
         sendApiEvent FetchPrices
       BlockView -> do
+        fetchTick .= 0
+        lastFetchTick .= 0
         setLoading block
         -- fetch block data
         sendApiEvent FetchBlock
@@ -94,22 +101,24 @@ handleAppEvent :: TUIEvent -> AppEventM ()
 handleAppEvent e = do
   case e of
     ev | ev == tickEvent -> do
-      -- count `tick` by 1, but don't count it endless.
-      -- Set it back to 0 if `tick` > 216000 (1h at 60 FPS)
+      -- don't count `tick` endlessly, but set it back to 0 if > 216000 (1h at 60 FPS)
+      -- just to save memory (not sure if it makes really sense ...)
       tick %= (`mod` 216001) . (+ 1)
-      -- tick %= (+ 1)
-      currentTick <- use tick
-      lastFetch <- use lastFetchTime
-      -- 10800 ticks = 3min seconds at 60 FPS
-      when (currentTick - lastFetch >= 10800) $ do
-        -- set `Loading` price
-        setLoading prices
-        -- set `Loading` fees
-        setLoading fees
+
+      currentF <- use fetchTick
+      lastF <- use lastFetchTick
+      -- trigger reload data
+      when (currentF - lastF >= maxFetchTick) $ do
         -- reset last fetch time
-        lastFetchTime .= currentTick
+        lastFetchTick .= 0
+        -- update loading states
+        setLoading prices
+        setLoading fees
+        setLoading block
         -- load all data
         sendApiEvent FetchAllData
+
+      fetchTick %= (`mod` (maxFetchTick + 1)) . (+ 1)
     PriceUpdated p -> do
       prices .= p
     FeesUpdated f -> do

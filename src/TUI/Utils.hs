@@ -18,6 +18,12 @@ import Graphics.Vty
 import TUI.Service.Types
 import TUI.Types
 
+fps :: Int
+fps = 60
+
+maxFetchTick :: Int
+maxFetchTick = 3 * 60 * fps -- 3min
+
 -- Creates a Brick application by providing an `TickEvent`
 -- which is sent to the Brick application by a custom defined time interval
 -- TODO: Extract to a (simple) library??
