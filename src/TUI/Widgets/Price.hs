@@ -11,11 +11,11 @@ import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Amount (..), Bitcoin (..), Fiat (..), Price (..), Prices (..), RemoteData (..))
-import TUI.Types (TUIState (..), prices, selectedBitcoin, selectedFiat, tick)
+import TUI.Types (TUIResource (..), TUIState (..), prices, selectedBitcoin, selectedFiat, tick)
 import TUI.Utils (emptyStr, loadingStr, toBtc)
 import TUI.Widgets.Loader (drawSpinner)
 
-drawPrice :: TUIState -> Widget ()
+drawPrice :: TUIState -> Widget TUIResource
 drawPrice st =
   vBox
     [ hCenter $ padBottom (Pad 2) $ withBold $ str "Price " <+> loadingAnimation,

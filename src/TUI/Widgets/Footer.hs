@@ -15,11 +15,11 @@ import Brick.Widgets.ProgressBar qualified as P
 import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold)
-import TUI.Types (TUIState, View (..), currentView, fetchTick, lastFetchTick)
+import TUI.Types (TUIResource (..), TUIState, View (..), currentView, fetchTick, lastFetchTick)
 import TUI.Utils (fps, maxFetchTick)
 import Text.Printf (printf)
 
-drawFooter :: TUIState -> Widget ()
+drawFooter :: TUIState -> Widget TUIResource
 drawFooter st =
   renderTable $
     surroundingBorder False $
@@ -58,8 +58,7 @@ drawFooter st =
     actions = foldWithSpace $ str <$> actionLabels
     remainingTick = maxFetchTick - (st ^. fetchTick - st ^. lastFetchTick)
     percent :: Float
-    -- 1.1 => tweaked by 0.1 to have a completed progressbar visible just before 100%
-    percent = 1.1 - fromIntegral remainingTick / fromIntegral maxFetchTick
+    percent = 1.0 - fromIntegral remainingTick / fromIntegral maxFetchTick
     progress =
       hLimit 15 $
         padRight (Pad 2) $

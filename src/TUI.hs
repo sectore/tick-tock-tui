@@ -1,11 +1,14 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module TUI where
 
+import Brick (CursorLocation)
 import Brick.BChan
+import Brick.Focus (focusRingCursor)
+import Brick.Forms (formFocus)
 import Brick.Main
   ( App (..),
-    showFirstCursor,
   )
 import Control.Concurrent (forkIO, killThread)
 import Control.Concurrent.STM (newTChanIO)
@@ -23,6 +26,7 @@ import TUI.Service.Types
 import TUI.Types
 import TUI.Utils (customMainWithInterval, fps)
 import TUI.Widgets.App (drawApp)
+import TUI.Widgets.Converter (initialConverterData, mkConverterForm)
 
 run :: IO ()
 run = do
@@ -51,7 +55,9 @@ run = do
       pure
         TUIState
           { _timeZone = tz,
-            _currentView = PriceView,
+            _currentView = ConverterView,
+            _converterForm = mkConverterForm initialConverterData,
+            _currentViewIndex = 0,
             _animate = True,
             _tick = 0,
             _fetchTick = 0,
@@ -60,7 +66,8 @@ run = do
             _fees = NotAsked,
             _block = NotAsked,
             _selectedFiat = USD,
-            _selectedBitcoin = BTC
+            _selectedBitcoin = BTC,
+            _stLastBrickEvent = Nothing
           }
   -- run TUI app
   _ <- customMainWithInterval interval (Just inCh) (theApp outCh) initialState
@@ -69,11 +76,16 @@ run = do
   killThread foreverId
   where
     interval = 1_000_000 `div` fps -- 60 FPS
-    theApp :: TChan ApiEvent -> App TUIState TUIEvent ()
+    chooseCursor :: TUIState -> [CursorLocation TUIResource] -> Maybe (CursorLocation TUIResource)
+    chooseCursor TUIState {..} = chooseCursor' _currentView
+      where
+        chooseCursor' ConverterView = focusRingCursor formFocus _converterForm
+        chooseCursor' _ = const Nothing
+    theApp :: TChan ApiEvent -> App TUIState TUIEvent TUIResource
     theApp outCh =
       App
         { appDraw = drawApp,
-          appChooseCursor = showFirstCursor,
+          appChooseCursor = chooseCursor,
           appHandleEvent = appEvent outCh,
           appStartEvent = startEvent outCh,
           appAttrMap = const tuiAttrMap

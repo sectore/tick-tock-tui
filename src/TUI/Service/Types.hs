@@ -16,23 +16,26 @@ data Bitcoin = BTC | SATS
   deriving (Eq)
 
 data Fiat = EUR | USD | GBP | CAD | CHF | AUD | JPY
-  deriving (Eq, Enum, Bounded)
+  deriving (Show, Eq, Enum, Bounded)
 
 newtype Price (a :: Fiat) = Price {unPrice :: Float}
   deriving (Eq)
 
+showFiatAmount :: Float -> String
+showFiatAmount = printf "%.2f"
+
 showFiat :: Fiat -> Float -> String
-showFiat fiat = printf (fiatSymbol fiat <> "%.2f")
+showFiat fiat a = fiatSymbol fiat <> " " <> showFiatAmount a
 
 fiatSymbol :: Fiat -> String
 fiatSymbol = \case
-  EUR -> "€"
-  USD -> "$"
-  GBP -> "£"
-  CAD -> "C$"
+  EUR -> "EUR"
+  USD -> "USD"
+  GBP -> "GBP"
+  CAD -> "CAD"
   CHF -> "CHF"
-  AUD -> "A$"
-  JPY -> "¥"
+  AUD -> "AUD"
+  JPY -> "JPY"
 
 instance Show (Price 'EUR) where
   show = showFiat EUR . unPrice
@@ -122,10 +125,62 @@ instance Show (Amount 'JPY) where
   show = showFiat JPY . unAmount
 
 instance Show (Amount 'BTC) where
-  show = printf "%.8f ₿" . unAmount
+  show = printf "BTC %.8f" . unAmount
 
 instance Show (Amount 'SATS) where
   show = printf "%.0f sats" . unAmount
+
+readFiatAmount :: forall (a :: Fiat). (Show (Amount a)) => String -> [(Amount a, String)]
+readFiatAmount str = case words str of
+  [code, numberStr]
+    | length code == 3 && code == expectedCode ->
+        case reads numberStr of
+          [(n, r)] -> [(Amount n, r)]
+          _ -> []
+  _ -> []
+  where
+    -- Get currency code (first three letters) from `Show` instance
+    -- to compare it with `code` parsed above
+    expectedCode = case show (undefined :: Amount a) of
+      (c1 : c2 : c3 : _) -> [c1, c2, c3]
+      _ -> ""
+
+instance Read (Amount 'USD) where
+  readsPrec _ = readFiatAmount
+
+instance Read (Amount 'EUR) where
+  readsPrec _ = readFiatAmount
+
+instance Read (Amount 'GBP) where
+  readsPrec _ = readFiatAmount
+
+instance Read (Amount 'CHF) where
+  readsPrec _ = readFiatAmount
+
+instance Read (Amount 'CAD) where
+  readsPrec _ = readFiatAmount
+
+instance Read (Amount 'AUD) where
+  readsPrec _ = readFiatAmount
+
+instance Read (Amount 'JPY) where
+  readsPrec _ = readFiatAmount
+
+readBitcoinAmount :: forall (a :: Bitcoin). String -> [(Amount a, String)]
+readBitcoinAmount str = case words str of
+  ["BTC", numberStr] -> case reads numberStr of
+    [(n, r)] -> [(Amount n, r)]
+    _ -> []
+  [numberStr, "sats"] -> case reads numberStr of
+    [(n, r)] -> [(Amount n, r)]
+    _ -> []
+  _ -> []
+
+instance Read (Amount 'BTC) where
+  readsPrec _ = readBitcoinAmount
+
+instance Read (Amount 'SATS) where
+  readsPrec _ = readBitcoinAmount
 
 data Block = Block
   { time :: UTCTime,

@@ -21,12 +21,12 @@ import Data.Time.LocalTime (utcToLocalTime)
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Block (..), BlockRD, RemoteData (..))
-import TUI.Types (TUIState (..), block, tick, timeZone)
+import TUI.Types (TUIResource (..), TUIState (..), block, tick, timeZone)
 import TUI.Utils (emptyStr, loadingStr, toBtc)
 import TUI.Widgets.Loader (drawSpinner)
 import Text.Printf (printf)
 
-drawBlock :: TUIState -> Widget ()
+drawBlock :: TUIState -> Widget TUIResource
 drawBlock st =
   vBox
     [ hCenter $ padBottom (Pad 2) $ withBold $ str "Latest block " <+> loadingAnimation,

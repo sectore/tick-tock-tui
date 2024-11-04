@@ -3,6 +3,9 @@
 
 module TUI.Events where
 
+import Brick.Forms
+  ( handleFormEvent,
+  )
 import Brick.Main
   ( halt,
   )
@@ -28,7 +31,7 @@ sendApiEvent e = do
   ch <- asks outChan
   liftIO $ STM.atomically $ STM.writeTChan ch e
 
-startEvent :: TChan ApiEvent -> EventM () TUIState ()
+startEvent :: TChan ApiEvent -> EventM TUIResource TUIState ()
 startEvent outCh =
   -- fetch all data at start
   runReaderT (sendApiEvent FetchAllData) (AppEventEnv outCh)
@@ -41,7 +44,7 @@ setLoading lens = do
       _ -> Nothing
   lens .= Loading mCurrent
 
-appEvent :: TChan ApiEvent -> BrickEvent () TUIEvent -> EventM () TUIState ()
+appEvent :: TChan ApiEvent -> BrickEvent TUIResource TUIEvent -> EventM TUIResource TUIState ()
 appEvent outCh e =
   runReaderT handleEvent (AppEventEnv outCh)
   where
@@ -53,6 +56,7 @@ appEvent outCh e =
 handleKeyEvent :: V.Event -> AppEventM ()
 handleKeyEvent e = do
   currentView' <- use currentView
+
   case e of
     V.EvKey (V.KChar '1') [] -> currentView .= PriceView
     V.EvKey (V.KChar '2') [] -> currentView .= FeesView
@@ -60,8 +64,7 @@ handleKeyEvent e = do
     V.EvKey (V.KChar '4') [] -> currentView .= ConverterView
     V.EvKey (V.KChar 'a') [] -> animate %= not
     V.EvKey (V.KChar 's') [] ->
-      when (currentView' == PriceView) $
-        selectedFiat %= next
+      selectedFiat %= next
       where
         next f
           | f == maxBound = minBound
@@ -95,7 +98,12 @@ handleKeyEvent e = do
       _ -> return ()
     V.EvKey V.KEsc [] -> lift halt
     V.EvKey (V.KChar 'q') [] -> lift halt
-    _ -> return ()
+    otherEv -> do
+      stLastBrickEvent .= Just (VtyEvent otherEv)
+      case currentView' of
+        ConverterView -> do
+          lift $ zoom converterForm $ handleFormEvent (VtyEvent otherEv)
+        _ -> pure ()
 
 handleAppEvent :: TUIEvent -> AppEventM ()
 handleAppEvent e = do
@@ -125,4 +133,4 @@ handleAppEvent e = do
       fees .= f
     BlockUpdated b -> do
       block .= b
-    _ -> return ()
+    _ -> pure ()
