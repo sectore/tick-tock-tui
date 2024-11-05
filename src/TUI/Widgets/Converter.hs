@@ -18,8 +18,11 @@ import Brick.Forms
   )
 import Brick.Widgets.Center
 import Lens.Micro ((^.))
-import TUI.Service.Types (Amount (..))
-import TUI.Types (ConverterData (..), ConverterForm, TUIResource (..), TUIState, btcAmount, converterForm, fiatAmount, satsAmount, selectedFiat, stLastBrickEvent)
+import TUI.Attr (withBold)
+import TUI.Service.Types (Amount (..), RemoteData (Loading, NotAsked))
+import TUI.Types (ConverterData (..), ConverterForm, TUIResource (..), TUIState, btcAmount, converterForm, fiatAmount, prices, satsAmount, selectedFiat, stLastBrickEvent, tick)
+import TUI.Utils (emptyStr)
+import TUI.Widgets.Loader (drawSpinner)
 
 initialConverterData :: ConverterData
 initialConverterData =
@@ -39,11 +42,19 @@ mkConverterForm =
 
 drawConverter :: TUIState -> Widget TUIResource
 drawConverter st =
-  vBox
-    [ str "Converter",
-      str $ "Last event: " <> show (st ^. stLastBrickEvent),
-      str $ show $ formState (st ^. converterForm),
-      str $ show $ focusGetCurrent $ formFocus (st ^. converterForm),
-      str $ show (st ^. selectedFiat),
-      padTop (Pad 1) $ hLimit 50 $ hCenter $ renderForm (st ^. converterForm)
-    ]
+  hCenter $
+    vBox
+      [ padBottom (Pad 2) $ hCenter $ withBold $ str "Converter " <+> loadingAnimation,
+        padTopBottom 1 $ hCenter $ hLimit 30 $ renderForm (st ^. converterForm),
+        str $ show (st ^. stLastBrickEvent),
+        str $ show $ formState (st ^. converterForm),
+        str $ show $ focusGetCurrent $ formFocus (st ^. converterForm),
+        padBottom (Pad 1) $ str $ show (st ^. selectedFiat)
+      ]
+  where
+    loadingAnimation =
+      let spinner = drawSpinner (st ^. tick)
+       in case st ^. prices of
+            NotAsked -> spinner
+            Loading _ -> spinner
+            _ -> emptyStr

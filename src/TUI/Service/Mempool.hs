@@ -26,7 +26,7 @@ fetchBlock = do
 fetchAllData :: ServiceM ()
 fetchAllData = do
   -- TODO: Remove comments
-  -- fetchPrices
+  fetchPrices
   -- fetchFees
   -- fetchBlock
   pure ()

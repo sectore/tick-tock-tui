@@ -71,10 +71,3 @@ fiatToBtc (Amount a) (Price p) = Amount $ a / p
 -- helper to convert Fiat to Sats
 fiatToSats :: forall (a :: Fiat). Amount a -> Price a -> Amount SATS
 fiatToSats a p = toSats $ fiatToBtc a p
-
-type RgbColor = (Double, Double, Double)
-
-type RgbaColor = (Double, Double, Double, Double)
-
-applyAlpha :: Double -> RgbColor -> RgbaColor
-applyAlpha alpha (r, g, b) = (r, g, b, alpha)

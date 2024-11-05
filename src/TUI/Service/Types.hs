@@ -4,7 +4,8 @@
 
 module TUI.Service.Types where
 
-import Data.Aeson
+import Data.Aeson ((.:))
+import Data.Aeson qualified as A
 import Data.Aeson.Types (Parser)
 import Data.Foldable (toList)
 import Data.Text (Text)
@@ -22,7 +23,12 @@ newtype Price (a :: Fiat) = Price {unPrice :: Float}
   deriving (Eq)
 
 showFiatAmount :: Float -> String
-showFiatAmount = printf "%.2f"
+showFiatAmount x =
+  let s = printf "%.2f" x -- explicitly use 2 decimal places for fiat
+      trimmed = reverse . dropWhile (== '0') . reverse $ s
+   in if last trimmed == '.'
+        then init trimmed -- remove trailing decimal point
+        else trimmed
 
 showFiat :: Fiat -> Float -> String
 showFiat fiat a = fiatSymbol fiat <> " " <> showFiatAmount a
@@ -69,8 +75,8 @@ data Prices = Prices
   }
   deriving (Show, Eq)
 
-instance FromJSON Prices where
-  parseJSON (Object o) =
+instance A.FromJSON Prices where
+  parseJSON (A.Object o) =
     Prices
       <$> (Price <$> o .: "EUR")
       <*> (Price <$> o .: "USD")
@@ -92,8 +98,8 @@ data Fees = Fees
 
 type FeesRD = RemoteData String Fees
 
-instance FromJSON Fees where
-  parseJSON (Object o) =
+instance A.FromJSON Fees where
+  parseJSON (A.Object o) =
     Fees
       <$> o .: "fastestFee"
       <*> o .: "halfHourFee"
@@ -125,18 +131,30 @@ instance Show (Amount 'JPY) where
   show = showFiat JPY . unAmount
 
 instance Show (Amount 'BTC) where
-  show = printf "BTC %.8f" . unAmount
+  show a =
+    let str = printf "BTC %.8f" (unAmount a)
+        (whole, dec) = break (== '.') (drop 4 str) -- drop "BTC " prefix
+        formatGroups [] = []
+        formatGroups xs =
+          let (g, rest) = splitAt 3 xs
+           in g : formatGroups rest
+        formatted = case dec of
+          (d : ds) -> whole ++ [d] ++ unwords (formatGroups ds)
+          [] -> whole
+     in "BTC " ++ formatted
 
 instance Show (Amount 'SATS) where
   show = printf "%.0f sats" . unAmount
 
+readAmount :: String -> [(Amount a, String)]
+readAmount numberStr = case reads numberStr of
+  [(n, r)] -> [(Amount n, r)]
+  _ -> []
+
 readFiatAmount :: forall (a :: Fiat). (Show (Amount a)) => String -> [(Amount a, String)]
 readFiatAmount str = case words str of
   [code, numberStr]
-    | length code == 3 && code == expectedCode ->
-        case reads numberStr of
-          [(n, r)] -> [(Amount n, r)]
-          _ -> []
+    | length code == 3 && code == expectedCode -> readAmount numberStr
   _ -> []
   where
     -- Get currency code (first three letters) from `Show` instance
@@ -168,12 +186,8 @@ instance Read (Amount 'JPY) where
 
 readBitcoinAmount :: forall (a :: Bitcoin). String -> [(Amount a, String)]
 readBitcoinAmount str = case words str of
-  ["BTC", numberStr] -> case reads numberStr of
-    [(n, r)] -> [(Amount n, r)]
-    _ -> []
-  [numberStr, "sats"] -> case reads numberStr of
-    [(n, r)] -> [(Amount n, r)]
-    _ -> []
+  ("BTC" : rest) -> readAmount $ filter (/= ' ') (unwords rest) -- remove all spaces
+  [numberStr, "sats"] -> readAmount numberStr
   _ -> []
 
 instance Read (Amount 'BTC) where
@@ -195,11 +209,11 @@ data Block = Block
 
 type BlockRD = RemoteData String Block
 
-instance FromJSON Block where
-  parseJSON = withArray "Blocks" $ \arr ->
+instance A.FromJSON Block where
+  parseJSON = A.withArray "Blocks" $ \arr ->
     case toList arr of
       (firstBlock : _) ->
-        withObject
+        A.withObject
           "Block"
           ( \o -> do
               timestamp <- o .: "timestamp" :: Parser Integer
@@ -235,6 +249,10 @@ data RemoteData e a
 isLoading :: RemoteData e a -> Bool
 isLoading (Loading _) = True
 isLoading _ = False
+
+isSuccess :: RemoteData e a -> Bool
+isSuccess (Success _) = True
+isSuccess _ = False
 
 data ApiEvent
   = FetchAllData

@@ -35,21 +35,26 @@ main = hspec $ do
 
     describe "Show Amount a / ShowAmount" $ do
       it "USD" $
-        show (Amount 50_000 :: Amount USD) `shouldBe` "USD 50000.00"
-      it "EUR" $
-        show (Amount 10_000 :: Amount EUR) `shouldBe` "EUR 10000.00"
+        show (Amount 50_000 :: Amount USD) `shouldBe` "USD 50000"
+      it "EUR" $ do
+        show (Amount 10_000 :: Amount EUR) `shouldBe` "EUR 10000"
+        -- check some rounded cases
+        show (Amount 10_000.999 :: Amount EUR) `shouldBe` "EUR 10001"
+        show (Amount 10_000.99 :: Amount EUR) `shouldBe` "EUR 10000.99"
+        show (Amount 10_000.009 :: Amount EUR) `shouldBe` "EUR 10000.01"
+        show (Amount 10_000.001 :: Amount EUR) `shouldBe` "EUR 10000"
       it "AUD" $
-        show (Amount 75_000 :: Amount AUD) `shouldBe` "AUD 75000.00"
+        show (Amount 75_000 :: Amount AUD) `shouldBe` "AUD 75000"
       it "CAD" $
-        show (Amount 25_000 :: Amount CAD) `shouldBe` "CAD 25000.00"
+        show (Amount 25_000 :: Amount CAD) `shouldBe` "CAD 25000"
       it "JPY" $
-        show (Amount 100_000 :: Amount JPY) `shouldBe` "JPY 100000.00"
+        show (Amount 100_000 :: Amount JPY) `shouldBe` "JPY 100000"
       it "CHF" $
-        show (Amount 15_000 :: Amount CHF) `shouldBe` "CHF 15000.00"
+        show (Amount 15_000.01 :: Amount CHF) `shouldBe` "CHF 15000.01"
       it "GBP" $
-        show (Amount 30_000 :: Amount GBP) `shouldBe` "GBP 30000.00"
+        show (Amount 30_000 :: Amount GBP) `shouldBe` "GBP 30000"
       it "BTC" $
-        show (Amount 1.23 :: Amount BTC) `shouldBe` "BTC 1.23000000"
+        show (Amount 1.23 :: Amount BTC) `shouldBe` "BTC 1.230 000 00"
       it "sats" $
         show (Amount 123 :: Amount SATS) `shouldBe` "123 sats"
     describe "Read Amount a" $ do
@@ -108,6 +113,11 @@ main = hspec $ do
             do
               read "BTC 1.23456789" `shouldBe` (Amount 1.23456789 :: Amount BTC)
               read "BTC 0.00000001" `shouldBe` (Amount 0.00000001 :: Amount BTC)
+              -- missing empty space but still readable
+              read "BTC0.00000002" `shouldBe` (Amount 0.00000002 :: Amount BTC)
+              -- default format
+              read "BTC 1.001 000 01" `shouldBe` (Amount 1.00100001 :: Amount BTC)
+              -- missing BTC
               evaluate (read "1.23456789" :: Amount BTC)
               `shouldThrow` errorCall "Prelude.read: no parse"
 
