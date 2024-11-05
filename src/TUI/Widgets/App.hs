@@ -14,7 +14,7 @@ import TUI.Widgets.Footer (drawFooter)
 import TUI.Widgets.Header (drawHeader)
 import TUI.Widgets.Price (drawPrice)
 
-drawApp :: TUIState -> [Widget ()]
+drawApp :: TUIState -> [Widget TUIResource]
 drawApp st = [ui]
   where
     cv = st ^. currentView

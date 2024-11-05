@@ -4,8 +4,9 @@ import Brick (str)
 import Brick.Types
   ( Widget,
   )
+import TUI.Types (TUIResource (..))
 
-drawSpinner :: Int -> Widget ()
+drawSpinner :: Int -> Widget TUIResource
 drawSpinner = drawLoader chars 5
   where
     chars =
@@ -21,7 +22,7 @@ drawSpinner = drawLoader chars 5
         '⠏'
       ]
 
-drawLoader :: [Char] -> Int -> Int -> Widget ()
+drawLoader :: [Char] -> Int -> Int -> Widget TUIResource
 drawLoader chars speed tick =
   str [chars !! i]
   where

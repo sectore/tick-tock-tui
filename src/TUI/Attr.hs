@@ -1,10 +1,11 @@
 module TUI.Attr where
 
 import Brick.AttrMap qualified as A
+import Brick.Forms qualified as F
 import Brick.Types
   ( Widget,
   )
-import Brick.Util (fg)
+import Brick.Util (bg, fg)
 import Brick.Widgets.Core
   ( withAttr,
   )
@@ -41,5 +42,6 @@ tuiAttrMap =
     [ (boldAttr, V.defAttr `V.withStyle` V.bold),
       (errorAttr, fg V.red),
       (btcColorAttr, fg btcColor'),
-      (P.progressCompleteAttr, fg btcColor')
+      (P.progressCompleteAttr, fg btcColor'),
+      (F.invalidFormInputAttr, bg V.red)
     ]

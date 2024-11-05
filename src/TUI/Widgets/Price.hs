@@ -11,11 +11,11 @@ import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Amount (..), Bitcoin (..), Fiat (..), Price (..), Prices (..), RemoteData (..))
-import TUI.Types (TUIState (..), prices, selectedBitcoin, selectedFiat, tick)
+import TUI.Types (TUIResource (..), TUIState (..), prices, selectedBitcoin, selectedFiat, tick)
 import TUI.Utils (emptyStr, loadingStr, toBtc)
 import TUI.Widgets.Loader (drawSpinner)
 
-drawPrice :: TUIState -> Widget ()
+drawPrice :: TUIState -> Widget TUIResource
 drawPrice st =
   vBox
     [ hCenter $ padBottom (Pad 2) $ withBold $ str "Price " <+> loadingAnimation,
@@ -38,7 +38,7 @@ drawPrice st =
     btcSelected = sBitcoin == BTC
     sAmount :: Amount SATS
     sAmount = Amount 1000
-    btcStr = str $ if btcSelected then "1 B" else show sAmount
+    btcStr = str $ if btcSelected then "BTC 1" else show sAmount
     loadingAnimation =
       let spinner = drawSpinner (st ^. tick)
        in case rdPrices of

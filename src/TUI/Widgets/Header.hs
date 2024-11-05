@@ -13,9 +13,9 @@ import Brick.Widgets.Core
   )
 import Lens.Micro ((^.))
 import TUI.Attr (withBtcColor)
-import TUI.Types (TUIState, animate, tick)
+import TUI.Types (TUIResource (..), TUIState, animate, tick)
 
-drawHeader :: TUIState -> Widget ()
+drawHeader :: TUIState -> Widget TUIResource
 drawHeader st =
   hCenter $ padTop (Pad 1) $ padBottom (Pad 1) txt
   where

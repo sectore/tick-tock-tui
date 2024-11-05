@@ -3,6 +3,13 @@
 
 module TUI.Events where
 
+import Brick.Focus (focusGetCurrent)
+import Brick.Forms
+  ( Form (..),
+    formState,
+    handleFormEvent,
+    updateFormState,
+  )
 import Brick.Main
   ( halt,
   )
@@ -15,20 +22,21 @@ import Control.Concurrent.STM.TChan (TChan)
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (MonadTrans (lift), ReaderT (runReaderT), asks)
+import Control.Monad.State.Strict (MonadState)
 import Data.Functor ((<&>))
 import Graphics.Vty qualified as V
-import Lens.Micro (Lens')
+import Lens.Micro (Lens', (&), (.~), (^.))
 import Lens.Micro.Mtl
-import TUI.Service.Types (ApiEvent (..), Bitcoin (..), RemoteData (..))
+import TUI.Service.Types (Amount (Amount, unAmount), ApiEvent (..), Bitcoin (..), Price (unPrice), Prices (pUSD), RemoteData (..))
 import TUI.Types
-import TUI.Utils (maxFetchTick)
+import TUI.Utils (maxFetchTick, toBtc, toSats)
 
 sendApiEvent :: ApiEvent -> AppEventM ()
 sendApiEvent e = do
   ch <- asks outChan
   liftIO $ STM.atomically $ STM.writeTChan ch e
 
-startEvent :: TChan ApiEvent -> EventM () TUIState ()
+startEvent :: TChan ApiEvent -> EventM TUIResource TUIState ()
 startEvent outCh =
   -- fetch all data at start
   runReaderT (sendApiEvent FetchAllData) (AppEventEnv outCh)
@@ -41,7 +49,46 @@ setLoading lens = do
       _ -> Nothing
   lens .= Loading mCurrent
 
-appEvent :: TChan ApiEvent -> BrickEvent () TUIEvent -> EventM () TUIState ()
+updateConversion :: (MonadState TUIState m) => Maybe TUIResource -> m ()
+updateConversion focusedField = do
+  use prices >>= \case
+    Success ps -> do
+      cf <- use converterForm
+      let currentState = formState cf
+      case focusedField of
+        Just ConverterBtcField -> do
+          let btcAmount' = currentState ^. btcAmount
+          converterForm
+            .= updateFormState
+              ( currentState
+                  & fiatAmount .~ Amount (unPrice (pUSD ps) * unAmount btcAmount')
+                  & satsAmount .~ toSats btcAmount'
+              )
+              cf
+        Just ConverterSatField -> do
+          let btcAmount' = toBtc (currentState ^. satsAmount)
+          converterForm
+            .= updateFormState
+              ( currentState
+                  & fiatAmount .~ Amount (unPrice (pUSD ps) * unAmount btcAmount')
+                  & satsAmount .~ toSats btcAmount'
+              )
+              cf
+        -- For all other cases: `Nothing` OR `Just ConverterFiatField`
+        -- update BTC & sats, but not fiat values.
+        -- So it can be used whenever `prices` are updated, even an user does not focused on `Converter` form
+        _ -> do
+          let newBtcAmount = Amount $ unAmount (currentState ^. fiatAmount) / unPrice (pUSD ps)
+          converterForm
+            .= updateFormState
+              ( currentState
+                  & btcAmount .~ newBtcAmount
+                  & satsAmount .~ toSats newBtcAmount
+              )
+              cf
+    _ -> pure ()
+
+appEvent :: TChan ApiEvent -> BrickEvent TUIResource TUIEvent -> EventM TUIResource TUIState ()
 appEvent outCh e =
   runReaderT handleEvent (AppEventEnv outCh)
   where
@@ -53,15 +100,15 @@ appEvent outCh e =
 handleKeyEvent :: V.Event -> AppEventM ()
 handleKeyEvent e = do
   currentView' <- use currentView
+
   case e of
-    V.EvKey (V.KChar '1') [] -> currentView .= PriceView
-    V.EvKey (V.KChar '2') [] -> currentView .= FeesView
-    V.EvKey (V.KChar '3') [] -> currentView .= BlockView
-    V.EvKey (V.KChar '4') [] -> currentView .= ConverterView
+    V.EvKey (V.KChar 'p') [] -> currentView .= PriceView
+    V.EvKey (V.KChar 'f') [] -> currentView .= FeesView
+    V.EvKey (V.KChar 'b') [] -> currentView .= BlockView
+    V.EvKey (V.KChar 'c') [] -> currentView .= ConverterView
     V.EvKey (V.KChar 'a') [] -> animate %= not
     V.EvKey (V.KChar 's') [] ->
-      when (currentView' == PriceView) $
-        selectedFiat %= next
+      selectedFiat %= next
       where
         next f
           | f == maxBound = minBound
@@ -80,22 +127,36 @@ handleKeyEvent e = do
         setLoading fees
         -- fetch fees
         sendApiEvent FetchFees
-      PriceView -> do
-        fetchTick .= 0
-        lastFetchTick .= 0
-        setLoading prices
-        -- fetch prices
-        sendApiEvent FetchPrices
+      PriceView -> fetchPrices
+      ConverterView -> fetchPrices
       BlockView -> do
         fetchTick .= 0
         lastFetchTick .= 0
         setLoading block
         -- fetch block data
         sendApiEvent FetchBlock
-      _ -> return ()
     V.EvKey V.KEsc [] -> lift halt
     V.EvKey (V.KChar 'q') [] -> lift halt
-    _ -> return ()
+    otherEv -> do
+      stLastBrickEvent .= Just (VtyEvent otherEv)
+      case currentView' of
+        ConverterView -> do
+          cf <- use converterForm
+          let currentField = focusGetCurrent $ formFocus cf
+          lift $ zoom converterForm $ handleFormEvent (VtyEvent otherEv)
+          case otherEv of
+            V.EvKey V.KEnter [] -> updateConversion currentField
+            V.EvKey (V.KChar '\t') [] -> updateConversion currentField
+            V.EvKey V.KBackTab [] -> updateConversion currentField
+            _ -> pure ()
+        _ -> pure ()
+  where
+    fetchPrices = do
+      fetchTick .= 0
+      lastFetchTick .= 0
+      setLoading prices
+      -- fetch prices
+      sendApiEvent FetchPrices
 
 handleAppEvent :: TUIEvent -> AppEventM ()
 handleAppEvent e = do
@@ -121,8 +182,11 @@ handleAppEvent e = do
       fetchTick %= (`mod` (maxFetchTick + 1)) . (+ 1)
     PriceUpdated p -> do
       prices .= p
+      cf <- use converterForm
+      let currentField = focusGetCurrent $ formFocus cf
+      updateConversion currentField
     FeesUpdated f -> do
       fees .= f
     BlockUpdated b -> do
       block .= b
-    _ -> return ()
+    _ -> pure ()

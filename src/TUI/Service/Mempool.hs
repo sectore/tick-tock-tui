@@ -28,3 +28,4 @@ fetchAllData = do
   fetchPrices
   fetchFees
   fetchBlock
+  pure ()

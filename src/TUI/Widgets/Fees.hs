@@ -17,11 +17,11 @@ import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Fees (..), FeesRD, RemoteData (..))
-import TUI.Types (TUIState (..), fees, tick)
+import TUI.Types (TUIResource (..), TUIState (..), fees, tick)
 import TUI.Utils (emptyStr, loadingStr)
 import TUI.Widgets.Loader (drawSpinner)
 
-drawFees :: TUIState -> Widget ()
+drawFees :: TUIState -> Widget TUIResource
 drawFees st =
   vBox
     [ hCenter $ padBottom (Pad 2) $ withBold $ str "Fees " <+> loadingAnimation,

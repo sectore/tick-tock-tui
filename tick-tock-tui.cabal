@@ -87,5 +87,7 @@ test-suite tick-tock-tui-test
         ,   microlens-th
         ,   mtl
         ,   stm
+        ,   text
         ,   tick-tock-tui
+        ,   time
         ,   vty
