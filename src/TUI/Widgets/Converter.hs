@@ -25,9 +25,9 @@ import TUI.Widgets.Loader (drawSpinner)
 initialConverterData :: ConverterData
 initialConverterData =
   ConverterData
-    { _fiatAmount = Amount 1.000000,
-      _btcAmount = Amount 0.00000010,
-      _satsAmount = Amount 100
+    { _fiatAmount = Amount 5,
+      _btcAmount = Amount 0,
+      _satsAmount = Amount 0
     }
 
 mkConverterForm :: ConverterData -> ConverterForm

@@ -22,9 +22,10 @@ import Control.Concurrent.STM.TChan (TChan)
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (MonadTrans (lift), ReaderT (runReaderT), asks)
+import Control.Monad.State.Strict (MonadState)
 import Data.Functor ((<&>))
 import Graphics.Vty qualified as V
-import Lens.Micro (Lens')
+import Lens.Micro (Lens', (&), (.~), (^.))
 import Lens.Micro.Mtl
 import TUI.Service.Types (Amount (Amount, unAmount), ApiEvent (..), Bitcoin (..), Price (unPrice), Prices (pUSD), RemoteData (..))
 import TUI.Types
@@ -47,6 +48,45 @@ setLoading lens = do
       Success val -> Just val
       _ -> Nothing
   lens .= Loading mCurrent
+
+updateConversion :: (MonadState TUIState m) => Maybe TUIResource -> m ()
+updateConversion focusedField = do
+  use prices >>= \case
+    Success ps -> do
+      cf <- use converterForm
+      let currentState = formState cf
+      case focusedField of
+        Just ConverterBtcField -> do
+          let btcAmount' = currentState ^. btcAmount
+          converterForm
+            .= updateFormState
+              ( currentState
+                  & fiatAmount .~ Amount (unPrice (pUSD ps) * unAmount btcAmount')
+                  & satsAmount .~ toSats btcAmount'
+              )
+              cf
+        Just ConverterSatField -> do
+          let btcAmount' = toBtc (currentState ^. satsAmount)
+          converterForm
+            .= updateFormState
+              ( currentState
+                  & fiatAmount .~ Amount (unPrice (pUSD ps) * unAmount btcAmount')
+                  & satsAmount .~ toSats btcAmount'
+              )
+              cf
+        -- For all other cases: `Nothing` OR `Just ConverterFiatField`
+        -- update BTC & sats, but not fiat values.
+        -- So it can be used whenever `prices` are updated, even an user does not focused on `Converter` form
+        _ -> do
+          let newBtcAmount = Amount $ unAmount (currentState ^. fiatAmount) / unPrice (pUSD ps)
+          converterForm
+            .= updateFormState
+              ( currentState
+                  & btcAmount .~ newBtcAmount
+                  & satsAmount .~ toSats newBtcAmount
+              )
+              cf
+    _ -> pure ()
 
 appEvent :: TChan ApiEvent -> BrickEvent TUIResource TUIEvent -> EventM TUIResource TUIState ()
 appEvent outCh e =
@@ -95,13 +135,6 @@ handleKeyEvent e = do
         setLoading block
         -- fetch block data
         sendApiEvent FetchBlock
-      where
-        fetchPrices = do
-          fetchTick .= 0
-          lastFetchTick .= 0
-          setLoading prices
-          -- fetch prices
-          sendApiEvent FetchPrices
     V.EvKey V.KEsc [] -> lift halt
     V.EvKey (V.KChar 'q') [] -> lift halt
     otherEv -> do
@@ -117,49 +150,13 @@ handleKeyEvent e = do
             V.EvKey V.KBackTab [] -> updateConversion currentField
             _ -> pure ()
         _ -> pure ()
-      where
-        updateConversion focusedField = do
-          cf <- use converterForm
-          use prices >>= \case
-            Success ps -> do
-              let currentState = formState cf
-              case focusedField of
-                Just ConverterFiatField -> do
-                  let fiatAmt = _fiatAmount currentState
-                      newBtcAmount = Amount $ unAmount fiatAmt / unPrice (pUSD ps)
-                  converterForm
-                    .= updateFormState
-                      ( currentState
-                          { _btcAmount = newBtcAmount,
-                            _satsAmount = toSats newBtcAmount
-                          }
-                      )
-                      cf
-                Just ConverterBtcField -> do
-                  let btcAmt = _btcAmount currentState
-                      newFiatAmount = Amount $ unPrice (pUSD ps) * unAmount btcAmt
-                  converterForm
-                    .= updateFormState
-                      ( currentState
-                          { _fiatAmount = newFiatAmount,
-                            _satsAmount = toSats btcAmt
-                          }
-                      )
-                      cf
-                Just ConverterSatField -> do
-                  let satsAmt = _satsAmount currentState
-                      btcAmt = toBtc satsAmt
-                      newFiatAmount = Amount $ unPrice (pUSD ps) * unAmount btcAmt
-                  converterForm
-                    .= updateFormState
-                      ( currentState
-                          { _fiatAmount = newFiatAmount,
-                            _btcAmount = btcAmt
-                          }
-                      )
-                      cf
-                Nothing -> pure ()
-            _ -> pure ()
+  where
+    fetchPrices = do
+      fetchTick .= 0
+      lastFetchTick .= 0
+      setLoading prices
+      -- fetch prices
+      sendApiEvent FetchPrices
 
 handleAppEvent :: TUIEvent -> AppEventM ()
 handleAppEvent e = do
@@ -185,6 +182,9 @@ handleAppEvent e = do
       fetchTick %= (`mod` (maxFetchTick + 1)) . (+ 1)
     PriceUpdated p -> do
       prices .= p
+      cf <- use converterForm
+      let currentField = focusGetCurrent $ formFocus cf
+      updateConversion currentField
     FeesUpdated f -> do
       fees .= f
     BlockUpdated b -> do
