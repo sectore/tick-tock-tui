@@ -44,6 +44,4 @@ tuiAttrMap =
       (btcColorAttr, fg btcColor'),
       (P.progressCompleteAttr, fg btcColor'),
       (F.invalidFormInputAttr, bg V.red)
-      -- (E.editAttr, V.white `on` V.blue),
-      -- (E.editFocusedAttr, V.black `on` V.yellow)
     ]

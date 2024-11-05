@@ -9,10 +9,8 @@ module TUI.Widgets.Converter
 where
 
 import Brick
-import Brick.Focus (focusGetCurrent)
 import Brick.Forms
-  ( Form (..),
-    editShowableField,
+  ( editShowableField,
     newForm,
     renderForm,
   )
@@ -20,7 +18,7 @@ import Brick.Widgets.Center
 import Lens.Micro ((^.))
 import TUI.Attr (withBold)
 import TUI.Service.Types (Amount (..), RemoteData (Loading, NotAsked))
-import TUI.Types (ConverterData (..), ConverterForm, TUIResource (..), TUIState, btcAmount, converterForm, fiatAmount, prices, satsAmount, selectedFiat, stLastBrickEvent, tick)
+import TUI.Types (ConverterData (..), ConverterForm, TUIResource (..), TUIState, btcAmount, converterForm, fiatAmount, prices, satsAmount, tick)
 import TUI.Utils (emptyStr)
 import TUI.Widgets.Loader (drawSpinner)
 
@@ -45,11 +43,7 @@ drawConverter st =
   hCenter $
     vBox
       [ padBottom (Pad 2) $ hCenter $ withBold $ str "Converter " <+> loadingAnimation,
-        padTopBottom 1 $ hCenter $ hLimit 30 $ renderForm (st ^. converterForm),
-        str $ show (st ^. stLastBrickEvent),
-        str $ show $ formState (st ^. converterForm),
-        str $ show $ focusGetCurrent $ formFocus (st ^. converterForm),
-        padBottom (Pad 1) $ str $ show (st ^. selectedFiat)
+        padTopBottom 1 $ hCenter $ hLimit 30 $ renderForm (st ^. converterForm)
       ]
   where
     loadingAnimation =

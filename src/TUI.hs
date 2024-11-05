@@ -57,7 +57,6 @@ run = do
           { _timeZone = tz,
             _currentView = ConverterView,
             _converterForm = mkConverterForm initialConverterData,
-            _currentViewIndex = 0,
             _animate = True,
             _tick = 0,
             _fetchTick = 0,

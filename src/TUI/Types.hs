@@ -77,7 +77,6 @@ data View = FeesView | PriceView | BlockView | ConverterView
 data TUIState = TUIState
   { _timeZone :: TimeZone,
     _currentView :: View,
-    _currentViewIndex :: Int,
     _converterForm :: ConverterForm,
     _animate :: Bool,
     _tick :: Int,

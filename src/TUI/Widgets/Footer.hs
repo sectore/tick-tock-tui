@@ -15,7 +15,7 @@ import Brick.Widgets.ProgressBar qualified as P
 import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold)
-import TUI.Types (TUIResource (..), TUIState, View (..), currentView, fetchTick, lastFetchTick)
+import TUI.Types (TUIResource (..), TUIState, View (..), animate, currentView, fetchTick, lastFetchTick)
 import TUI.Utils (fps, maxFetchTick)
 import Text.Printf (printf)
 
@@ -36,10 +36,10 @@ drawFooter st =
     col1 = padRight (Pad 6) . withBold
     foldWithSpace = foldl1 (\x y -> x <+> (padLeft $ Pad 3) y)
     viewLabels =
-      [ (PriceView, "[p] Price"),
-        (FeesView, "[f] Fees"),
-        (BlockView, "[b] Block"),
-        (ConverterView, "[c] Converter")
+      [ (PriceView, "[p]rice"),
+        (FeesView, "[f]ees"),
+        (BlockView, "[b]lock"),
+        (ConverterView, "[c]onverter")
       ]
     views =
       foldWithSpace
@@ -50,11 +50,12 @@ drawFooter st =
             else str label
           | (v', label) <- viewLabels
         ]
+    animationLabel = "[a]nimation " ++ if st ^. animate then "stop" else "start"
     actionLabels = case v of
-      FeesView -> ["[r] Reload fees", "[t] Toggle value", "[a] Toggle animation"]
-      PriceView -> ["[r] Reload price", "[t] Toggle BTC|sats", "[s] Switch fiat", "[a] Toggle animation"]
-      BlockView -> ["[r] Reload block"]
-      ConverterView -> ["[r] Reload price", "[s] Switch fiat", "[a] Toggle animation"]
+      FeesView -> ["[r]eload fees", "[t]oggle value", animationLabel]
+      PriceView -> ["[r]eload price", "[t]oggle BTC|sats", "[s]witch fiat", animationLabel]
+      BlockView -> ["[r]eload block"]
+      ConverterView -> ["[r]eload price", "[s]witch fiat", animationLabel]
     actions = foldWithSpace $ str <$> actionLabels
     remainingTick = maxFetchTick - (st ^. fetchTick - st ^. lastFetchTick)
     percent :: Float
