@@ -14,7 +14,7 @@ import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Text.Printf (PrintfType, printf)
 
 data Bitcoin = BTC | SATS
-  deriving (Eq)
+  deriving (Eq, Show)
 
 data Fiat = EUR | USD | GBP | CAD | CHF | AUD | JPY
   deriving (Eq, Enum, Bounded, Show)

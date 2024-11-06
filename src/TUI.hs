@@ -53,11 +53,12 @@ run = do
   initialState <-
     getCurrentTimeZone >>= \tz ->
       let initialFiat = USD
+          initialBitcoin = BTC
        in pure
             TUIState
               { _timeZone = tz,
                 _currentView = ConverterView,
-                _converterForm = mkConverterForm (initialConverterData initialFiat),
+                _converterForm = mkConverterForm (initialConverterData initialFiat initialBitcoin),
                 _animate = True,
                 _tick = 0,
                 _fetchTick = 0,
@@ -66,7 +67,7 @@ run = do
                 _fees = NotAsked,
                 _block = NotAsked,
                 _selectedFiat = initialFiat,
-                _selectedBitcoin = BTC,
+                _selectedBitcoin = initialBitcoin,
                 _stLastBrickEvent = Nothing
               }
   -- run TUI app

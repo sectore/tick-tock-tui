@@ -148,9 +148,14 @@ handleKeyEvent e = do
         next f
           | f == maxBound = minBound
           | otherwise = succ f
-    V.EvKey (V.KChar 't') [] ->
-      when (currentView' == PriceView) $
-        selectedBitcoin %= toggle
+    V.EvKey (V.KChar 't') [] -> do
+      sb <- selectedBitcoin <%= toggle
+      cf <- use converterForm
+      -- Update `formState` with current selected `Fiat`
+      let updatedState = formState cf & cdBitcoin .~ sb
+      -- and recreate the form with it
+      converterForm .= mkConverterForm updatedState
+      updateConversion (focusGetCurrent $ formFocus cf)
       where
         toggle b
           | b == BTC = SATS

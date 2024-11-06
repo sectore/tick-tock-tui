@@ -52,10 +52,10 @@ drawFooter st =
         ]
     animationLabel = "[a]nimation " ++ if st ^. animate then "stop" else "start"
     actionLabels = case v of
-      FeesView -> ["[r]eload fees", "[t]oggle value", animationLabel]
-      PriceView -> ["[r]eload price", "[t]oggle BTC|sats", "[s]witch fiat", animationLabel]
-      BlockView -> ["[r]eload block"]
-      ConverterView -> ["[r]eload price", "[s]witch fiat", animationLabel]
+      FeesView -> ["[r]eload data", "[t]oggle value", animationLabel]
+      PriceView -> ["[r]eload data", "[t]oggle btc|sats", "[s]witch fiat", animationLabel]
+      BlockView -> ["[r]eload data"]
+      ConverterView -> ["[r]eload data", "[t]oggle btc|sats", "[s]witch fiat", animationLabel]
     actions = foldWithSpace $ str <$> actionLabels
     remainingTick = maxFetchTick - (st ^. fetchTick - st ^. lastFetchTick)
     percent :: Float
