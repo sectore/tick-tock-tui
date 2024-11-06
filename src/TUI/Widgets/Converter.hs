@@ -17,7 +17,7 @@ import Brick.Forms
 import Brick.Widgets.Center
 import Lens.Micro ((^.))
 import TUI.Attr (withBold)
-import TUI.Service.Types (Amount (..), Fiat (..), RemoteData (Loading, NotAsked))
+import TUI.Service.Types (Amount (..), Bitcoin (..), Fiat (..), RemoteData (Loading, NotAsked))
 import TUI.Types
   ( ConverterData (..),
     ConverterForm,
@@ -25,6 +25,7 @@ import TUI.Types
     TUIState,
     cdAUD,
     cdBTC,
+    cdBitcoin,
     cdCAD,
     cdCHF,
     cdEUR,
@@ -40,10 +41,11 @@ import TUI.Types
 import TUI.Utils (emptyStr)
 import TUI.Widgets.Loader (drawSpinner)
 
-initialConverterData :: Fiat -> ConverterData
-initialConverterData initialFiat =
+initialConverterData :: Fiat -> Bitcoin -> ConverterData
+initialConverterData initialFiat initialBitcoin =
   ConverterData
     { _cdFiat = initialFiat,
+      _cdBitcoin = initialBitcoin,
       _cdUsd = Amount 5,
       _cdGBP = Amount 6,
       _cdCAD = Amount 7,
@@ -59,8 +61,7 @@ mkConverterForm :: ConverterData -> ConverterForm
 mkConverterForm cd =
   newForm
     [ fiatField,
-      editShowableField cdBTC ConverterBtcField,
-      editShowableField cdSATS ConverterSatField
+      bitcoinField
     ]
     cd
   where
@@ -72,6 +73,9 @@ mkConverterForm cd =
       CHF -> editShowableField cdCHF ConverterFiatField
       JPY -> editShowableField cdJPY ConverterFiatField
       USD -> editShowableField cdUsd ConverterFiatField
+    bitcoinField = case cd ^. cdBitcoin of
+      BTC -> editShowableField cdBTC ConverterBtcField
+      SATS -> editShowableField cdSATS ConverterSatField
 
 drawConverter :: TUIState -> Widget TUIResource
 drawConverter st =
