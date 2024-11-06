@@ -52,22 +52,23 @@ run = do
 
   initialState <-
     getCurrentTimeZone >>= \tz ->
-      pure
-        TUIState
-          { _timeZone = tz,
-            _currentView = ConverterView,
-            _converterForm = mkConverterForm initialConverterData,
-            _animate = True,
-            _tick = 0,
-            _fetchTick = 0,
-            _lastFetchTick = 0,
-            _prices = NotAsked,
-            _fees = NotAsked,
-            _block = NotAsked,
-            _selectedFiat = USD,
-            _selectedBitcoin = BTC,
-            _stLastBrickEvent = Nothing
-          }
+      let initialFiat = USD
+       in pure
+            TUIState
+              { _timeZone = tz,
+                _currentView = ConverterView,
+                _converterForm = mkConverterForm (initialConverterData initialFiat),
+                _animate = True,
+                _tick = 0,
+                _fetchTick = 0,
+                _lastFetchTick = 0,
+                _prices = NotAsked,
+                _fees = NotAsked,
+                _block = NotAsked,
+                _selectedFiat = initialFiat,
+                _selectedBitcoin = BTC,
+                _stLastBrickEvent = Nothing
+              }
   -- run TUI app
   _ <- customMainWithInterval interval (Just inCh) (theApp outCh) initialState
 

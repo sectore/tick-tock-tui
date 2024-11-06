@@ -27,9 +27,10 @@ import Data.Functor ((<&>))
 import Graphics.Vty qualified as V
 import Lens.Micro (Lens', (&), (.~), (^.))
 import Lens.Micro.Mtl
-import TUI.Service.Types (ApiEvent (..), Bitcoin (..), Prices (pUSD), RemoteData (..))
+import TUI.Service.Types (ApiEvent (..), Bitcoin (..), Fiat (..), Prices (..), RemoteData (..), pAUD, pJPY)
 import TUI.Types
 import TUI.Utils (btcToFiat, fiatToBtc, maxFetchTick, satsToFiat, toBtc, toSats)
+import TUI.Widgets.Converter (mkConverterForm)
 
 sendApiEvent :: ApiEvent -> AppEventM ()
 sendApiEvent e = do
@@ -54,44 +55,65 @@ updateConversion focusedField = do
   use prices >>= \case
     Success ps -> do
       cf <- use converterForm
-      let cs = formState cf
       case focusedField of
-        Just ConverterBtcField -> updateBtcBased ps cf cs
-        Just ConverterSatField -> updateSatBased ps cf cs
-        Just ConverterFiatField -> updateFiatBased ps cf cs
-        Nothing -> updateFiatBased ps cf cs
+        Just ConverterBtcField -> updateBtcBased ps cf
+        Just ConverterSatField -> updateSatBased ps cf
+        Just ConverterFiatField -> updateFiatBased ps cf
+        Nothing -> updateFiatBased ps cf
     _ -> pure ()
   where
-    updateBtcBased :: (MonadState TUIState m) => Prices -> ConverterForm -> ConverterData -> m ()
-    updateBtcBased ps cf cs =
-      let newBtcAmount = cs ^. btcAmount
+    updateBtcBased :: (MonadState TUIState m) => Prices -> ConverterForm -> m ()
+    updateBtcBased ps cf =
+      let st = formState cf
+          newBtcAmount = st ^. cdBTC
        in converterForm
             .= updateFormState
-              ( cs
-                  & fiatAmount .~ btcToFiat newBtcAmount (pUSD ps)
-                  & satsAmount .~ toSats newBtcAmount
+              ( st
+                  & cdUsd .~ btcToFiat newBtcAmount (pUSD ps)
+                  & cdCAD .~ btcToFiat newBtcAmount (pCAD ps)
+                  & cdEUR .~ btcToFiat newBtcAmount (pEUR ps)
+                  & cdGBP .~ btcToFiat newBtcAmount (pGBP ps)
+                  & cdAUD .~ btcToFiat newBtcAmount (pAUD ps)
+                  & cdJPY .~ btcToFiat newBtcAmount (pJPY ps)
+                  & cdCHF .~ btcToFiat newBtcAmount (pCHF ps)
+                  & cdSATS .~ toSats newBtcAmount
               )
               cf
 
-    updateSatBased :: (MonadState TUIState m) => Prices -> ConverterForm -> ConverterData -> m ()
-    updateSatBased ps cf cs =
-      let newSatsAmount = cs ^. satsAmount
+    updateSatBased :: (MonadState TUIState m) => Prices -> ConverterForm -> m ()
+    updateSatBased ps cf =
+      let st = formState cf
+          newSatsAmount = st ^. cdSATS
        in converterForm
             .= updateFormState
-              ( cs
-                  & fiatAmount .~ satsToFiat newSatsAmount (pUSD ps)
-                  & btcAmount .~ toBtc newSatsAmount
+              ( st
+                  & cdUsd .~ satsToFiat newSatsAmount (pUSD ps)
+                  & cdCAD .~ satsToFiat newSatsAmount (pCAD ps)
+                  & cdEUR .~ satsToFiat newSatsAmount (pEUR ps)
+                  & cdGBP .~ satsToFiat newSatsAmount (pGBP ps)
+                  & cdAUD .~ satsToFiat newSatsAmount (pAUD ps)
+                  & cdJPY .~ satsToFiat newSatsAmount (pJPY ps)
+                  & cdCHF .~ satsToFiat newSatsAmount (pCHF ps)
+                  & cdBTC .~ toBtc newSatsAmount
               )
               cf
 
-    updateFiatBased :: (MonadState TUIState m) => Prices -> ConverterForm -> ConverterData -> m ()
-    updateFiatBased ps cf cs =
-      let newBtcAmount = fiatToBtc (cs ^. fiatAmount) (pUSD ps)
+    updateFiatBased :: (MonadState TUIState m) => Prices -> ConverterForm -> m ()
+    updateFiatBased ps cf =
+      let st = formState cf
+          newBtcAmount = case st ^. cdFiat of
+            EUR -> fiatToBtc (st ^. cdEUR) (pEUR ps)
+            CAD -> fiatToBtc (st ^. cdCAD) (pCAD ps)
+            AUD -> fiatToBtc (st ^. cdAUD) (pAUD ps)
+            JPY -> fiatToBtc (st ^. cdJPY) (pJPY ps)
+            GBP -> fiatToBtc (st ^. cdGBP) (pGBP ps)
+            CHF -> fiatToBtc (st ^. cdCHF) (pCHF ps)
+            USD -> fiatToBtc (st ^. cdUsd) (pUSD ps)
        in converterForm
             .= updateFormState
-              ( cs
-                  & btcAmount .~ newBtcAmount
-                  & satsAmount .~ toSats newBtcAmount
+              ( st
+                  & cdBTC .~ newBtcAmount
+                  & cdSATS .~ toSats newBtcAmount
               )
               cf
 
@@ -114,8 +136,14 @@ handleKeyEvent e = do
     V.EvKey (V.KChar 'b') [] -> currentView .= BlockView
     V.EvKey (V.KChar 'c') [] -> currentView .= ConverterView
     V.EvKey (V.KChar 'a') [] -> animate %= not
-    V.EvKey (V.KChar 's') [] ->
-      selectedFiat %= next
+    V.EvKey (V.KChar 's') [] -> do
+      sf <- selectedFiat <%= next
+      cf <- use converterForm
+      -- Update `formState` with current selected `Fiat`
+      let updatedState = formState cf & cdFiat .~ sf
+      -- and recreate the form with it
+      converterForm .= mkConverterForm updatedState
+      updateConversion (focusGetCurrent $ formFocus cf)
       where
         next f
           | f == maxBound = minBound
