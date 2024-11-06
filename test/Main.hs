@@ -6,32 +6,63 @@ import Control.Exception (evaluate)
 import TUI.Service.Types
 import TUI.Utils
 import Test.Hspec
-import Text.Printf (printf)
 
 main :: IO ()
 main = hspec $ do
   describe "Conversion" $ do
     describe "BTC" $ do
-      it "to SATS" $
-        toSats (Amount 0.00000010 :: Amount BTC) `shouldBe` Amount 10
+      it "to SATS" $ do
+        toSats (Amount 0.00000010 :: Amount BTC) `shouldBe` (Amount 10 :: Amount SATS)
+        toSats (Amount 1.00176761 :: Amount BTC) `shouldBe` (Amount 100176761 :: Amount SATS)
+      it "to FIAT" $ do
+        btcToFiat
+          (Amount 0.00001000 :: Amount BTC)
+          (Price 100_000 :: Price EUR)
+          `shouldBe` (Amount 1 :: Amount EUR)
+        -- round up
+        btcToFiat
+          (Amount 1.00001019 :: Amount BTC)
+          (Price 100_000 :: Price EUR)
+          `shouldBe` (Amount 100_001.02 :: Amount EUR)
+        -- round down
+        btcToFiat
+          (Amount 1.00001011 :: Amount BTC)
+          (Price 100_000 :: Price EUR)
+          `shouldBe` (Amount 100_001.01 :: Amount EUR)
     describe "SATS" $ do
       it "to BTC" $ do
         let amount = (Amount 12345678 :: Amount SATS)
-        printf $ show amount
         toBtc amount `shouldBe` Amount 0.12345678
+      it "to FIAT" $ do
+        satsToFiat
+          (Amount 1000 :: Amount SATS)
+          (Price 100_000 :: Price EUR)
+          `shouldBe` (Amount 1 :: Amount EUR)
+        -- round up
+        satsToFiat
+          (Amount 1019 :: Amount SATS)
+          (Price 100_000 :: Price EUR)
+          `shouldBe` (Amount 1.02 :: Amount EUR)
+        -- round down
+        satsToFiat
+          (Amount 1011 :: Amount SATS)
+          (Price 100_000 :: Price EUR)
+          `shouldBe` (Amount 1.01 :: Amount EUR)
     describe "EUR" $ do
       let amount = (Amount 50_000 :: Amount EUR)
       it "to BTC" $ do
-        printf $ show amount
-        fiatToBtc amount (Price 100_000) `shouldBe` Amount 0.5
+        fiatToBtc amount (Price 100_000 :: Price EUR) `shouldBe` Amount 0.5
       it "to SATS" $
-        fiatToSats amount (Price 100_000) `shouldBe` Amount 50_000_000
+        fiatToSats amount (Price 100_000 :: Price EUR) `shouldBe` Amount 50_000_000
     describe "USD" $ do
-      let amount = (Amount 50_000 :: Amount USD)
-      it "to BTC" $
-        fiatToBtc amount (Price 200_000) `shouldBe` Amount 0.25
-      it "to SATS" $
-        fiatToSats amount (Price 200_000) `shouldBe` Amount 25_000_000
+      it "to BTC" $ do
+        fiatToBtc (Amount 50_000 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` (Amount 0.25 :: Amount BTC)
+        fiatToBtc (Amount 50_000.01 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` (Amount 0.25000005 :: Amount BTC)
+        fiatToBtc (Amount 50_000.09 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` (Amount 0.25000045 :: Amount BTC)
+      it "to SATS" $ do
+        fiatToSats (Amount 50_000 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` Amount 25_000_000
+        fiatToSats (Amount 50_000.01 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` (Amount 25000005 :: Amount SATS)
+        fiatToSats (Amount 50_000.09 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` (Amount 25000045 :: Amount SATS)
 
     describe "Show Amount a / ShowAmount" $ do
       it "USD" $
@@ -53,8 +84,9 @@ main = hspec $ do
         show (Amount 15_000.01 :: Amount CHF) `shouldBe` "CHF 15000.01"
       it "GBP" $
         show (Amount 30_000 :: Amount GBP) `shouldBe` "GBP 30000"
-      it "BTC" $
+      it "BTC" $ do
         show (Amount 1.23 :: Amount BTC) `shouldBe` "BTC 1.230 000 00"
+        show (Amount 1.00176761 :: Amount BTC) `shouldBe` "BTC 1.001 767 61"
       it "sats" $
         show (Amount 123 :: Amount SATS) `shouldBe` "123 sats"
     describe "Read Amount a" $ do

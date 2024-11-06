@@ -27,9 +27,9 @@ import Data.Functor ((<&>))
 import Graphics.Vty qualified as V
 import Lens.Micro (Lens', (&), (.~), (^.))
 import Lens.Micro.Mtl
-import TUI.Service.Types (Amount (Amount, unAmount), ApiEvent (..), Bitcoin (..), Price (unPrice), Prices (pUSD), RemoteData (..))
+import TUI.Service.Types (ApiEvent (..), Bitcoin (..), Prices (pUSD), RemoteData (..))
 import TUI.Types
-import TUI.Utils (maxFetchTick, toBtc, toSats)
+import TUI.Utils (btcToFiat, fiatToBtc, maxFetchTick, satsToFiat, toBtc, toSats)
 
 sendApiEvent :: ApiEvent -> AppEventM ()
 sendApiEvent e = do
@@ -54,39 +54,46 @@ updateConversion focusedField = do
   use prices >>= \case
     Success ps -> do
       cf <- use converterForm
-      let currentState = formState cf
+      let cs = formState cf
       case focusedField of
-        Just ConverterBtcField -> do
-          let btcAmount' = currentState ^. btcAmount
-          converterForm
+        Just ConverterBtcField -> updateBtcBased ps cf cs
+        Just ConverterSatField -> updateSatBased ps cf cs
+        Just ConverterFiatField -> updateFiatBased ps cf cs
+        Nothing -> updateFiatBased ps cf cs
+    _ -> pure ()
+  where
+    updateBtcBased :: (MonadState TUIState m) => Prices -> ConverterForm -> ConverterData -> m ()
+    updateBtcBased ps cf cs =
+      let newBtcAmount = cs ^. btcAmount
+       in converterForm
             .= updateFormState
-              ( currentState
-                  & fiatAmount .~ Amount (unPrice (pUSD ps) * unAmount btcAmount')
-                  & satsAmount .~ toSats btcAmount'
+              ( cs
+                  & fiatAmount .~ btcToFiat newBtcAmount (pUSD ps)
+                  & satsAmount .~ toSats newBtcAmount
               )
               cf
-        Just ConverterSatField -> do
-          let btcAmount' = toBtc (currentState ^. satsAmount)
-          converterForm
+
+    updateSatBased :: (MonadState TUIState m) => Prices -> ConverterForm -> ConverterData -> m ()
+    updateSatBased ps cf cs =
+      let newSatsAmount = cs ^. satsAmount
+       in converterForm
             .= updateFormState
-              ( currentState
-                  & fiatAmount .~ Amount (unPrice (pUSD ps) * unAmount btcAmount')
-                  & satsAmount .~ toSats btcAmount'
+              ( cs
+                  & fiatAmount .~ satsToFiat newSatsAmount (pUSD ps)
+                  & btcAmount .~ toBtc newSatsAmount
               )
               cf
-        -- For all other cases: `Nothing` OR `Just ConverterFiatField`
-        -- update BTC & sats, but not fiat values.
-        -- So it can be used whenever `prices` are updated, even an user does not focused on `Converter` form
-        _ -> do
-          let newBtcAmount = Amount $ unAmount (currentState ^. fiatAmount) / unPrice (pUSD ps)
-          converterForm
+
+    updateFiatBased :: (MonadState TUIState m) => Prices -> ConverterForm -> ConverterData -> m ()
+    updateFiatBased ps cf cs =
+      let newBtcAmount = fiatToBtc (cs ^. fiatAmount) (pUSD ps)
+       in converterForm
             .= updateFormState
-              ( currentState
+              ( cs
                   & btcAmount .~ newBtcAmount
                   & satsAmount .~ toSats newBtcAmount
               )
               cf
-    _ -> pure ()
 
 appEvent :: TChan ApiEvent -> BrickEvent TUIResource TUIEvent -> EventM TUIResource TUIState ()
 appEvent outCh e =

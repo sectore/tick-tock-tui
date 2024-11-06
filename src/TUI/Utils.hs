@@ -58,16 +58,41 @@ loadingStr = str loadingString
 emptyStr :: forall n. Widget n
 emptyStr = str " "
 
+-- | Helper to convert SATS to BTC
 toBtc :: Amount SATS -> Amount BTC
-toBtc (Amount a) = Amount $ a / 100_000_000
+-- To avoid floating-point precision issues using `Double`in `Amount`:
+-- 1. Rounding and formatting result to 8 decimals
+-- 2. `read` it back to `Amount` based on that decimals
+toBtc (Amount a) = Amount $ read $ printBitcoinValue $ a / 100_000_000
 
+-- | Helper to convert BTC to SATS
 toSats :: Amount BTC -> Amount SATS
-toSats (Amount a) = Amount $ a * 100000000
+toSats (Amount a) =
+  -- To avoid floating-point precision issues using `Double`in `Amount`:
+  -- following extra steps are needed to remove decimal places for SATS:
+  -- 1. Formatting without decimal
+  -- 2. `read` it back to whole number
+  Amount $ read $ printSatsValue (a * 100_000_000)
 
--- helper to convert Fiat to BTC
+-- | Helper to convert Fiat to BTC
 fiatToBtc :: forall (a :: Fiat). Amount a -> Price a -> Amount BTC
-fiatToBtc (Amount a) (Price p) = Amount $ a / p
+fiatToBtc (Amount a) (Price p) =
+  -- To avoid floating-point precision issues using `Double`in `Amount`:
+  -- 1. Rounding and formatting result to 8 decimals
+  -- 2. `read` it back to `Amount` based on that decimals
+  Amount $ read $ printBitcoinValue $ a / p
 
--- helper to convert Fiat to Sats
+-- | Helper to convert BTC to Fiat
+btcToFiat :: forall (a :: Fiat). Amount BTC -> Price a -> Amount a
+-- To avoid floating-point precision issues using `Double`in `Amount`:
+-- 1. Rounding and formatting result to two decimals
+-- 2. `read` it back to `Amount` based on that decimals
+btcToFiat (Amount b) (Price p) = Amount $ read $ printFiatValue $ b * p
+
+-- | Helper to convert Fiat to Sats
 fiatToSats :: forall (a :: Fiat). Amount a -> Price a -> Amount SATS
 fiatToSats a p = toSats $ fiatToBtc a p
+
+-- | Helper to convert SATS to Fiat
+satsToFiat :: forall (a :: Fiat). Amount SATS -> Price a -> Amount a
+satsToFiat s = btcToFiat (toBtc s)

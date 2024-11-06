@@ -11,7 +11,7 @@ import Data.Foldable (toList)
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
-import Text.Printf (printf)
+import Text.Printf (PrintfType, printf)
 
 data Bitcoin = BTC | SATS
   deriving (Eq)
@@ -19,19 +19,31 @@ data Bitcoin = BTC | SATS
 data Fiat = EUR | USD | GBP | CAD | CHF | AUD | JPY
   deriving (Eq, Enum, Bounded)
 
-newtype Price (a :: Fiat) = Price {unPrice :: Float}
+newtype Price (a :: Fiat) = Price {unPrice :: Double}
   deriving (Eq)
 
-showFiatAmount :: Float -> String
-showFiatAmount x =
-  let s = printf "%.2f" x -- explicitly use 2 decimal places for fiat
-      trimmed = reverse . dropWhile (== '0') . reverse $ s
-   in if last trimmed == '.'
-        then init trimmed -- remove trailing decimal point
-        else trimmed
+-- | Helper to print `Fiat` values with precision of 2 decimal
+printFiatValue :: (PrintfType r) => Double -> r
+printFiatValue = printf "%.2f"
 
-showFiat :: Fiat -> Float -> String
-showFiat fiat a = fiatSymbol fiat <> " " <> showFiatAmount a
+-- | Helper to print `BTC` values with precision of 8 decimal
+printBitcoinValue :: (PrintfType r) => Double -> r
+printBitcoinValue = printf "%.8f"
+
+-- | Helper to print `SATS` values without any decimal
+printSatsValue :: (PrintfType r) => Double -> r
+printSatsValue = printf "%.0f"
+
+-- Show `Fiat` value with symbol
+-- Note: Zero decimal are trimmed
+showFiat :: Fiat -> Double -> String
+showFiat fiat a = fiatSymbol fiat <> " " <> trim a
+  where
+    trim x =
+      let trimmed = reverse . dropWhile (== '0') . reverse $ printFiatValue x
+       in if last trimmed == '.'
+            then init trimmed -- remove trailing decimal point
+            else trimmed
 
 fiatSymbol :: Fiat -> String
 fiatSymbol = \case
@@ -106,7 +118,7 @@ instance A.FromJSON Fees where
       <*> o .: "hourFee"
   parseJSON v = fail $ "Could not parse Fees from " ++ show v
 
-newtype Amount a = Amount {unAmount :: Float}
+newtype Amount a = Amount {unAmount :: Double}
   deriving (Eq)
 
 instance Show (Amount 'USD) where
@@ -131,20 +143,21 @@ instance Show (Amount 'JPY) where
   show = showFiat JPY . unAmount
 
 instance Show (Amount 'BTC) where
-  show a =
-    let str = printf "BTC %.8f" (unAmount a)
-        (whole, dec) = break (== '.') (drop 4 str) -- drop "BTC " prefix
+  show (Amount a) =
+    let str = printBitcoinValue a
+        (whole, dec) = break (== '.') str
         formatGroups [] = []
         formatGroups xs =
           let (g, rest) = splitAt 3 xs
            in g : formatGroups rest
         formatted = case dec of
-          (d : ds) -> whole ++ [d] ++ unwords (formatGroups ds)
+          -- drop the '.' from dec before formatting
+          (_ : ds) -> whole ++ "." ++ unwords (formatGroups ds)
           [] -> whole
      in "BTC " ++ formatted
 
 instance Show (Amount 'SATS) where
-  show = printf "%.0f sats" . unAmount
+  show (Amount a) = printSatsValue a <> " sats"
 
 readAmount :: String -> [(Amount a, String)]
 readAmount numberStr = case reads numberStr of
