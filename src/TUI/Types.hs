@@ -81,7 +81,7 @@ data ConverterField
 
 type ConverterForm = Form ConverterData TUIEvent TUIResource
 
-data View = FeesView | PriceView | BlockView | ConverterView
+data View = FeesView | BlockView | ConverterView
   deriving (Eq)
 
 data TUIState = TUIState
@@ -97,6 +97,7 @@ data TUIState = TUIState
     _block :: BlockRD,
     _selectedFiat :: Fiat,
     _selectedBitcoin :: Bitcoin,
+    _showMenu :: Bool,
     _stLastBrickEvent :: Maybe (BrickEvent () TUIEvent)
   }
 

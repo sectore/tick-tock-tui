@@ -131,11 +131,11 @@ handleKeyEvent e = do
   currentView' <- use currentView
 
   case e of
-    V.EvKey (V.KChar 'p') [] -> currentView .= PriceView
     V.EvKey (V.KChar 'f') [] -> currentView .= FeesView
     V.EvKey (V.KChar 'b') [] -> currentView .= BlockView
     V.EvKey (V.KChar 'c') [] -> currentView .= ConverterView
     V.EvKey (V.KChar 'a') [] -> animate %= not
+    V.EvKey (V.KChar 'm') [] -> showMenu %= not
     V.EvKey (V.KChar 's') [] -> do
       sf <- selectedFiat <%= next
       cf <- use converterForm
@@ -167,7 +167,6 @@ handleKeyEvent e = do
         setLoading fees
         -- fetch fees
         sendApiEvent FetchFees
-      PriceView -> fetchPrices
       ConverterView -> fetchPrices
       BlockView -> do
         fetchTick .= 0

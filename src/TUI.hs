@@ -68,6 +68,7 @@ run = do
                 _block = NotAsked,
                 _selectedFiat = initialFiat,
                 _selectedBitcoin = initialBitcoin,
+                _showMenu = False,
                 _stLastBrickEvent = Nothing
               }
   -- run TUI app
