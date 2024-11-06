@@ -17,7 +17,7 @@ data Bitcoin = BTC | SATS
   deriving (Eq)
 
 data Fiat = EUR | USD | GBP | CAD | CHF | AUD | JPY
-  deriving (Eq, Enum, Bounded)
+  deriving (Eq, Enum, Bounded, Show)
 
 newtype Price (a :: Fiat) = Price {unPrice :: Double}
   deriving (Eq)

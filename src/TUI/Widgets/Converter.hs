@@ -17,26 +17,61 @@ import Brick.Forms
 import Brick.Widgets.Center
 import Lens.Micro ((^.))
 import TUI.Attr (withBold)
-import TUI.Service.Types (Amount (..), RemoteData (Loading, NotAsked))
-import TUI.Types (ConverterData (..), ConverterForm, TUIResource (..), TUIState, btcAmount, converterForm, fiatAmount, prices, satsAmount, tick)
+import TUI.Service.Types (Amount (..), Fiat (..), RemoteData (Loading, NotAsked))
+import TUI.Types
+  ( ConverterData (..),
+    ConverterForm,
+    TUIResource (..),
+    TUIState,
+    cdAUD,
+    cdBTC,
+    cdCAD,
+    cdCHF,
+    cdEUR,
+    cdFiat,
+    cdGBP,
+    cdJPY,
+    cdSATS,
+    cdUsd,
+    converterForm,
+    prices,
+    tick,
+  )
 import TUI.Utils (emptyStr)
 import TUI.Widgets.Loader (drawSpinner)
 
-initialConverterData :: ConverterData
-initialConverterData =
+initialConverterData :: Fiat -> ConverterData
+initialConverterData initialFiat =
   ConverterData
-    { _fiatAmount = Amount 5,
-      _btcAmount = Amount 0,
-      _satsAmount = Amount 0
+    { _cdFiat = initialFiat,
+      _cdUsd = Amount 5,
+      _cdGBP = Amount 6,
+      _cdCAD = Amount 7,
+      _cdCHF = Amount 8,
+      _cdAUD = Amount 9,
+      _cdEUR = Amount 10,
+      _cdJPY = Amount 11,
+      _cdBTC = Amount 0,
+      _cdSATS = Amount 0
     }
 
 mkConverterForm :: ConverterData -> ConverterForm
-mkConverterForm =
+mkConverterForm cd =
   newForm
-    [ editShowableField fiatAmount ConverterFiatField,
-      editShowableField btcAmount ConverterBtcField,
-      editShowableField satsAmount ConverterSatField
+    [ fiatField,
+      editShowableField cdBTC ConverterBtcField,
+      editShowableField cdSATS ConverterSatField
     ]
+    cd
+  where
+    fiatField = case cd ^. cdFiat of
+      EUR -> editShowableField cdEUR ConverterFiatField
+      CAD -> editShowableField cdCAD ConverterFiatField
+      GBP -> editShowableField cdGBP ConverterFiatField
+      AUD -> editShowableField cdAUD ConverterFiatField
+      CHF -> editShowableField cdCHF ConverterFiatField
+      JPY -> editShowableField cdJPY ConverterFiatField
+      USD -> editShowableField cdUsd ConverterFiatField
 
 drawConverter :: TUIState -> Widget TUIResource
 drawConverter st =

@@ -55,9 +55,17 @@ data TUIEvent
   deriving (Show, Eq)
 
 data ConverterData = ConverterData
-  { _fiatAmount :: Amount 'USD,
-    _btcAmount :: Amount 'BTC,
-    _satsAmount :: Amount 'SATS
+  { -- | selected fiat
+    _cdFiat :: Fiat,
+    _cdUsd :: Amount 'USD,
+    _cdCAD :: Amount 'CAD,
+    _cdEUR :: Amount 'EUR,
+    _cdGBP :: Amount 'GBP,
+    _cdCHF :: Amount 'CHF,
+    _cdJPY :: Amount 'JPY,
+    _cdAUD :: Amount 'AUD,
+    _cdBTC :: Amount 'BTC,
+    _cdSATS :: Amount 'SATS
   }
   deriving (Eq, Show)
 
