@@ -46,13 +46,13 @@ initialConverterData initialFiat initialBitcoin =
   ConverterData
     { _cdFiat = initialFiat,
       _cdBitcoin = initialBitcoin,
-      _cdUsd = Amount 5,
-      _cdGBP = Amount 6,
-      _cdCAD = Amount 7,
-      _cdCHF = Amount 8,
-      _cdAUD = Amount 9,
-      _cdEUR = Amount 10,
-      _cdJPY = Amount 11,
+      _cdUsd = Amount 21,
+      _cdGBP = Amount 21,
+      _cdCAD = Amount 21,
+      _cdCHF = Amount 21,
+      _cdAUD = Amount 21,
+      _cdEUR = Amount 21,
+      _cdJPY = Amount 21,
       _cdBTC = Amount 0,
       _cdSATS = Amount 0
     }
@@ -81,7 +81,7 @@ drawConverter :: TUIState -> Widget TUIResource
 drawConverter st =
   hCenter $
     vBox
-      [ padBottom (Pad 2) $ hCenter $ withBold $ str "Converter " <+> loadingAnimation,
+      [ padBottom (Pad 2) $ hCenter $ withBold $ str "CONVERTER" <+> padLeft (Pad 1) loadingAnimation,
         padTopBottom 1 $ hCenter $ hLimit 30 $ renderForm (st ^. converterForm)
       ]
   where

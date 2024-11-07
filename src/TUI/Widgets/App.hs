@@ -12,15 +12,13 @@ import TUI.Widgets.Converter (drawConverter)
 import TUI.Widgets.Fees (drawFees)
 import TUI.Widgets.Footer (drawFooter)
 import TUI.Widgets.Header (drawHeader)
-import TUI.Widgets.Price (drawPrice)
 
 drawApp :: TUIState -> [Widget TUIResource]
-drawApp st = [ui]
+drawApp st = [padTopBottom 1 ui]
   where
     cv = st ^. currentView
     main = case cv of
       FeesView -> drawFees st
-      PriceView -> drawPrice st
       BlockView -> drawBlock st
       ConverterView -> drawConverter st
     ui =

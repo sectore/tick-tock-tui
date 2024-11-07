@@ -31,6 +31,7 @@ library
                     ,   TUI.Widgets.App
                     ,   TUI.Widgets.Block
                     ,   TUI.Widgets.Converter
+                    ,   TUI.Widgets.Countdown
                     ,   TUI.Widgets.Fees
                     ,   TUI.Widgets.Footer
                     ,   TUI.Widgets.Header
