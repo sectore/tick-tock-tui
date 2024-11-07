@@ -31,10 +31,12 @@ library
                     ,   TUI.Widgets.App
                     ,   TUI.Widgets.Block
                     ,   TUI.Widgets.Converter
+                    ,   TUI.Widgets.Countdown
                     ,   TUI.Widgets.Fees
                     ,   TUI.Widgets.Footer
                     ,   TUI.Widgets.Header
                     ,   TUI.Widgets.Loader
+                    ,   TUI.Widgets.Price
     -- other-extensions:
     build-depends:      base ^>=4.18.2.1
                     ,   aeson >=0.8

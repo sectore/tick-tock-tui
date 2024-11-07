@@ -5,16 +5,22 @@ import Brick.Types
   ( Widget,
   )
 import Brick.Widgets.Core
-  ( padTopBottom,
+  ( Padding (..),
+    fill,
+    hBox,
+    padBottom,
+    padLeftRight,
     str,
+    vLimit,
   )
 import Lens.Micro ((^.))
 import TUI.Attr (withBtcColor)
 import TUI.Types (TUIResource (..), TUIState, animate, tick)
+import TUI.Widgets.Price
 
 drawHeader :: TUIState -> Widget TUIResource
 drawHeader st =
-  padTopBottom 1 $ txt
+  padLeftRight 1 $ padBottom (Pad 1) $ hBox [txt, vLimit 1 $ fill ' ', drawPrice st]
   where
     t = st ^. tick `div` 30
     i = mod t 5

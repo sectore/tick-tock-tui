@@ -14,7 +14,7 @@ import TUI.Widgets.Footer (drawFooter)
 import TUI.Widgets.Header (drawHeader)
 
 drawApp :: TUIState -> [Widget TUIResource]
-drawApp st = [ui]
+drawApp st = [padTopBottom 1 ui]
   where
     cv = st ^. currentView
     main = case cv of

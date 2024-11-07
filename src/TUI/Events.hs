@@ -160,20 +160,20 @@ handleKeyEvent e = do
         toggle b
           | b == BTC = SATS
           | otherwise = BTC
-    V.EvKey (V.KChar 'r') [] -> case currentView' of
-      FeesView -> do
-        fetchTick .= 0
-        lastFetchTick .= 0
-        setLoading fees
-        -- fetch fees
-        sendApiEvent FetchFees
-      ConverterView -> fetchPrices
-      BlockView -> do
-        fetchTick .= 0
-        lastFetchTick .= 0
-        setLoading block
-        -- fetch block data
-        sendApiEvent FetchBlock
+    V.EvKey (V.KChar 'r') [] -> do
+      -- reset fetch ticks
+      fetchTick .= 0
+      lastFetchTick .= 0
+      setLoading prices
+      sendApiEvent FetchPrices
+      case currentView' of
+        FeesView -> do
+          setLoading fees
+          sendApiEvent FetchFees
+        BlockView -> do
+          setLoading block
+          sendApiEvent FetchBlock
+        ConverterView -> pure ()
     V.EvKey V.KEsc [] -> lift halt
     V.EvKey (V.KChar 'q') [] -> lift halt
     otherEv -> do
@@ -189,13 +189,6 @@ handleKeyEvent e = do
             V.EvKey V.KBackTab [] -> updateConversion currentField
             _ -> pure ()
         _ -> pure ()
-  where
-    fetchPrices = do
-      fetchTick .= 0
-      lastFetchTick .= 0
-      setLoading prices
-      -- fetch prices
-      sendApiEvent FetchPrices
 
 handleAppEvent :: TUIEvent -> AppEventM ()
 handleAppEvent e = do

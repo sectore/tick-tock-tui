@@ -49,12 +49,6 @@ customMainWithInterval ms mUserChan app initialAppState = do
 
   customMainWithDefaultVty (Just inCh) app initialAppState
 
-loadingString :: String
-loadingString = "⣀"
-
-loadingStr :: forall n. Widget n
-loadingStr = str loadingString
-
 emptyStr :: forall n. Widget n
 emptyStr = str " "
 

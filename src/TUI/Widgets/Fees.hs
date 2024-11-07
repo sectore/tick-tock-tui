@@ -18,13 +18,13 @@ import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Fees (..), FeesRD, RemoteData (..))
 import TUI.Types (TUIResource (..), TUIState (..), fees, tick)
-import TUI.Utils (emptyStr, loadingStr)
-import TUI.Widgets.Loader (drawSpinner)
+import TUI.Utils (emptyStr)
+import TUI.Widgets.Loader (drawLoadingString2, drawSpinner)
 
 drawFees :: TUIState -> Widget TUIResource
 drawFees st =
   vBox
-    [ hCenter $ padBottom (Pad 2) $ withBold $ str "Fees " <+> loadingAnimation,
+    [ hCenter $ padBottom (Pad 2) $ withBold $ str "FEES" <+> padLeft (Pad 1) loadingAnimation,
       hCenter $
         renderTable $
           surroundingBorder False $
@@ -55,8 +55,10 @@ drawFees st =
     col1Right = padRight (Pad 10)
     col2Left = padLeft (Pad 10) . padRight (Pad 1)
     rdToStr :: forall a n. (Show a) => (Fees -> a) -> FeesRD -> Widget n
-    rdToStr l rd = case rd of
-      NotAsked -> loadingStr
-      Loading ma -> maybe loadingStr (str . show . l) ma
-      Failure _ -> withError $ str "error"
-      Success a -> withBold . str $ show $ l a
+    rdToStr l rd =
+      let loadingStr = drawLoadingString2 (st ^. tick)
+       in case rd of
+            NotAsked -> loadingStr
+            Loading ma -> maybe loadingStr (str . show . l) ma
+            Failure _ -> withError $ str "error"
+            Success a -> withBold . str $ show $ l a

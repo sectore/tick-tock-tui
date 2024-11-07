@@ -22,14 +22,14 @@ import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Block (..), BlockRD, RemoteData (..))
 import TUI.Types (TUIResource (..), TUIState (..), block, tick, timeZone)
-import TUI.Utils (emptyStr, loadingStr, toBtc)
-import TUI.Widgets.Loader (drawSpinner)
+import TUI.Utils (emptyStr, toBtc)
+import TUI.Widgets.Loader (drawLoadingString4, drawSpinner)
 import Text.Printf (printf)
 
 drawBlock :: TUIState -> Widget TUIResource
 drawBlock st =
   vBox
-    [ hCenter $ padBottom (Pad 2) $ withBold $ str "Latest block " <+> loadingAnimation,
+    [ hCenter $ padBottom (Pad 2) $ withBold $ str "LATEST BLOCK" <+> padLeft (Pad 1) loadingAnimation,
       hCenter $
         renderTable $
           surroundingBorder False $
@@ -38,26 +38,26 @@ drawBlock st =
                 setDefaultColAlignment AlignLeft $
                   table
                     [ -- block data
-                      [ col1 (str "Height"),
+                      [ col1 (str "height"),
                         col2 (rdToStr height show rdBlock)
                       ],
-                      [ col1 (str "Timestamp"),
+                      [ col1 (str "timestamp"),
                         col2 (rdToStr time formatLocalTime rdBlock)
                       ],
-                      [ col1 (str "Size"),
+                      [ col1 (str "size"),
                         col2 (rdToStr size formatSize rdBlock)
                       ],
-                      [ col1 (str "Txs"),
+                      [ col1 (str "txs"),
                         col2 (rdToStr txs show rdBlock)
                       ],
                       -- miner data
-                      [ padTop (Pad 2) $ col1 (str "Miner"),
+                      [ padTop (Pad 2) $ col1 (str "miner"),
                         padTop (Pad 2) $ col2 (rdToStr poolName unpack rdBlock)
                       ],
-                      [ col1 (str "Fees"),
+                      [ col1 (str "fees"),
                         col2 (rdToStr poolFees (show . toBtc) rdBlock)
                       ],
-                      [ col1 (str "Reward"),
+                      [ col1 (str "reward"),
                         col2 (rdToStr reward (show . toBtc) rdBlock)
                       ]
                     ]
@@ -80,8 +80,10 @@ drawBlock st =
       | bytes >= 1000 = show (bytes `div` 1000) ++ " KB"
       | otherwise = show bytes ++ " B"
     rdToStr :: forall a n. (Show a) => (Block -> a) -> (a -> String) -> BlockRD -> Widget n
-    rdToStr l show' rd = case rd of
-      NotAsked -> loadingStr
-      Loading ma -> maybe loadingStr (str . show' . l) ma
-      Failure _ -> withError $ str "error"
-      Success a -> str $ show' $ l a
+    rdToStr l show' rd =
+      let loadingStr = drawLoadingString4 (st ^. tick)
+       in case rd of
+            NotAsked -> loadingStr
+            Loading ma -> maybe loadingStr (str . show' . l) ma
+            Failure _ -> withError $ str "error"
+            Success a -> str $ show' $ l a
