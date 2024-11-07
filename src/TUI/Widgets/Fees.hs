@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+
 module TUI.Widgets.Fees (drawFees) where
 
 import Brick.Types
@@ -16,10 +18,10 @@ import Brick.Widgets.Core
 import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
-import TUI.Service.Types (Fees (..), FeesRD, RemoteData (..))
-import TUI.Types (TUIResource (..), TUIState (..), fees, tick)
-import TUI.Utils (emptyStr)
-import TUI.Widgets.Loader (drawLoadingString2, drawSpinner)
+import TUI.Service.Types (Amount (Amount, unAmount), Bitcoin (..), Fees (..), FeesRD, Fiat (..), Prices (..), RemoteData (..))
+import TUI.Types (TUIResource (..), TUIState (..), fees, prices, selectedFiat, tick)
+import TUI.Utils (emptyStr, scalePrice, toBtc)
+import TUI.Widgets.Loader (drawLoadingString2, drawLoadingString4, drawSpinner)
 
 drawFees :: TUIState -> Widget TUIResource
 drawFees st =
@@ -33,18 +35,40 @@ drawFees st =
                 setDefaultColAlignment AlignLeft $
                   table
                     [ [ col1Left (str "fast") <+> col1Right (str "~10min"),
-                        col2Left (rdToStr fast rdFees) <+> col1Right (str "sat/vB")
+                        col2Left $
+                          vBox
+                            [ withBold
+                                ( feesRdStr fast rdFees
+                                    <+> col1Right (str " sat/vB")
+                                ),
+                              fiatPriceStr fast
+                            ]
                       ],
                       [ col1Left (str "medium") <+> col1Right (str "~30min"),
-                        col2Left (rdToStr medium rdFees) <+> col1Right (str "sat/vB")
+                        col2Left $
+                          vBox
+                            [ withBold
+                                ( feesRdStr medium rdFees
+                                    <+> col1Right (str " sat/vB")
+                                ),
+                              fiatPriceStr medium
+                            ]
                       ],
                       [ col1Left (str "slow") <+> col1Right (str "~60min"),
-                        col2Left (rdToStr slow rdFees) <+> col1Right (str "sat/vB")
+                        col2Left $
+                          vBox
+                            [ withBold
+                                ( feesRdStr slow rdFees
+                                    <+> col1Right (str " sat/vB")
+                                ),
+                              fiatPriceStr slow
+                            ]
                       ]
                     ]
     ]
   where
     rdFees = st ^. fees
+    rdPrices = st ^. prices
     loadingAnimation =
       let spinner = drawSpinner (st ^. tick)
        in case rdFees of
@@ -54,11 +78,33 @@ drawFees st =
     col1Left = withBold . padRight (Pad 1)
     col1Right = padRight (Pad 10)
     col2Left = padLeft (Pad 10) . padRight (Pad 1)
-    rdToStr :: forall a n. (Show a) => (Fees -> a) -> FeesRD -> Widget n
-    rdToStr l rd =
+    feesRdStr :: forall a n. (Show a) => (Fees -> a) -> FeesRD -> Widget n
+    feesRdStr feeL rd =
       let loadingStr = drawLoadingString2 (st ^. tick)
        in case rd of
             NotAsked -> loadingStr
-            Loading ma -> maybe loadingStr (str . show . l) ma
+            Loading mFs -> maybe loadingStr (str . show . feeL) mFs
             Failure _ -> withError $ str "error"
-            Success a -> withBold . str $ show $ l a
+            Success fs -> str $ show $ feeL fs
+    fiatPriceStr feeL =
+      let errorStr = withError $ str "error"
+          txCost :: Int -> Amount 'SATS
+          -- tx cost in `SAT` based on average txs size of 140 vb
+          txCost feeValue = Amount $ toEnum feeValue * 140
+          priceStr :: Amount 'SATS -> Prices -> Widget n
+          priceStr cost ps = case st ^. selectedFiat of
+            EUR -> str $ show $ scalePrice (pEUR ps) (unAmount $ toBtc cost)
+            USD -> str $ show $ scalePrice (pUSD ps) (unAmount $ toBtc cost)
+            GBP -> str $ show $ scalePrice (pGBP ps) (unAmount $ toBtc cost)
+            CAD -> str $ show $ scalePrice (pCAD ps) (unAmount $ toBtc cost)
+            CHF -> str $ show $ scalePrice (pCHF ps) (unAmount $ toBtc cost)
+            AUD -> str $ show $ scalePrice (pAUD ps) (unAmount $ toBtc cost)
+            JPY -> str $ show $ scalePrice (pJPY ps) (unAmount $ toBtc cost)
+       in case (rdFees, rdPrices) of
+            (Loading (Just fs), Loading (Just ps)) -> priceStr (txCost (feeL fs)) ps
+            (Loading (Just fs), Success ps) -> priceStr (txCost (feeL fs)) ps
+            (Success fs, Loading (Just ps)) -> priceStr (txCost (feeL fs)) ps
+            (Failure _, _) -> errorStr
+            (_, Failure _) -> errorStr
+            (Success fs, Success ps) -> priceStr (txCost $ feeL fs) ps
+            _ -> drawLoadingString4 (st ^. tick)
