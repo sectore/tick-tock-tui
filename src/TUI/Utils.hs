@@ -52,6 +52,10 @@ customMainWithInterval ms mUserChan app initialAppState = do
 emptyStr :: forall n. Widget n
 emptyStr = str " "
 
+-- | Helper to scale `Price` by any `Real` number
+scalePrice :: (Real n) => Price a -> n -> Price a
+scalePrice (Price p) n = Price (realToFrac n * p)
+
 -- | Helper to convert SATS to BTC
 toBtc :: Amount SATS -> Amount BTC
 -- To avoid floating-point precision issues using `Double`in `Amount`:
