@@ -9,6 +9,54 @@ import Test.Hspec
 
 main :: IO ()
 main = hspec $ do
+  describe "RemoteData" $ do
+    -- identity function to provide a type signature in tests
+    let rd :: RemoteData String Int -> RemoteData String Int
+        rd = id
+    it "Functor" $ do
+      (+ 10) <$> rd NotAsked `shouldBe` NotAsked
+      (+ 10) <$> rd (Loading Nothing) `shouldBe` Loading Nothing
+      (+ 10) <$> rd (Loading (Just 50)) `shouldBe` Loading (Just 60)
+      (+ 10) <$> rd (Failure "error") `shouldBe` Failure "error"
+      (+ 10) <$> rd (Success 50) `shouldBe` Success 60
+    it "Applicative" $ do
+      -- identity function to provide a type signature in tests
+      let rdf :: RemoteData String (Int -> Int) -> RemoteData String (Int -> Int)
+          rdf = id
+
+      pure 10 `shouldBe` rd (Success 10)
+
+      -- `NotAsked` wins in all cases, even by errors
+      rdf NotAsked <*> NotAsked `shouldBe` NotAsked
+      rdf NotAsked <*> Loading Nothing `shouldBe` NotAsked
+      rdf NotAsked <*> Loading (Just 1) `shouldBe` NotAsked
+      rdf NotAsked <*> Failure "error" `shouldBe` NotAsked
+      rdf NotAsked <*> Success 50 `shouldBe` NotAsked
+      rdf (Loading Nothing) <*> NotAsked `shouldBe` NotAsked
+      rdf (Loading (Just (+ 10))) <*> NotAsked `shouldBe` NotAsked
+      rdf (Failure "error") <*> NotAsked `shouldBe` NotAsked
+      rdf (Success (+ 10)) <*> NotAsked `shouldBe` NotAsked
+
+      -- Failures
+      rdf (Failure "error") <*> Loading Nothing `shouldBe` Failure "error"
+      rdf (Failure "error") <*> Loading (Just 1) `shouldBe` Failure "error"
+      rdf (Failure "error") <*> Success 50 `shouldBe` Failure "error"
+      rdf (Loading (Just (+ 10))) <*> Failure "error" `shouldBe` Failure "error"
+      rdf (Loading Nothing) <*> Failure "error" `shouldBe` Failure "error"
+      rdf (Success (+ 10)) <*> Failure "error" `shouldBe` Failure "error"
+
+      -- Loading
+      rdf (Loading Nothing) <*> Loading Nothing `shouldBe` Loading Nothing
+      rdf (Loading Nothing) <*> Loading (Just 10) `shouldBe` Loading Nothing
+      rdf (Loading Nothing) <*> Success 50 `shouldBe` Loading Nothing
+      -- Loading: It handles success values
+      rdf (Success (+ 10)) <*> Loading Nothing `shouldBe` Loading Nothing
+      rdf (Success (+ 50)) <*> Loading (Just 50) `shouldBe` Loading (Just 100)
+      rdf (Loading (Just (+ 10))) <*> Success 50 `shouldBe` Loading (Just 60)
+
+      -- Success
+      rdf (Success (+ 10)) <*> Success 50 `shouldBe` Success 60
+
   describe "Conversion" $ do
     describe "BTC" $ do
       it "to SATS" $ do
