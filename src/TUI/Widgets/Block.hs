@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+
 module TUI.Widgets.Block (drawBlock) where
 
 import Brick.Types
@@ -20,9 +22,9 @@ import Data.Time.Format (defaultTimeLocale, formatTime)
 import Data.Time.LocalTime (utcToLocalTime)
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
-import TUI.Service.Types (Block (..), BlockRD, RemoteData (..))
-import TUI.Types (TUIResource (..), TUIState (..), block, tick, timeZone)
-import TUI.Utils (emptyStr, toBtc)
+import TUI.Service.Types (Amount, Bitcoin (..), Block (..), Fiat (..), Prices (..), RemoteData (..))
+import TUI.Types (TUIResource (..), TUIState (..), block, prices, selectedFiat, tick, timeZone)
+import TUI.Utils (emptyStr, satsToFiat, toBtc)
 import TUI.Widgets.Loader (drawLoadingString4, drawSpinner)
 import Text.Printf (printf)
 
@@ -39,26 +41,34 @@ drawBlock st =
                   table
                     [ -- block data
                       [ col1 (str "height"),
-                        col2 (rdToStr height show rdBlock)
+                        col2 (rdToStr height show)
                       ],
                       [ col1 (str "timestamp"),
-                        col2 (rdToStr time formatLocalTime rdBlock)
+                        col2 (rdToStr time formatLocalTime)
                       ],
                       [ col1 (str "size"),
-                        col2 (rdToStr size formatSize rdBlock)
+                        col2 (rdToStr size formatSize)
                       ],
                       [ col1 (str "txs"),
-                        col2 (rdToStr txs show rdBlock)
+                        col2 (rdToStr txs show)
                       ],
                       -- miner data
                       [ padTop (Pad 2) $ col1 (str "miner"),
-                        padTop (Pad 2) $ col2 (rdToStr poolName unpack rdBlock)
+                        padTop (Pad 2) $ col2 (rdToStr poolName unpack)
                       ],
                       [ col1 (str "fees"),
-                        col2 (rdToStr poolFees (show . toBtc) rdBlock)
+                        col2 $
+                          vBox
+                            [ rdToStr poolFees (show . toBtc),
+                              rdToFiatStr poolFees
+                            ]
                       ],
                       [ col1 (str "reward"),
-                        col2 (rdToStr reward (show . toBtc) rdBlock)
+                        col2 $
+                          vBox
+                            [ rdToStr reward (show . toBtc),
+                              rdToFiatStr reward
+                            ]
                       ]
                     ]
     ]
@@ -79,11 +89,30 @@ drawBlock st =
       | bytes >= 1000_000 = printf "%.2f MB" (fromIntegral bytes / 1000_000 :: Double)
       | bytes >= 1000 = show (bytes `div` 1000) ++ " KB"
       | otherwise = show bytes ++ " B"
-    rdToStr :: forall a n. (Show a) => (Block -> a) -> (a -> String) -> BlockRD -> Widget n
-    rdToStr l show' rd =
+    rdToStr :: forall a n. (Show a) => (Block -> a) -> (a -> String) -> Widget n
+    rdToStr accessor show' =
       let loadingStr = drawLoadingString4 (st ^. tick)
-       in case rd of
+       in case rdBlock of
             NotAsked -> loadingStr
-            Loading ma -> maybe loadingStr (str . show' . l) ma
+            Loading ma -> maybe loadingStr (str . show' . accessor) ma
             Failure _ -> withError $ str "error"
-            Success a -> str $ show' $ l a
+            Success b -> str $ show' $ accessor b
+    rdToFiatStr :: forall n. (Block -> Amount 'SATS) -> Widget n
+    rdToFiatStr accessor =
+      let errorStr = withError $ str "error"
+          priceStr :: Block -> Prices -> Widget n
+          priceStr b ps =
+            let s = accessor b
+             in case st ^. selectedFiat of
+                  EUR -> str $ show $ satsToFiat s (pEUR ps)
+                  USD -> str $ show $ satsToFiat s (pUSD ps)
+                  GBP -> str $ show $ satsToFiat s (pGBP ps)
+                  CAD -> str $ show $ satsToFiat s (pCAD ps)
+                  CHF -> str $ show $ satsToFiat s (pCHF ps)
+                  AUD -> str $ show $ satsToFiat s (pAUD ps)
+                  JPY -> str $ show $ satsToFiat s (pJPY ps)
+       in case liftA2 (,) rdBlock (st ^. prices) of
+            Loading (Just (b, ps)) -> priceStr b ps
+            Success (b, ps) -> priceStr b ps
+            Failure _ -> errorStr
+            _ -> drawLoadingString4 (st ^. tick)
