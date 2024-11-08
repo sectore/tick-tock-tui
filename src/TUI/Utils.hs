@@ -52,10 +52,6 @@ customMainWithInterval ms mUserChan app initialAppState = do
 emptyStr :: forall n. Widget n
 emptyStr = str " "
 
--- | Helper to scale `Price` by any `Real` number
-scalePrice :: (Real n) => Price a -> n -> Price a
-scalePrice (Price p) n = Price (realToFrac n * p)
-
 -- | Helper to convert SATS to BTC
 toBtc :: Amount SATS -> Amount BTC
 -- To avoid floating-point precision issues using `Double`in `Amount`:
@@ -72,7 +68,18 @@ toSats (Amount a) =
   -- 2. `read` it back to whole number
   Amount $ read $ printSatsValue (a * 100_000_000)
 
--- | Helper to convert Fiat to BTC
+-- \| Helper to convert any `Amount` of `BTC` to `Fiat` by given `Price`
+btcToFiat :: forall (a :: Fiat). Amount BTC -> Price a -> Amount a
+-- To avoid floating-point precision issues using `Double`in `Amount`:
+-- 1. Rounding and formatting result to two decimals
+-- 2. `read` it back to `Amount` based on that decimals
+btcToFiat (Amount b) (Price p) = Amount $ read $ printFiatValue $ b * p
+
+-- | Helper to convert any `Amount` of `SATS` to `Fiat` by given `Price`
+satsToFiat :: forall (a :: Fiat). Amount SATS -> Price a -> Amount a
+satsToFiat s = btcToFiat (toBtc s)
+
+-- | Helper to convert any `Amount` of `Fiat` to `BTC` by given `Price`
 fiatToBtc :: forall (a :: Fiat). Amount a -> Price a -> Amount BTC
 fiatToBtc (Amount a) (Price p) =
   -- To avoid floating-point precision issues using `Double`in `Amount`:
@@ -80,17 +87,6 @@ fiatToBtc (Amount a) (Price p) =
   -- 2. `read` it back to `Amount` based on that decimals
   Amount $ read $ printBitcoinValue $ a / p
 
--- | Helper to convert BTC to Fiat
-btcToFiat :: forall (a :: Fiat). Amount BTC -> Price a -> Amount a
--- To avoid floating-point precision issues using `Double`in `Amount`:
--- 1. Rounding and formatting result to two decimals
--- 2. `read` it back to `Amount` based on that decimals
-btcToFiat (Amount b) (Price p) = Amount $ read $ printFiatValue $ b * p
-
--- | Helper to convert Fiat to Sats
+-- | Helper to convert any `Amount` of `Fiat` to `SATS` by given `Price`
 fiatToSats :: forall (a :: Fiat). Amount a -> Price a -> Amount SATS
 fiatToSats a p = toSats $ fiatToBtc a p
-
--- | Helper to convert SATS to Fiat
-satsToFiat :: forall (a :: Fiat). Amount SATS -> Price a -> Amount a
-satsToFiat s = btcToFiat (toBtc s)
