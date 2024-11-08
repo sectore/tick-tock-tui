@@ -100,11 +100,8 @@ drawFees st =
                   CHF -> str $ show $ satsToFiat s (pCHF ps)
                   AUD -> str $ show $ satsToFiat s (pAUD ps)
                   JPY -> str $ show $ satsToFiat s (pJPY ps)
-       in case (rdFees, rdPrices) of
-            (Loading (Just fs), Loading (Just ps)) -> priceStr fs ps
-            (Loading (Just fs), Success ps) -> priceStr fs ps
-            (Success fs, Loading (Just ps)) -> priceStr fs ps
-            (Failure _, _) -> errorStr
-            (_, Failure _) -> errorStr
-            (Success fs, Success ps) -> priceStr fs ps
+       in case liftA2 (,) rdFees rdPrices of
+            Loading (Just (fs, ps)) -> priceStr fs ps
+            Success (fs, ps) -> priceStr fs ps
+            Failure _ -> errorStr
             _ -> drawLoadingString4 (st ^. tick)
