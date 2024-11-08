@@ -18,9 +18,9 @@ import Brick.Widgets.Core
 import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
-import TUI.Service.Types (Amount (Amount, unAmount), Bitcoin (..), Fees (..), FeesRD, Fiat (..), Prices (..), RemoteData (..))
+import TUI.Service.Types (Amount (Amount), Fees (..), FeesRD, Fiat (..), Prices (..), RemoteData (..))
 import TUI.Types (TUIResource (..), TUIState (..), fees, prices, selectedFiat, tick)
-import TUI.Utils (emptyStr, scalePrice, toBtc)
+import TUI.Utils (emptyStr, satsToFiat)
 import TUI.Widgets.Loader (drawLoadingString2, drawLoadingString4, drawSpinner)
 
 drawFees :: TUIState -> Widget TUIResource
@@ -88,23 +88,23 @@ drawFees st =
             Success fs -> str $ show $ feeL fs
     fiatPriceStr feeL =
       let errorStr = withError $ str "error"
-          txCost :: Int -> Amount 'SATS
-          -- tx cost in `SAT` based on average txs size of 140 vb
-          txCost feeValue = Amount $ toEnum feeValue * 140
-          priceStr :: Amount 'SATS -> Prices -> Widget n
-          priceStr cost ps = case st ^. selectedFiat of
-            EUR -> str $ show $ scalePrice (pEUR ps) (unAmount $ toBtc cost)
-            USD -> str $ show $ scalePrice (pUSD ps) (unAmount $ toBtc cost)
-            GBP -> str $ show $ scalePrice (pGBP ps) (unAmount $ toBtc cost)
-            CAD -> str $ show $ scalePrice (pCAD ps) (unAmount $ toBtc cost)
-            CHF -> str $ show $ scalePrice (pCHF ps) (unAmount $ toBtc cost)
-            AUD -> str $ show $ scalePrice (pAUD ps) (unAmount $ toBtc cost)
-            JPY -> str $ show $ scalePrice (pJPY ps) (unAmount $ toBtc cost)
+          priceStr :: Fees -> Prices -> Widget n
+          priceStr fs ps =
+            -- tx cost in `SATS` based on average txs size of 140 vb
+            let s = Amount $ toEnum (feeL fs) * 140
+             in case st ^. selectedFiat of
+                  EUR -> str $ show $ satsToFiat s (pEUR ps)
+                  USD -> str $ show $ satsToFiat s (pUSD ps)
+                  GBP -> str $ show $ satsToFiat s (pGBP ps)
+                  CAD -> str $ show $ satsToFiat s (pCAD ps)
+                  CHF -> str $ show $ satsToFiat s (pCHF ps)
+                  AUD -> str $ show $ satsToFiat s (pAUD ps)
+                  JPY -> str $ show $ satsToFiat s (pJPY ps)
        in case (rdFees, rdPrices) of
-            (Loading (Just fs), Loading (Just ps)) -> priceStr (txCost (feeL fs)) ps
-            (Loading (Just fs), Success ps) -> priceStr (txCost (feeL fs)) ps
-            (Success fs, Loading (Just ps)) -> priceStr (txCost (feeL fs)) ps
+            (Loading (Just fs), Loading (Just ps)) -> priceStr fs ps
+            (Loading (Just fs), Success ps) -> priceStr fs ps
+            (Success fs, Loading (Just ps)) -> priceStr fs ps
             (Failure _, _) -> errorStr
             (_, Failure _) -> errorStr
-            (Success fs, Success ps) -> priceStr (txCost $ feeL fs) ps
+            (Success fs, Success ps) -> priceStr fs ps
             _ -> drawLoadingString4 (st ^. tick)

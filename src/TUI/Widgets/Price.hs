@@ -10,12 +10,15 @@ import Lens.Micro ((^.))
 import TUI.Attr (withError)
 import TUI.Service.Types (Amount (..), Bitcoin (..), Fiat (..), Price (..), Prices (..), RemoteData (..))
 import TUI.Types (TUIResource (..), TUIState (..), prices, selectedBitcoin, selectedFiat, tick)
-import TUI.Utils (emptyStr, toBtc)
+import TUI.Utils (btcToFiat, emptyStr, satsToFiat)
 import TUI.Widgets.Loader (drawLoadingString4, drawSpinner)
 
 drawPrice :: TUIState -> Widget TUIResource
 drawPrice st =
-  padRight (Pad 1) loadingAnimation <+> btcStr <+> padLeftRight 1 (str "=") <+> rdToStr rdPrices
+  padRight (Pad 1) loadingAnimation
+    <+> btcStr
+    <+> padLeftRight 1 (str "=")
+    <+> rdToStr rdPrices
   where
     rdPrices = st ^. prices
     loadingAnimation =
@@ -26,12 +29,14 @@ drawPrice st =
     btcSelected = st ^. selectedBitcoin == BTC
     sAmount :: Amount SATS
     sAmount = Amount 1000
-    btcStr = str $ if btcSelected then "BTC 1" else show sAmount
-    calcP :: Price a -> Price a
-    calcP p@(Price v) =
+    bAmount :: Amount BTC
+    bAmount = Amount 1
+    btcStr = str $ if btcSelected then show bAmount else show sAmount
+    calcP :: Price a -> Amount a
+    calcP p =
       if btcSelected
-        then p
-        else Price (v * unAmount (toBtc sAmount))
+        then btcToFiat bAmount p
+        else satsToFiat sAmount p
     priceStr :: Prices -> Widget n
     priceStr = case st ^. selectedFiat of
       EUR -> str . show . calcP . pEUR
