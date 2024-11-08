@@ -8,10 +8,16 @@ import Data.Aeson ((.:))
 import Data.Aeson qualified as A
 import Data.Aeson.Types (Parser)
 import Data.Foldable (toList)
+import Data.List (intercalate, unfoldr)
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Text.Printf (PrintfType, printf)
+
+-- | Helper to break down lists into chunks
+-- chunksOf 4 "tick tock next block"
+chunksOf :: Int -> [a] -> [[a]]
+chunksOf n = takeWhile (not . null) . unfoldr (Just . splitAt n)
 
 data Bitcoin = BTC | SATS
   deriving (Eq, Show)
@@ -35,15 +41,19 @@ printSatsValue :: (PrintfType r) => Double -> r
 printSatsValue = printf "%.0f"
 
 -- Show `Fiat` value with symbol
--- Note: Zero decimal are trimmed
 showFiat :: Fiat -> Double -> String
-showFiat fiat a = fiatSymbol fiat <> " " <> trim a
+showFiat fiat a = fiatSymbol fiat <> " " <> formatFiat (printFiatValue a)
   where
-    trim x =
-      let trimmed = reverse . dropWhile (== '0') . reverse $ printFiatValue x
-       in if last trimmed == '.'
-            then init trimmed -- remove trailing decimal point
-            else trimmed
+    formatFiat str =
+      let (whole, dec) = break (== '.') str
+       in formatWhole whole <> dec
+
+    -- Format whole number part with thousand separators
+    formatWhole whole =
+      let normalized = case dropWhile (== '0') whole of
+            "" -> "0" -- keep one zero if all zeros
+            xs -> xs
+       in reverse . intercalate "," . chunksOf 3 . reverse $ normalized
 
 fiatSymbol :: Fiat -> String
 fiatSymbol = \case
@@ -143,18 +153,32 @@ instance Show (Amount 'JPY) where
   show = showFiat JPY . unAmount
 
 instance Show (Amount 'BTC) where
-  show (Amount a) =
-    let str = printBitcoinValue a
-        (whole, dec) = break (== '.') str
-        formatGroups [] = []
-        formatGroups xs =
-          let (g, rest) = splitAt 3 xs
-           in g : formatGroups rest
-        formatted = case dec of
-          -- drop the '.' from dec before formatting
-          (_ : ds) -> whole ++ "." ++ unwords (formatGroups ds)
-          [] -> whole
-     in "BTC " ++ formatted
+  show (Amount a) = "BTC " <> formatBitcoin (printBitcoinValue a)
+    where
+      formatBitcoin str =
+        let (whole, dec) = break (== '.') str
+            withCommas = formatThousands whole
+            decimalPart = case dec of
+              ('.' : ds) -> formatDecimals ds
+              _ -> ""
+         in withCommas <> decimalPart
+
+      -- Format whole number part with thousand separators
+      formatThousands = reverse . intercalate "," . chunksOf 3 . reverse
+
+      -- Format decimal part with BTC-specific grouping (2+3+3)
+      formatDecimals ds =
+        let (first2, rest) = splitAt 2 ds
+            restGrouped = unwords (chunksOf 3 rest)
+            padding = replicate (6 - length rest) '0' -- pad to 8 decimals total
+         in "."
+              <> first2
+              <> if null rest
+                then " " <> chunksToGroups padding -- "000 000"
+                else " " <> restGrouped
+
+      -- Helper to convert a string of zeros into groups of three
+      chunksToGroups = unwords . chunksOf 3
 
 instance Show (Amount 'SATS) where
   show (Amount a) = printSatsValue a <> " sats"

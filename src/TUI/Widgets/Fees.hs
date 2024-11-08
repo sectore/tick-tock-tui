@@ -21,7 +21,7 @@ import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Amount (Amount), Fees (..), FeesRD, Fiat (..), Prices (..), RemoteData (..))
 import TUI.Types (TUIResource (..), TUIState (..), fees, prices, selectedFiat, tick)
 import TUI.Utils (emptyStr, satsToFiat)
-import TUI.Widgets.Loader (drawLoadingString2, drawLoadingString4, drawSpinner)
+import TUI.Widgets.Loader (drawLoadingString2, drawSpinner)
 
 drawFees :: TUIState -> Widget TUIResource
 drawFees st =
@@ -104,4 +104,4 @@ drawFees st =
             Loading (Just (fs, ps)) -> priceStr fs ps
             Success (fs, ps) -> priceStr fs ps
             Failure _ -> errorStr
-            _ -> drawLoadingString4 (st ^. tick)
+            _ -> drawLoadingString2 (st ^. tick)
