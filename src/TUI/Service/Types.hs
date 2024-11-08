@@ -267,13 +267,16 @@ instance Functor (RemoteData e) where
 
 instance Applicative (RemoteData e) where
   pure = Success
+
   NotAsked <*> _ = NotAsked
+  _ <*> NotAsked = NotAsked
+  Failure e <*> _ = Failure e
+  _ <*> Failure e = Failure e
   Loading ma <*> rb = Loading (ma <*> toMaybe rb)
     where
       toMaybe (Loading (Just x)) = Just x
       toMaybe (Success x) = Just x
       toMaybe _ = Nothing
-  Failure e <*> _ = Failure e
   Success f <*> rb = fmap f rb
 
 isLoading :: RemoteData e a -> Bool
