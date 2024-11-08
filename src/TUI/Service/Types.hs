@@ -259,6 +259,26 @@ data RemoteData e a
   | Success a
   deriving (Show, Eq)
 
+instance Functor (RemoteData e) where
+  fmap _ NotAsked = NotAsked
+  fmap f (Loading ma) = Loading (fmap f ma)
+  fmap _ (Failure e) = Failure e
+  fmap f (Success a) = Success (f a)
+
+instance Applicative (RemoteData e) where
+  pure = Success
+
+  NotAsked <*> _ = NotAsked
+  _ <*> NotAsked = NotAsked
+  Failure e <*> _ = Failure e
+  _ <*> Failure e = Failure e
+  Loading ma <*> rb = Loading (ma <*> toMaybe rb)
+    where
+      toMaybe (Loading (Just x)) = Just x
+      toMaybe (Success x) = Just x
+      toMaybe _ = Nothing
+  Success f <*> rb = fmap f rb
+
 isLoading :: RemoteData e a -> Bool
 isLoading (Loading _) = True
 isLoading _ = False

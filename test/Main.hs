@@ -9,6 +9,54 @@ import Test.Hspec
 
 main :: IO ()
 main = hspec $ do
+  describe "RemoteData" $ do
+    -- identity function to provide a type signature in tests
+    let rd :: RemoteData String Int -> RemoteData String Int
+        rd = id
+    it "Functor" $ do
+      (+ 10) <$> rd NotAsked `shouldBe` NotAsked
+      (+ 10) <$> rd (Loading Nothing) `shouldBe` Loading Nothing
+      (+ 10) <$> rd (Loading (Just 50)) `shouldBe` Loading (Just 60)
+      (+ 10) <$> rd (Failure "error") `shouldBe` Failure "error"
+      (+ 10) <$> rd (Success 50) `shouldBe` Success 60
+    it "Applicative" $ do
+      -- identity function to provide a type signature in tests
+      let rdf :: RemoteData String (Int -> Int) -> RemoteData String (Int -> Int)
+          rdf = id
+
+      pure 10 `shouldBe` rd (Success 10)
+
+      -- `NotAsked` wins in all cases, even by errors
+      rdf NotAsked <*> NotAsked `shouldBe` NotAsked
+      rdf NotAsked <*> Loading Nothing `shouldBe` NotAsked
+      rdf NotAsked <*> Loading (Just 1) `shouldBe` NotAsked
+      rdf NotAsked <*> Failure "error" `shouldBe` NotAsked
+      rdf NotAsked <*> Success 50 `shouldBe` NotAsked
+      rdf (Loading Nothing) <*> NotAsked `shouldBe` NotAsked
+      rdf (Loading (Just (+ 10))) <*> NotAsked `shouldBe` NotAsked
+      rdf (Failure "error") <*> NotAsked `shouldBe` NotAsked
+      rdf (Success (+ 10)) <*> NotAsked `shouldBe` NotAsked
+
+      -- Failures
+      rdf (Failure "error") <*> Loading Nothing `shouldBe` Failure "error"
+      rdf (Failure "error") <*> Loading (Just 1) `shouldBe` Failure "error"
+      rdf (Failure "error") <*> Success 50 `shouldBe` Failure "error"
+      rdf (Loading (Just (+ 10))) <*> Failure "error" `shouldBe` Failure "error"
+      rdf (Loading Nothing) <*> Failure "error" `shouldBe` Failure "error"
+      rdf (Success (+ 10)) <*> Failure "error" `shouldBe` Failure "error"
+
+      -- Loading
+      rdf (Loading Nothing) <*> Loading Nothing `shouldBe` Loading Nothing
+      rdf (Loading Nothing) <*> Loading (Just 10) `shouldBe` Loading Nothing
+      rdf (Loading Nothing) <*> Success 50 `shouldBe` Loading Nothing
+      -- Loading: It handles success values
+      rdf (Success (+ 10)) <*> Loading Nothing `shouldBe` Loading Nothing
+      rdf (Success (+ 50)) <*> Loading (Just 50) `shouldBe` Loading (Just 100)
+      rdf (Loading (Just (+ 10))) <*> Success 50 `shouldBe` Loading (Just 60)
+
+      -- Success
+      rdf (Success (+ 10)) <*> Success 50 `shouldBe` Success 60
+
   describe "Conversion" $ do
     describe "BTC" $ do
       it "to SATS" $ do
@@ -64,98 +112,99 @@ main = hspec $ do
         fiatToSats (Amount 50_000.01 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` (Amount 25000005 :: Amount SATS)
         fiatToSats (Amount 50_000.09 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` (Amount 25000045 :: Amount SATS)
 
-    describe "Show Amount a / ShowAmount" $ do
+  describe "Show Amount a / ShowAmount" $ do
+    it "USD" $
+      show (Amount 50_000 :: Amount USD) `shouldBe` "USD 50000"
+    it "EUR" $ do
+      show (Amount 10_000 :: Amount EUR) `shouldBe` "EUR 10000"
+      -- check some rounded cases
+      show (Amount 10_000.999 :: Amount EUR) `shouldBe` "EUR 10001"
+      show (Amount 10_000.99 :: Amount EUR) `shouldBe` "EUR 10000.99"
+      show (Amount 10_000.009 :: Amount EUR) `shouldBe` "EUR 10000.01"
+      show (Amount 10_000.001 :: Amount EUR) `shouldBe` "EUR 10000"
+    it "AUD" $
+      show (Amount 75_000 :: Amount AUD) `shouldBe` "AUD 75000"
+    it "CAD" $
+      show (Amount 25_000 :: Amount CAD) `shouldBe` "CAD 25000"
+    it "JPY" $
+      show (Amount 100_000 :: Amount JPY) `shouldBe` "JPY 100000"
+    it "CHF" $
+      show (Amount 15_000.01 :: Amount CHF) `shouldBe` "CHF 15000.01"
+    it "GBP" $
+      show (Amount 30_000 :: Amount GBP) `shouldBe` "GBP 30000"
+    it "BTC" $ do
+      show (Amount 1.23 :: Amount BTC) `shouldBe` "BTC 1.230 000 00"
+      show (Amount 1.00176761 :: Amount BTC) `shouldBe` "BTC 1.001 767 61"
+    it "sats" $
+      show (Amount 123 :: Amount SATS) `shouldBe` "123 sats"
+
+  describe "Read Amount a" $ do
+    describe "Fiat" $ do
       it "USD" $
-        show (Amount 50_000 :: Amount USD) `shouldBe` "USD 50000"
-      it "EUR" $ do
-        show (Amount 10_000 :: Amount EUR) `shouldBe` "EUR 10000"
-        -- check some rounded cases
-        show (Amount 10_000.999 :: Amount EUR) `shouldBe` "EUR 10001"
-        show (Amount 10_000.99 :: Amount EUR) `shouldBe` "EUR 10000.99"
-        show (Amount 10_000.009 :: Amount EUR) `shouldBe` "EUR 10000.01"
-        show (Amount 10_000.001 :: Amount EUR) `shouldBe` "EUR 10000"
-      it "AUD" $
-        show (Amount 75_000 :: Amount AUD) `shouldBe` "AUD 75000"
-      it "CAD" $
-        show (Amount 25_000 :: Amount CAD) `shouldBe` "CAD 25000"
-      it "JPY" $
-        show (Amount 100_000 :: Amount JPY) `shouldBe` "JPY 100000"
-      it "CHF" $
-        show (Amount 15_000.01 :: Amount CHF) `shouldBe` "CHF 15000.01"
+        do
+          read "USD 50000.00" `shouldBe` (Amount 50000 :: Amount USD)
+          read "USD 50000.01" `shouldBe` (Amount 50000.01 :: Amount USD)
+          evaluate (read "500" :: Amount USD)
+          `shouldThrow` errorCall "Prelude.read: no parse"
+
+      it "EUR" $
+        do
+          read "EUR 10000.00" `shouldBe` (Amount 10000 :: Amount EUR)
+          read "EUR 10000.50" `shouldBe` (Amount 10000.50 :: Amount EUR)
+          evaluate (read "1000" :: Amount EUR)
+          `shouldThrow` errorCall "Prelude.read: no parse"
+
       it "GBP" $
-        show (Amount 30_000 :: Amount GBP) `shouldBe` "GBP 30000"
-      it "BTC" $ do
-        show (Amount 1.23 :: Amount BTC) `shouldBe` "BTC 1.230 000 00"
-        show (Amount 1.00176761 :: Amount BTC) `shouldBe` "BTC 1.001 767 61"
-      it "sats" $
-        show (Amount 123 :: Amount SATS) `shouldBe` "123 sats"
-    describe "Read Amount a" $ do
-      describe "Fiat" $ do
-        it "USD" $
+        do
+          read "GBP 30000.00" `shouldBe` (Amount 30000 :: Amount GBP)
+          read "GBP 30000.75" `shouldBe` (Amount 30000.75 :: Amount GBP)
+          evaluate (read "3000" :: Amount GBP)
+          `shouldThrow` errorCall "Prelude.read: no parse"
+
+      it "CAD" $
+        do
+          read "CAD 25000.00" `shouldBe` (Amount 25000 :: Amount CAD)
+          read "CAD 25000.25" `shouldBe` (Amount 25000.25 :: Amount CAD)
+          evaluate (read "2500" :: Amount CAD)
+          `shouldThrow` errorCall "Prelude.read: no parse"
+
+      it "CHF" $
+        do
+          read "CHF 15000.00" `shouldBe` (Amount 15000 :: Amount CHF)
+          read "CHF 15000.15" `shouldBe` (Amount 15000.15 :: Amount CHF)
+          evaluate (read "1500" :: Amount CHF)
+          `shouldThrow` errorCall "Prelude.read: no parse"
+
+      it "AUD" $
+        do
+          read "AUD 75000.00" `shouldBe` (Amount 75000 :: Amount AUD)
+          read "AUD 75000.75" `shouldBe` (Amount 75000.75 :: Amount AUD)
+          evaluate (read "7500" :: Amount AUD)
+          `shouldThrow` errorCall "Prelude.read: no parse"
+
+      it "JPY" $
+        do
+          read "JPY 100000.00" `shouldBe` (Amount 100000 :: Amount JPY)
+          read "JPY 100000.50" `shouldBe` (Amount 100000.50 :: Amount JPY)
+          evaluate (read "10000" :: Amount JPY)
+          `shouldThrow` errorCall "Prelude.read: no parse"
+
+      describe "Bitcoin" $ do
+        it "BTC" $
           do
-            read "USD 50000.00" `shouldBe` (Amount 50000 :: Amount USD)
-            read "USD 50000.01" `shouldBe` (Amount 50000.01 :: Amount USD)
-            evaluate (read "500" :: Amount USD)
+            read "BTC 1.23456789" `shouldBe` (Amount 1.23456789 :: Amount BTC)
+            read "BTC 0.00000001" `shouldBe` (Amount 0.00000001 :: Amount BTC)
+            -- missing empty space but still readable
+            read "BTC0.00000002" `shouldBe` (Amount 0.00000002 :: Amount BTC)
+            -- default format
+            read "BTC 1.001 000 01" `shouldBe` (Amount 1.00100001 :: Amount BTC)
+            -- missing BTC
+            evaluate (read "1.23456789" :: Amount BTC)
             `shouldThrow` errorCall "Prelude.read: no parse"
 
-        it "EUR" $
+        it "SATS" $
           do
-            read "EUR 10000.00" `shouldBe` (Amount 10000 :: Amount EUR)
-            read "EUR 10000.50" `shouldBe` (Amount 10000.50 :: Amount EUR)
-            evaluate (read "1000" :: Amount EUR)
+            read "123456 sats" `shouldBe` (Amount 123456 :: Amount SATS)
+            read "1 sats" `shouldBe` (Amount 1 :: Amount SATS)
+            evaluate (read "123456" :: Amount SATS)
             `shouldThrow` errorCall "Prelude.read: no parse"
-
-        it "GBP" $
-          do
-            read "GBP 30000.00" `shouldBe` (Amount 30000 :: Amount GBP)
-            read "GBP 30000.75" `shouldBe` (Amount 30000.75 :: Amount GBP)
-            evaluate (read "3000" :: Amount GBP)
-            `shouldThrow` errorCall "Prelude.read: no parse"
-
-        it "CAD" $
-          do
-            read "CAD 25000.00" `shouldBe` (Amount 25000 :: Amount CAD)
-            read "CAD 25000.25" `shouldBe` (Amount 25000.25 :: Amount CAD)
-            evaluate (read "2500" :: Amount CAD)
-            `shouldThrow` errorCall "Prelude.read: no parse"
-
-        it "CHF" $
-          do
-            read "CHF 15000.00" `shouldBe` (Amount 15000 :: Amount CHF)
-            read "CHF 15000.15" `shouldBe` (Amount 15000.15 :: Amount CHF)
-            evaluate (read "1500" :: Amount CHF)
-            `shouldThrow` errorCall "Prelude.read: no parse"
-
-        it "AUD" $
-          do
-            read "AUD 75000.00" `shouldBe` (Amount 75000 :: Amount AUD)
-            read "AUD 75000.75" `shouldBe` (Amount 75000.75 :: Amount AUD)
-            evaluate (read "7500" :: Amount AUD)
-            `shouldThrow` errorCall "Prelude.read: no parse"
-
-        it "JPY" $
-          do
-            read "JPY 100000.00" `shouldBe` (Amount 100000 :: Amount JPY)
-            read "JPY 100000.50" `shouldBe` (Amount 100000.50 :: Amount JPY)
-            evaluate (read "10000" :: Amount JPY)
-            `shouldThrow` errorCall "Prelude.read: no parse"
-
-        describe "Bitcoin" $ do
-          it "BTC" $
-            do
-              read "BTC 1.23456789" `shouldBe` (Amount 1.23456789 :: Amount BTC)
-              read "BTC 0.00000001" `shouldBe` (Amount 0.00000001 :: Amount BTC)
-              -- missing empty space but still readable
-              read "BTC0.00000002" `shouldBe` (Amount 0.00000002 :: Amount BTC)
-              -- default format
-              read "BTC 1.001 000 01" `shouldBe` (Amount 1.00100001 :: Amount BTC)
-              -- missing BTC
-              evaluate (read "1.23456789" :: Amount BTC)
-              `shouldThrow` errorCall "Prelude.read: no parse"
-
-          it "SATS" $
-            do
-              read "123456 sats" `shouldBe` (Amount 123456 :: Amount SATS)
-              read "1 sats" `shouldBe` (Amount 1 :: Amount SATS)
-              evaluate (read "123456" :: Amount SATS)
-              `shouldThrow` errorCall "Prelude.read: no parse"

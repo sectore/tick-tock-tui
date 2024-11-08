@@ -31,7 +31,7 @@ drawPrice st =
     sAmount = Amount 1000
     bAmount :: Amount BTC
     bAmount = Amount 1
-    btcStr = str $ if btcSelected then show bAmount else show sAmount
+    btcStr = str $ if btcSelected then "BTC 1" else show sAmount
     calcP :: Price a -> Amount a
     calcP p =
       if btcSelected
