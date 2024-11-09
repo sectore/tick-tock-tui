@@ -214,8 +214,6 @@ main = hspec $ do
           evaluate (read "1.23456789" :: Amount BTC) `shouldThrow` errorCall "Prelude.read: no parse"
           -- missing empty space
           evaluate (read "BTC0.00000002" :: Amount BTC) `shouldThrow` errorCall "Prelude.read: no parse"
-      -- it "BTC 2" $
-      --   do
 
       it "SATS" $
         do
