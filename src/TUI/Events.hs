@@ -174,6 +174,11 @@ handleKeyEvent e = do
           setLoading block
           sendApiEvent FetchBlock
         ConverterView -> pure ()
+    V.EvKey (V.KChar 'e') [] -> do
+      case currentView' of
+        FeesView -> extraInfo %= not
+        BlockView -> extraInfo %= not
+        _ -> pure ()
     V.EvKey V.KEsc [] -> lift halt
     V.EvKey (V.KChar 'q') [] -> lift halt
     otherEv -> do

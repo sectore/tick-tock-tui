@@ -89,6 +89,7 @@ data TUIState = TUIState
     _currentView :: View,
     _converterForm :: ConverterForm,
     _animate :: Bool,
+    _extraInfo :: Bool,
     _tick :: Int,
     _fetchTick :: Int,
     _lastFetchTick :: Int,

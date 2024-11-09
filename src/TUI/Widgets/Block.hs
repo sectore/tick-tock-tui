@@ -8,6 +8,7 @@ import Brick.Types
 import Brick.Widgets.Center (hCenter)
 import Brick.Widgets.Core
   ( Padding (..),
+    emptyWidget,
     padBottom,
     padLeft,
     padRight,
@@ -23,7 +24,7 @@ import Data.Time.LocalTime (utcToLocalTime)
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Amount, Bitcoin (..), Block (..), Fiat (..), Prices (..), RemoteData (..))
-import TUI.Types (TUIResource (..), TUIState (..), block, prices, selectedFiat, tick, timeZone)
+import TUI.Types (TUIResource (..), TUIState (..), block, extraInfo, prices, selectedFiat, tick, timeZone)
 import TUI.Utils (emptyStr, satsToFiat, toBtc)
 import TUI.Widgets.Loader (drawLoadingString4, drawSpinner)
 import Text.Printf (printf)
@@ -60,14 +61,14 @@ drawBlock st =
                         col2 $
                           vBox
                             [ rdToStr poolFees (show . toBtc),
-                              rdToFiatStr poolFees
+                              if st ^. extraInfo then rdToFiatStr poolFees else emptyWidget
                             ]
                       ],
                       [ col1 (str "reward"),
                         col2 $
                           vBox
                             [ rdToStr reward (show . toBtc),
-                              rdToFiatStr reward
+                              if st ^. extraInfo then rdToFiatStr reward else emptyWidget
                             ]
                       ]
                     ]
