@@ -45,7 +45,7 @@ formatThousands = reverse . intercalate "," . chunksOf 3 . reverse
 
 -- Show `Fiat` value with symbol
 showFiat :: Fiat -> Double -> String
-showFiat fiat a = fiatSymbol fiat <> " " <> formatFiat (printFiatValue a)
+showFiat fiat a = formatFiat (printFiatValue a) <> " " <> fiatSymbol fiat
   where
     formatFiat str =
       let (whole, dec) = break (== '.') str
@@ -156,7 +156,7 @@ instance Show (Amount 'JPY) where
   show = showFiat JPY . unAmount
 
 instance Show (Amount 'BTC) where
-  show (Amount a) = "BTC " <> formatBitcoin (printBitcoinValue a)
+  show (Amount a) = formatBitcoin (printBitcoinValue a) <> " BTC"
     where
       formatBitcoin str =
         let (whole, dec) = break (== '.') str
@@ -181,7 +181,7 @@ instance Show (Amount 'BTC) where
       chunksToGroups = unwords . chunksOf 3
 
 instance Show (Amount 'SATS) where
-  show (Amount a) = formatSats (printSatsValue a) <> " sats"
+  show (Amount a) = formatSats (printSatsValue a) <> " sat"
     where
       formatSats str =
         let normalized = case dropWhile (== '0') str of
@@ -196,17 +196,16 @@ readAmount numberStr = case reads numberStr of
 
 readFiatAmount :: forall (a :: Fiat). (Show (Amount a)) => String -> [(Amount a, String)]
 readFiatAmount str = case words str of
-  [code, numberStr]
+  [numberStr, code]
     | length code == 3 && code == expectedCode ->
         let withoutCommas = filter (/= ',') numberStr -- remove commas before parsing
          in readAmount withoutCommas -- parse the cleaned number
   _ -> []
   where
-    -- Get currency code (first three letters) from `Show` instance
+    -- Get currency code (last three letters) from `Show` instance
     -- to compare it with `code` parsed above
-    expectedCode = case show (undefined :: Amount a) of
-      (c1 : c2 : c3 : _) -> [c1, c2, c3]
-      _ -> ""
+    expectedCode = case show (Amount 0 :: Amount a) of
+      xs -> drop (length xs - 3) xs
 
 instance Read (Amount 'USD) where
   readsPrec _ = readFiatAmount
@@ -230,14 +229,15 @@ instance Read (Amount 'JPY) where
   readsPrec _ = readFiatAmount
 
 readBitcoinAmount :: forall (a :: Bitcoin). String -> [(Amount a, String)]
-readBitcoinAmount str = case words str of
+readBitcoinAmount str = case reverse $ words str of
   ("BTC" : rest) ->
-    let numberStr = unwords rest -- keep original spacing
+    let numberStr = unwords $ reverse rest
         withoutCommas = filter (/= ',') numberStr -- remove only commas
         withoutSpaces = filter (/= ' ') withoutCommas -- then remove spaces
      in readAmount withoutSpaces
-  [numberStr, "sats"] ->
-    let withoutCommas = filter (/= ',') numberStr -- remove commas
+  ("sat" : rest) ->
+    let numberStr = unwords $ reverse rest
+        withoutCommas = filter (/= ',') numberStr -- remove commas
      in readAmount withoutCommas
   _ -> []
 
