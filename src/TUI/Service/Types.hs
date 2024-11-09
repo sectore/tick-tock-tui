@@ -15,7 +15,6 @@ import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Text.Printf (PrintfType, printf)
 
 -- | Helper to break down lists into chunks
--- chunksOf 4 "tick tock next block"
 chunksOf :: Int -> [a] -> [[a]]
 chunksOf n = takeWhile (not . null) . unfoldr (Just . splitAt n)
 
@@ -40,6 +39,10 @@ printBitcoinValue = printf "%.8f"
 printSatsValue :: (PrintfType r) => Double -> r
 printSatsValue = printf "%.0f"
 
+-- | Helper to format a whole number string with thousand separators
+formatThousands :: String -> String
+formatThousands = reverse . intercalate "," . chunksOf 3 . reverse
+
 -- Show `Fiat` value with symbol
 showFiat :: Fiat -> Double -> String
 showFiat fiat a = fiatSymbol fiat <> " " <> formatFiat (printFiatValue a)
@@ -53,7 +56,7 @@ showFiat fiat a = fiatSymbol fiat <> " " <> formatFiat (printFiatValue a)
       let normalized = case dropWhile (== '0') whole of
             "" -> "0" -- keep one zero if all zeros
             xs -> xs
-       in reverse . intercalate "," . chunksOf 3 . reverse $ normalized
+       in formatThousands normalized
 
 fiatSymbol :: Fiat -> String
 fiatSymbol = \case
@@ -163,9 +166,6 @@ instance Show (Amount 'BTC) where
               _ -> ""
          in withCommas <> decimalPart
 
-      -- Format whole number part with thousand separators
-      formatThousands = reverse . intercalate "," . chunksOf 3 . reverse
-
       -- Format decimal part with BTC-specific grouping (2+3+3)
       formatDecimals ds =
         let (first2, rest) = splitAt 2 ds
@@ -181,7 +181,13 @@ instance Show (Amount 'BTC) where
       chunksToGroups = unwords . chunksOf 3
 
 instance Show (Amount 'SATS) where
-  show (Amount a) = printSatsValue a <> " sats"
+  show (Amount a) = formatSats (printSatsValue a) <> " sats"
+    where
+      formatSats str =
+        let normalized = case dropWhile (== '0') str of
+              "" -> "0" -- keep one zero if all zeros
+              xs -> xs
+         in formatThousands normalized
 
 readAmount :: String -> [(Amount a, String)]
 readAmount numberStr = case reads numberStr of
@@ -191,7 +197,9 @@ readAmount numberStr = case reads numberStr of
 readFiatAmount :: forall (a :: Fiat). (Show (Amount a)) => String -> [(Amount a, String)]
 readFiatAmount str = case words str of
   [code, numberStr]
-    | length code == 3 && code == expectedCode -> readAmount numberStr
+    | length code == 3 && code == expectedCode ->
+        let withoutCommas = filter (/= ',') numberStr -- remove commas before parsing
+         in readAmount withoutCommas -- parse the cleaned number
   _ -> []
   where
     -- Get currency code (first three letters) from `Show` instance
@@ -223,8 +231,14 @@ instance Read (Amount 'JPY) where
 
 readBitcoinAmount :: forall (a :: Bitcoin). String -> [(Amount a, String)]
 readBitcoinAmount str = case words str of
-  ("BTC" : rest) -> readAmount $ filter (/= ' ') (unwords rest) -- remove all spaces
-  [numberStr, "sats"] -> readAmount numberStr
+  ("BTC" : rest) ->
+    let numberStr = unwords rest -- keep original spacing
+        withoutCommas = filter (/= ',') numberStr -- remove only commas
+        withoutSpaces = filter (/= ' ') withoutCommas -- then remove spaces
+     in readAmount withoutSpaces
+  [numberStr, "sats"] ->
+    let withoutCommas = filter (/= ',') numberStr -- remove commas
+     in readAmount withoutCommas
   _ -> []
 
 instance Read (Amount 'BTC) where
