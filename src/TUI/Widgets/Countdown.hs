@@ -4,34 +4,33 @@ import Brick.Types
   ( Widget,
   )
 import Brick.Widgets.Core
-  ( Padding (..),
+  ( emptyWidget,
     hLimit,
-    padRight,
     str,
     (<+>),
+    (<=>),
   )
 import Brick.Widgets.ProgressBar qualified as P
 import Lens.Micro ((^.))
-import TUI.Types (TUIResource (..), TUIState, fetchTick, lastFetchTick)
+import TUI.Types (TUIResource (..), TUIState, extraInfo, fetchTick, lastFetchTick)
 import TUI.Utils (fps, maxFetchTick)
 import Text.Printf (printf)
 
 drawCountdown :: TUIState -> Widget TUIResource
 drawCountdown st =
-  progress <+> tickTime
+  (if st ^. extraInfo then str "auto reload in " <+> tickTime else emptyWidget) <=> progress
   where
     remainingTick = maxFetchTick - (st ^. fetchTick - st ^. lastFetchTick)
     percent :: Float
     -- 1.1 => tweaked by 0.1 to have a completed progressbar visible just before 100%
     percent = 1.1 - fromIntegral remainingTick / fromIntegral maxFetchTick
     progress =
-      hLimit 10 $
-        padRight (Pad 2) $
-          P.customProgressBar
-            '─'
-            '─'
-            Nothing
-            percent
+      hLimit 22 $
+        P.customProgressBar
+          '─'
+          '─'
+          Nothing
+          percent
     tickTime =
       let total = remainingTick `div` fps
           mm = total `div` 60

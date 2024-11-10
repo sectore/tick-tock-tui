@@ -89,7 +89,7 @@ drawFees st =
             Success fs -> str $ show $ feeL fs
     fiatPriceStr feeL =
       let errorStr = withError $ str "error"
-          prefix = str "140vB ~ "
+          prefix = str "140vB = "
           priceStr :: Fees -> Prices -> Widget n
           priceStr fs ps =
             -- tx cost in `SATS` based on average txs size of 140 vb
