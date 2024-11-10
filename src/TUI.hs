@@ -59,6 +59,7 @@ run = do
               { _timeZone = tz,
                 _currentView = FeesView,
                 _converterForm = mkConverterForm (initialConverterData initialFiat initialBitcoin),
+                _prevConverterForm = Nothing,
                 _animate = False,
                 _extraInfo = False,
                 _tick = 0,

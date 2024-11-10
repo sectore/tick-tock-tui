@@ -88,6 +88,7 @@ data TUIState = TUIState
   { _timeZone :: TimeZone,
     _currentView :: View,
     _converterForm :: ConverterForm,
+    _prevConverterForm :: Maybe ConverterForm,
     _animate :: Bool,
     _extraInfo :: Bool,
     _tick :: Int,

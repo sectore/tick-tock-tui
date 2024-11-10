@@ -8,11 +8,13 @@ import Brick.Types
   )
 import Brick.Widgets.Border qualified as B
 import Brick.Widgets.Border.Style qualified as BS
+import Brick.Widgets.Center (hCenter)
 import Brick.Widgets.Core
   ( Padding (..),
     emptyWidget,
     padLeft,
     padRight,
+    padTop,
     str,
     vBox,
     withBorderStyle,
@@ -31,16 +33,18 @@ drawFooter st =
     [ padLeft (Pad 1) $ drawCountdown st,
       withBorderStyle BS.ascii $ B.hBorderWithLabel $ str $ "[m]enu " <> if st ^. showMenu then "↓" else "↑"
     ]
-      <> ( [ renderTable $
-               surroundingBorder False $
-                 rowBorders False $
-                   columnBorders False $
-                     setDefaultColAlignment AlignLeft $
-                       table
-                         [ [col1 $ str "screens", views],
-                           [col1 $ str "actions", actions],
-                           [col1 emptyWidget, actions2]
-                         ]
+      <> ( [ hCenter $
+               padTop (Pad 1) $
+                 renderTable $
+                   surroundingBorder False $
+                     rowBorders False $
+                       columnBorders False $
+                         setDefaultColAlignment AlignLeft $
+                           table
+                             [ [col1 $ str "screens", views],
+                               [col1 $ str "actions", actions],
+                               [col1 emptyWidget, actions2]
+                             ]
              | st ^. showMenu
            ]
          )

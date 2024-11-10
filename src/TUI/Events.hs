@@ -23,6 +23,7 @@ import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (MonadTrans (lift), ReaderT (runReaderT), asks)
 import Control.Monad.State.Strict (MonadState)
+import Data.Foldable (traverse_)
 import Data.Functor ((<&>))
 import Graphics.Vty qualified as V
 import Lens.Micro (Lens', (&), (.~), (^.))
@@ -60,6 +61,8 @@ updateConversion focusedField = do
         Just ConverterSatField -> updateSatBased ps cf
         Just ConverterFiatField -> updateFiatBased ps cf
         Nothing -> updateFiatBased ps cf
+      -- update previous state
+      use converterForm >>= \v -> prevConverterForm .= Just v
     _ -> pure ()
   where
     updateBtcBased :: (MonadState TUIState m) => Prices -> ConverterForm -> m ()
@@ -174,12 +177,7 @@ handleKeyEvent e = do
           setLoading block
           sendApiEvent FetchBlock
         ConverterView -> pure ()
-    V.EvKey (V.KChar 'e') [] -> do
-      case currentView' of
-        FeesView -> extraInfo %= not
-        BlockView -> extraInfo %= not
-        _ -> pure ()
-    V.EvKey V.KEsc [] -> lift halt
+    V.EvKey (V.KChar 'e') [] -> extraInfo %= not
     V.EvKey (V.KChar 'q') [] -> lift halt
     otherEv -> do
       stLastBrickEvent .= Just (VtyEvent otherEv)
@@ -192,6 +190,10 @@ handleKeyEvent e = do
             V.EvKey V.KEnter [] -> updateConversion currentField
             V.EvKey (V.KChar '\t') [] -> updateConversion currentField
             V.EvKey V.KBackTab [] -> updateConversion currentField
+            V.EvKey V.KEsc [] ->
+              -- Restore converterForm with previous its previous state
+              use prevConverterForm
+                >>= traverse_ (converterForm .=)
             _ -> pure ()
         _ -> pure ()
 

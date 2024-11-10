@@ -60,14 +60,14 @@ drawBlock st =
                       [ col1 (str "fees"),
                         col2 $
                           vBox
-                            [ rdToStr poolFees (show . toBtc),
+                            [ (if st ^. extraInfo then withBold else id) $ rdToStr poolFees (show . toBtc),
                               if st ^. extraInfo then rdToFiatStr poolFees else emptyWidget
                             ]
                       ],
                       [ col1 (str "reward"),
                         col2 $
                           vBox
-                            [ rdToStr reward (show . toBtc),
+                            [ (if st ^. extraInfo then withBold else id) $ rdToStr reward (show . toBtc),
                               if st ^. extraInfo then rdToFiatStr reward else emptyWidget
                             ]
                       ]
