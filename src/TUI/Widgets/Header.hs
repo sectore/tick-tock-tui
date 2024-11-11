@@ -22,7 +22,7 @@ drawHeader st =
   where
     t = st ^. tick `div` 30
     i = mod t 5
-    fullText = str "TICK TOCK NEXT " <+> withBtcColor (str "B") <+> str "LOCK"
+    fullText = str "TICK TOCK NEXT " <+> withBtcColor (str "₿") <+> str "LOCK"
     txt =
       if st ^. animate
         then case i of
