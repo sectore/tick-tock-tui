@@ -82,7 +82,7 @@ drawConverter st =
   hCenter $
     vBox
       [ padBottom (Pad 2) $ hCenter $ withBold $ str "CONVERTER" <+> padLeft (Pad 1) loadingAnimation,
-        padTopBottom 1 $ hCenter $ hLimit 30 $ renderForm (st ^. converterForm)
+        padTopBottom 1 $ hCenter $ hLimit 20 $ renderForm (st ^. converterForm)
       ]
   where
     loadingAnimation =

@@ -3,7 +3,7 @@
 
 module TUI.Types where
 
-import Brick (BrickEvent, EventM)
+import Brick (EventM)
 import Brick.BChan (BChan)
 import Brick.Forms (Form)
 import Brick.Types
@@ -88,7 +88,9 @@ data TUIState = TUIState
   { _timeZone :: TimeZone,
     _currentView :: View,
     _converterForm :: ConverterForm,
+    _prevConverterForm :: Maybe ConverterForm,
     _animate :: Bool,
+    _extraInfo :: Bool,
     _tick :: Int,
     _fetchTick :: Int,
     _lastFetchTick :: Int,
@@ -97,8 +99,7 @@ data TUIState = TUIState
     _block :: BlockRD,
     _selectedFiat :: Fiat,
     _selectedBitcoin :: Bitcoin,
-    _showMenu :: Bool,
-    _stLastBrickEvent :: Maybe (BrickEvent () TUIEvent)
+    _showMenu :: Bool
   }
 
 makeLenses ''TUIState

@@ -8,7 +8,7 @@ import Brick.Types
 import Brick.Widgets.Core
 import Lens.Micro ((^.))
 import TUI.Attr (withError)
-import TUI.Service.Types (Amount (..), Bitcoin (..), Fiat (..), Price (..), Prices (..), RemoteData (..))
+import TUI.Service.Types (Amount (..), Bitcoin (..), Fiat (..), Prices (..), RemoteData (..))
 import TUI.Types (TUIResource (..), TUIState (..), prices, selectedBitcoin, selectedFiat, tick)
 import TUI.Utils (btcToFiat, emptyStr, satsToFiat)
 import TUI.Widgets.Loader (drawLoadingString4, drawSpinner)
@@ -31,21 +31,22 @@ drawPrice st =
     sAmount = Amount 1000
     bAmount :: Amount BTC
     bAmount = Amount 1
-    btcStr = str $ if btcSelected then "BTC 1" else show sAmount
-    calcP :: Price a -> Amount a
-    calcP p =
-      if btcSelected
-        then btcToFiat bAmount p
-        else satsToFiat sAmount p
+    btcStr = str $ if btcSelected then "1 BTC" else show sAmount
     priceStr :: Prices -> Widget n
-    priceStr = case st ^. selectedFiat of
-      EUR -> str . show . calcP . pEUR
-      USD -> str . show . calcP . pUSD
-      GBP -> str . show . calcP . pGBP
-      CAD -> str . show . calcP . pCAD
-      CHF -> str . show . calcP . pCHF
-      AUD -> str . show . calcP . pAUD
-      JPY -> str . show . calcP . pJPY
+    priceStr =
+      let toPriceStr price =
+            str . show $
+              if btcSelected
+                then btcToFiat bAmount price
+                else satsToFiat sAmount price
+       in case st ^. selectedFiat of
+            EUR -> toPriceStr . pEUR
+            USD -> toPriceStr . pUSD
+            GBP -> toPriceStr . pGBP
+            CAD -> toPriceStr . pCAD
+            CHF -> toPriceStr . pCHF
+            AUD -> toPriceStr . pAUD
+            JPY -> toPriceStr . pJPY
 
     rdToStr rd =
       let loadingStr = drawLoadingString4 (st ^. tick)

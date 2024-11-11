@@ -5,10 +5,8 @@ import Brick.Types
   ( Widget,
   )
 import Brick.Widgets.Core
-  ( Padding (..),
-    fill,
+  ( fill,
     hBox,
-    padBottom,
     padLeftRight,
     str,
     vLimit,
@@ -20,11 +18,11 @@ import TUI.Widgets.Price
 
 drawHeader :: TUIState -> Widget TUIResource
 drawHeader st =
-  padLeftRight 1 $ padBottom (Pad 1) $ hBox [txt, vLimit 1 $ fill ' ', drawPrice st]
+  padLeftRight 1 $ hBox [txt, vLimit 1 $ fill ' ', drawPrice st]
   where
     t = st ^. tick `div` 30
     i = mod t 5
-    fullText = str "TICK TOCK NEXT " <+> withBtcColor (str "B") <+> str "LOCK"
+    fullText = str "TICK TOCK NEXT " <+> withBtcColor (str "₿") <+> str "LOCK"
     txt =
       if st ^. animate
         then case i of

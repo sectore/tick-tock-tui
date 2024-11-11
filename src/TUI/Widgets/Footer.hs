@@ -1,6 +1,8 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Move brackets to avoid $" #-}
 module TUI.Widgets.Footer where
 
-import Brick (emptyWidget)
 import Brick.Types
   ( Widget,
   )
@@ -8,39 +10,52 @@ import Brick.Widgets.Border qualified as B
 import Brick.Widgets.Border.Style qualified as BS
 import Brick.Widgets.Core
   ( Padding (..),
+    emptyWidget,
+    fill,
+    hBox,
     padLeft,
+    padLeftRight,
     padRight,
     str,
     vBox,
+    vLimit,
     withBorderStyle,
     (<+>),
   )
 import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold)
-import TUI.Types (TUIResource (..), TUIState, View (..), animate, currentView, showMenu)
+import TUI.Service.Types (Bitcoin (BTC))
+import TUI.Types (TUIResource (..), TUIState, View (..), animate, currentView, selectedBitcoin, showMenu)
 import TUI.Widgets.Countdown (drawCountdown)
 
 drawFooter :: TUIState -> Widget TUIResource
 drawFooter st =
   vBox $
-    [ withBorderStyle BS.ascii $ B.hBorderWithLabel $ str $ "[m]enu " <> if st ^. showMenu then "↓" else "↑"
+    [ hBox
+        [ padLeftRight 1 $ str $ "[m]enu " <> if st ^. showMenu then "↓" else "↑",
+          vLimit 1 $ fill ' ',
+          padLeftRight 1 $ drawCountdown st
+        ]
     ]
-      <> ( [ renderTable $
-               surroundingBorder False $
-                 rowBorders False $
-                   columnBorders False $
-                     setDefaultColAlignment AlignLeft $
-                       table
-                         [ [col1 $ str "screens", views],
-                           [col1 $ str "actions", actions],
-                           [emptyWidget, str "auto reload: " <+> drawCountdown st]
-                         ]
+      <> [border | st ^. showMenu]
+      <> ( [ padLeftRight 1 $
+               renderTable $
+                 surroundingBorder False $
+                   rowBorders False $
+                     columnBorders False $
+                       setDefaultColAlignment AlignLeft $
+                         table
+                           [ [col1 $ str "screens", views],
+                             [col1 $ str "actions", actions],
+                             [col1 emptyWidget, actions2]
+                           ]
              | st ^. showMenu
            ]
          )
   where
-    col1 = padLeft (Pad 1) . padRight (Pad 6) . withBold
+    border = withBorderStyle BS.ascii B.hBorder
+    col1 = padRight (Pad 6) . withBold
     foldWithSpace = foldl1 (\x y -> x <+> (padLeft $ Pad 2) y)
     viewLabels =
       [ (FeesView, "[f]ees"),
@@ -59,9 +74,13 @@ drawFooter st =
         ]
     actionLabels =
       [ "[r]eload data",
-        "[t]oggle btc|sat",
-        "[s]witch fiat",
+        "[s]witch to " ++ if st ^. selectedBitcoin == BTC then "sat" else "btc",
+        "[t]oggle fiat"
+      ]
+    actionLabels2 =
+      [ "[e]xtra info",
         "[a]nimation " ++ if st ^. animate then "stop" else "start",
         "[q]uit"
       ]
     actions = foldWithSpace $ str <$> actionLabels
+    actions2 = foldWithSpace $ str <$> actionLabels2

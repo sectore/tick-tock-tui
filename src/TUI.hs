@@ -59,7 +59,9 @@ run = do
               { _timeZone = tz,
                 _currentView = FeesView,
                 _converterForm = mkConverterForm (initialConverterData initialFiat initialBitcoin),
-                _animate = True,
+                _prevConverterForm = Nothing,
+                _animate = False,
+                _extraInfo = False,
                 _tick = 0,
                 _fetchTick = 0,
                 _lastFetchTick = 0,
@@ -68,8 +70,7 @@ run = do
                 _block = NotAsked,
                 _selectedFiat = initialFiat,
                 _selectedBitcoin = initialBitcoin,
-                _showMenu = False,
-                _stLastBrickEvent = Nothing
+                _showMenu = False
               }
   -- run TUI app
   _ <- customMainWithInterval interval (Just inCh) (theApp outCh) initialState

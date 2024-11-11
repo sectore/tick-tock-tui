@@ -8,6 +8,7 @@ import Brick.Types
 import Brick.Widgets.Center (hCenter)
 import Brick.Widgets.Core
   ( Padding (..),
+    emptyWidget,
     padBottom,
     padLeft,
     padRight,
@@ -19,7 +20,7 @@ import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Amount (Amount), Fees (..), FeesRD, Fiat (..), Prices (..), RemoteData (..))
-import TUI.Types (TUIResource (..), TUIState (..), fees, prices, selectedFiat, tick)
+import TUI.Types (TUIResource (..), TUIState (..), extraInfo, fees, prices, selectedFiat, tick)
 import TUI.Utils (emptyStr, satsToFiat)
 import TUI.Widgets.Loader (drawLoadingString2, drawSpinner)
 
@@ -41,7 +42,7 @@ drawFees st =
                                 ( feesRdStr fast rdFees
                                     <+> col1Right (str " sat/vB")
                                 ),
-                              fiatPriceStr fast
+                              if st ^. extraInfo then fiatPriceStr fast else emptyWidget
                             ]
                       ],
                       [ col1Left (str "medium") <+> col1Right (str "~30min"),
@@ -51,7 +52,7 @@ drawFees st =
                                 ( feesRdStr medium rdFees
                                     <+> col1Right (str " sat/vB")
                                 ),
-                              fiatPriceStr medium
+                              if st ^. extraInfo then fiatPriceStr medium else emptyWidget
                             ]
                       ],
                       [ col1Left (str "slow") <+> col1Right (str "~60min"),
@@ -61,7 +62,7 @@ drawFees st =
                                 ( feesRdStr slow rdFees
                                     <+> col1Right (str " sat/vB")
                                 ),
-                              fiatPriceStr slow
+                              if st ^. extraInfo then fiatPriceStr slow else emptyWidget
                             ]
                       ]
                     ]
@@ -88,6 +89,7 @@ drawFees st =
             Success fs -> str $ show $ feeL fs
     fiatPriceStr feeL =
       let errorStr = withError $ str "error"
+          prefix = str "140vB = "
           priceStr :: Fees -> Prices -> Widget n
           priceStr fs ps =
             -- tx cost in `SATS` based on average txs size of 140 vb
@@ -101,7 +103,7 @@ drawFees st =
                   AUD -> str $ show $ satsToFiat s (pAUD ps)
                   JPY -> str $ show $ satsToFiat s (pJPY ps)
        in case liftA2 (,) rdFees rdPrices of
-            Loading (Just (fs, ps)) -> priceStr fs ps
-            Success (fs, ps) -> priceStr fs ps
+            Loading (Just (fs, ps)) -> prefix <+> priceStr fs ps
+            Success (fs, ps) -> prefix <+> priceStr fs ps
             Failure _ -> errorStr
             _ -> drawLoadingString2 (st ^. tick)
