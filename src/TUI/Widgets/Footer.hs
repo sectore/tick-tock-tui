@@ -8,15 +8,17 @@ import Brick.Types
   )
 import Brick.Widgets.Border qualified as B
 import Brick.Widgets.Border.Style qualified as BS
-import Brick.Widgets.Center (hCenter)
 import Brick.Widgets.Core
   ( Padding (..),
     emptyWidget,
+    fill,
+    hBox,
     padLeft,
+    padLeftRight,
     padRight,
-    padTop,
     str,
     vBox,
+    vLimit,
     withBorderStyle,
     (<+>),
   )
@@ -30,26 +32,30 @@ import TUI.Widgets.Countdown (drawCountdown)
 drawFooter :: TUIState -> Widget TUIResource
 drawFooter st =
   vBox $
-    [ padLeft (Pad 1) $ drawCountdown st,
-      withBorderStyle BS.ascii $ B.hBorderWithLabel $ str $ "[m]enu " <> if st ^. showMenu then "↓" else "↑"
+    [ hBox
+        [ padLeftRight 1 $ str $ "[m]enu " <> if st ^. showMenu then "↓" else "↑",
+          vLimit 1 $ fill ' ',
+          padLeftRight 1 $ drawCountdown st
+        ]
     ]
-      <> ( [ hCenter $
-               padTop (Pad 1) $
-                 renderTable $
-                   surroundingBorder False $
-                     rowBorders False $
-                       columnBorders False $
-                         setDefaultColAlignment AlignLeft $
-                           table
-                             [ [col1 $ str "screens", views],
-                               [col1 $ str "actions", actions],
-                               [col1 emptyWidget, actions2]
-                             ]
+      <> [border | st ^. showMenu]
+      <> ( [ padLeftRight 1 $
+               renderTable $
+                 surroundingBorder False $
+                   rowBorders False $
+                     columnBorders False $
+                       setDefaultColAlignment AlignLeft $
+                         table
+                           [ [col1 $ str "screens", views],
+                             [col1 $ str "actions", actions],
+                             [col1 emptyWidget, actions2]
+                           ]
              | st ^. showMenu
            ]
          )
   where
-    col1 = padLeft (Pad 1) . padRight (Pad 6) . withBold
+    border = withBorderStyle BS.ascii B.hBorder
+    col1 = padRight (Pad 6) . withBold
     foldWithSpace = foldl1 (\x y -> x <+> (padLeft $ Pad 2) y)
     viewLabels =
       [ (FeesView, "[f]ees"),
