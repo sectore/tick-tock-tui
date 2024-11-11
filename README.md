@@ -6,17 +6,11 @@ TUI app to handle Bitcoin data provided by [Mempool REST API](https://mempool.sp
 
 ## Screens
 
-<p float="left">
-  <a href="./assets/ttt-1-1.png">
-  <img src="./assets/ttt-1.png" width="30%" />
-  </a>
-  <a href="./assets/ttt-1-2.png">
-    <img src="./assets/ttt-2.png" width="30%" />
-  </a>
-  <a href="./assets/ttt-1-3.png">
-    <img src="./assets/ttt-3.png" width="30%" />
-  </a>
-</p>
+![fees](https://github.com/user-attachments/assets/10381c6d-2ee1-4fd6-ad93-33b5e78b9163)
+![latest block](https://github.com/user-attachments/assets/1580fb63-ea1d-4014-a897-cc872f83bdbd)
+![price converter](https://github.com/user-attachments/assets/1b1ddae4-eb77-40c7-8a56-43fc5eb1f4a9)
+![open menu](https://github.com/user-attachments/assets/c585d730-56e9-4c62-82d4-352fd101113e)
+
 
 ## FAQ
 
