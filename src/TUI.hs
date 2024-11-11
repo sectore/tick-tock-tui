@@ -70,8 +70,7 @@ run = do
                 _block = NotAsked,
                 _selectedFiat = initialFiat,
                 _selectedBitcoin = initialBitcoin,
-                _showMenu = False,
-                _stLastBrickEvent = Nothing
+                _showMenu = False
               }
   -- run TUI app
   _ <- customMainWithInterval interval (Just inCh) (theApp outCh) initialState

@@ -8,6 +8,7 @@ import Brick.Forms
   ( Form (..),
     formState,
     handleFormEvent,
+    invalidFields,
     updateFormState,
   )
 import Brick.Main
@@ -132,28 +133,41 @@ appEvent outCh e =
 handleKeyEvent :: V.Event -> AppEventM ()
 handleKeyEvent e = do
   currentView' <- use currentView
-
+  cf <- use converterForm
   case e of
+    -- Action: quit app (two ways)
+    V.EvKey (V.KChar 'q') [V.MCtrl] -> lift halt
+    V.EvKey (V.KChar 'q') [] -> lift halt
+    -- Special case for `ConverterView`:
+    -- In case of a validation error an user needs still to type any chars (eg. sat)
+    -- but without getting in conflict with other `KChar` events (to navigate etc.)
+    ev@(V.EvKey (V.KChar _) [])
+      | currentView' == ConverterView
+          && not (null (invalidFields cf)) ->
+          lift $ zoom converterForm $ handleFormEvent (VtyEvent ev)
+    -- Action: navigate screens
     V.EvKey (V.KChar 'f') [] -> currentView .= FeesView
     V.EvKey (V.KChar 'b') [] -> currentView .= BlockView
     V.EvKey (V.KChar 'c') [] -> currentView .= ConverterView
+    -- Action: toggle animation
     V.EvKey (V.KChar 'a') [] -> animate %= not
+    -- Action: toggle menu
     V.EvKey (V.KChar 'm') [] -> showMenu %= not
+    -- Action: toggle fiat
     V.EvKey (V.KChar 't') [] -> do
       sf <- selectedFiat <%= next
-      cf <- use converterForm
       -- Update `formState` with current selected `Fiat`
       let updatedState = formState cf & cdFiat .~ sf
-      -- and recreate the form with it
+      -- and rebuild the form with it
       converterForm .= mkConverterForm updatedState
       updateConversion (focusGetCurrent $ formFocus cf)
       where
         next f
           | f == maxBound = minBound
           | otherwise = succ f
+    -- Action: switch btc <-> sat
     V.EvKey (V.KChar 's') [] -> do
       sb <- selectedBitcoin <%= switch
-      cf <- use converterForm
       -- Update `formState` with current selected `Fiat`
       let updatedState = formState cf & cdBitcoin .~ sb
       -- and recreate the form with it
@@ -163,6 +177,7 @@ handleKeyEvent e = do
         switch b
           | b == BTC = SATS
           | otherwise = BTC
+    -- Action: reload data
     V.EvKey (V.KChar 'r') [] -> do
       -- reset fetch ticks
       fetchTick .= 0
@@ -177,25 +192,22 @@ handleKeyEvent e = do
           setLoading block
           sendApiEvent FetchBlock
         ConverterView -> pure ()
+    -- Action: toggle extra info
     V.EvKey (V.KChar 'e') [] -> extraInfo %= not
-    V.EvKey (V.KChar 'q') [] -> lift halt
-    otherEv -> do
-      stLastBrickEvent .= Just (VtyEvent otherEv)
-      case currentView' of
-        ConverterView -> do
-          cf <- use converterForm
-          let currentField = focusGetCurrent $ formFocus cf
-          lift $ zoom converterForm $ handleFormEvent (VtyEvent otherEv)
-          case otherEv of
-            V.EvKey V.KEnter [] -> updateConversion currentField
-            V.EvKey (V.KChar '\t') [] -> updateConversion currentField
-            V.EvKey V.KBackTab [] -> updateConversion currentField
-            V.EvKey V.KEsc [] ->
-              -- Restore converterForm with previous its previous state
-              use prevConverterForm
-                >>= traverse_ (converterForm .=)
-            _ -> pure ()
+    -- all the other events - but for `ConverterView` only
+    ev | currentView' == ConverterView -> do
+      let currentField = focusGetCurrent $ formFocus cf
+      lift $ zoom converterForm $ handleFormEvent (VtyEvent ev)
+      case ev of
+        V.EvKey V.KEnter [] -> updateConversion currentField
+        V.EvKey (V.KChar '\t') [] -> updateConversion currentField
+        V.EvKey V.KBackTab [] -> updateConversion currentField
+        V.EvKey V.KEsc [] ->
+          -- Restore converterForm with previous its previous state
+          use prevConverterForm
+            >>= traverse_ (converterForm .=)
         _ -> pure ()
+    _ -> pure ()
 
 handleAppEvent :: TUIEvent -> AppEventM ()
 handleAppEvent e = do
