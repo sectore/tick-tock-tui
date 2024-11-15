@@ -73,7 +73,7 @@ run = do
                 _showMenu = False
               }
   -- run TUI app
-  _ <- customMainWithInterval interval (Just inCh) (theApp outCh) initialState
+  _ <- customMainWithInterval interval (Just inCh) (theApp outCh config) initialState
 
   -- kill threads
   killThread foreverId
@@ -84,10 +84,10 @@ run = do
       where
         chooseCursor' ConverterView = focusRingCursor formFocus _converterForm
         chooseCursor' _ = const Nothing
-    theApp :: TChan ApiEvent -> App TUIState TUIEvent TUIResource
-    theApp outCh =
+    theApp :: TChan ApiEvent -> Config -> App TUIState TUIEvent TUIResource
+    theApp outCh conf =
       App
-        { appDraw = drawApp,
+        { appDraw = drawApp conf,
           appChooseCursor = chooseCursor,
           appHandleEvent = appEvent outCh,
           appStartEvent = startEvent outCh,

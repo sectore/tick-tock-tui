@@ -11,6 +11,7 @@ import Brick.Types
   )
 import Control.Concurrent.STM (TChan)
 import Control.Monad.Reader (ReaderT)
+import Data.Text (Text)
 import Data.Time.LocalTime (TimeZone)
 import Lens.Micro.TH (makeLenses)
 import TUI.Service.Types (Amount, ApiEvent, Bitcoin (..), BlockRD, FeesRD, Fiat (..), PricesRD)
@@ -27,8 +28,11 @@ newtype AppEventEnv = AppEventEnv
   { outChan :: TChan ApiEvent
   }
 
+newtype MempoolUrl = MempoolUrl {unMempoolUrl :: Text}
+  deriving (Show)
+
 data ServiceEnv = ServiceEnv
-  { envMempoolUrl :: String,
+  { envMempoolUrl :: !MempoolUrl,
     envInChan :: BChan TUIEvent
   }
 

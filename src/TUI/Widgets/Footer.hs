@@ -17,6 +17,7 @@ import Brick.Widgets.Core
     padLeftRight,
     padRight,
     str,
+    txt,
     vBox,
     vLimit,
     withBorderStyle,
@@ -26,11 +27,11 @@ import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold)
 import TUI.Service.Types (Bitcoin (BTC))
-import TUI.Types (TUIResource (..), TUIState, View (..), animate, currentView, selectedBitcoin, showMenu)
+import TUI.Types (MempoolUrl (..), TUIResource (..), TUIState, View (..), animate, currentView, selectedBitcoin, showMenu)
 import TUI.Widgets.Countdown (drawCountdown)
 
-drawFooter :: TUIState -> Widget TUIResource
-drawFooter st =
+drawFooter :: TUIState -> MempoolUrl -> Widget TUIResource
+drawFooter st (MempoolUrl url) =
   vBox $
     [ hBox
         [ padLeftRight 1 $ str $ "[m]enu " <> if st ^. showMenu then "↓" else "↑",
@@ -48,7 +49,10 @@ drawFooter st =
                          table
                            [ [col1 $ str "screens", views],
                              [col1 $ str "actions", actions],
-                             [col1 emptyWidget, actions2]
+                             [col1 emptyWidget, actions2],
+                             [ col1 $ str "endpoint",
+                               txt url
+                             ]
                            ]
              | st ^. showMenu
            ]
