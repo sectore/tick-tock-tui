@@ -7,14 +7,16 @@ import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async.Internal (tryAll)
 import Control.Exception (try)
 import Data.Aeson qualified as A
+import Data.Text (Text)
+import Data.Text qualified as T
 import Network.HTTP.Client.Conduit (HttpException, parseRequest)
 import Network.HTTP.Simple (getResponseBody, httpLBS)
 import TUI.Service.Types (RemoteData (..))
 import TUI.Types
 
-fetchData :: (A.FromJSON a) => String -> IO (Either String a)
+fetchData :: (A.FromJSON a) => Text -> IO (Either String a)
 fetchData url = do
-  request <- parseRequest $ "GET " ++ url
+  request <- parseRequest $ "GET " ++ T.unpack url
   result <- try $ httpLBS request
   case result of
     Left e -> return $ Left $ "HTTP exception: " ++ show (e :: HttpException)
@@ -27,7 +29,7 @@ fetchData url = do
 fetchAndNotify ::
   (A.FromJSON a) =>
   (RemoteData String a -> TUIEvent) ->
-  String ->
+  Text ->
   BChan TUIEvent ->
   IO ()
 fetchAndNotify toEvent url inCh = do
@@ -40,11 +42,11 @@ fetchAndNotify toEvent url inCh = do
     Right (Right v) -> return $ Success v
   writeBChan inCh (toEvent rd)
 
-fetchPrices :: String -> BChan TUIEvent -> IO ()
+fetchPrices :: Text -> BChan TUIEvent -> IO ()
 fetchPrices = fetchAndNotify PriceUpdated
 
-fetchFees :: String -> BChan TUIEvent -> IO ()
+fetchFees :: Text -> BChan TUIEvent -> IO ()
 fetchFees = fetchAndNotify FeesUpdated
 
-fetchBlock :: String -> BChan TUIEvent -> IO ()
+fetchBlock :: Text -> BChan TUIEvent -> IO ()
 fetchBlock = fetchAndNotify BlockUpdated

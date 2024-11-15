@@ -2,26 +2,27 @@ module TUI.Service.Mempool where
 
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (asks)
+import Data.Text qualified as T
 import TUI.Service.API qualified as API
-import TUI.Types (ServiceEnv (..), ServiceM)
+import TUI.Types (MempoolUrl (..), ServiceEnv (..), ServiceM)
 
 fetchPrices :: ServiceM ()
 fetchPrices = do
-  baseUrl <- asks envMempoolUrl
+  (MempoolUrl baseUrl) <- asks envMempoolUrl
   inCh <- asks envInChan
-  liftIO $ API.fetchPrices (baseUrl <> "/api/v1/prices") inCh
+  liftIO $ API.fetchPrices (baseUrl <> T.pack "/api/v1/prices") inCh
 
 fetchFees :: ServiceM ()
 fetchFees = do
-  baseUrl <- asks envMempoolUrl
+  (MempoolUrl baseUrl) <- asks envMempoolUrl
   inCh <- asks envInChan
-  liftIO $ API.fetchFees (baseUrl <> "/api/v1/fees/recommended") inCh
+  liftIO $ API.fetchFees (baseUrl <> T.pack "/api/v1/fees/recommended") inCh
 
 fetchBlock :: ServiceM ()
 fetchBlock = do
-  baseUrl <- asks envMempoolUrl
+  (MempoolUrl baseUrl) <- asks envMempoolUrl
   inCh <- asks envInChan
-  liftIO $ API.fetchBlock (baseUrl <> "/api/v1/blocks") inCh
+  liftIO $ API.fetchBlock (baseUrl <> T.pack "/api/v1/blocks") inCh
 
 fetchAllData :: ServiceM ()
 fetchAllData = do
