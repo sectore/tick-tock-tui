@@ -2,7 +2,7 @@ module TUI.Config where
 
 import Configuration.Dotenv (defaultConfig, loadFile)
 import Data.Maybe (fromMaybe)
-import Data.Text (pack)
+import Data.Text qualified as T
 import System.Environment (lookupEnv)
 import TUI.Types (MempoolUrl (..))
 
@@ -17,5 +17,5 @@ loadConfig = do
   url <- fromMaybe "https://mempool.space" <$> lookupEnv "MEMPOOL_URL"
   pure
     Config
-      { cfgMempoolUrl = MempoolUrl $ pack url
+      { cfgMempoolUrl = MempoolUrl $ T.pack url
       }

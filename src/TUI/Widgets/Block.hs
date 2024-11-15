@@ -18,7 +18,7 @@ import Brick.Widgets.Core
     (<+>),
   )
 import Brick.Widgets.Table
-import Data.Text (unpack)
+import Data.Text qualified as T
 import Data.Time.Format (defaultTimeLocale, formatTime)
 import Data.Time.LocalTime (utcToLocalTime)
 import Lens.Micro ((^.))
@@ -55,7 +55,7 @@ drawBlock st =
                       ],
                       -- miner data
                       [ padTop (Pad 2) $ col1 (str "miner"),
-                        padTop (Pad 2) $ col2 (rdToStr poolName unpack)
+                        padTop (Pad 2) $ col2 (rdToStr poolName T.unpack)
                       ],
                       [ col1 (str "fees"),
                         col2 $

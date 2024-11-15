@@ -2,7 +2,7 @@ module TUI.Service.Mempool where
 
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (asks)
-import Data.Text as T
+import Data.Text qualified as T
 import TUI.Service.API qualified as API
 import TUI.Types (MempoolUrl (..), ServiceEnv (..), ServiceM)
 
