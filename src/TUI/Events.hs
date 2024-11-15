@@ -31,7 +31,7 @@ import Lens.Micro (Lens', (&), (.~), (^.))
 import Lens.Micro.Mtl
 import TUI.Service.Types (ApiEvent (..), Bitcoin (..), Fiat (..), Prices (..), RemoteData (..), pAUD, pJPY)
 import TUI.Types
-import TUI.Utils (btcToFiat, fiatToBtc, maxFetchTick, satsToFiat, toBtc, toSats)
+import TUI.Utils (btcToFiat, fiatToBtc, satsToFiat, toBtc, toSats)
 import TUI.Widgets.Converter (mkConverterForm)
 
 sendApiEvent :: ApiEvent -> AppEventM ()
@@ -219,8 +219,9 @@ handleAppEvent e = do
 
       currentF <- use fetchTick
       lastF <- use lastFetchTick
+      maxF <- use maxFetchTick
       -- trigger reload data
-      when (currentF - lastF >= maxFetchTick) $ do
+      when (currentF - lastF >= maxF) $ do
         -- reset last fetch time
         lastFetchTick .= 0
         -- update loading states
@@ -230,7 +231,7 @@ handleAppEvent e = do
         -- load all data
         sendApiEvent FetchAllData
 
-      fetchTick %= (`mod` (maxFetchTick + 1)) . (+ 1)
+      fetchTick %= (`mod` (maxF + 1)) . (+ 1)
     PriceUpdated p -> do
       prices .= p
       cf <- use converterForm
