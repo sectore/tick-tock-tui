@@ -19,7 +19,7 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ReaderT (..))
 import Data.Time.LocalTime (getCurrentTimeZone)
 import TUI.Attr (tuiAttrMap)
-import TUI.Config (Config (..), loadConfig)
+import TUI.Config (Config (..), getConfig)
 import TUI.Events (appEvent, startEvent)
 import TUI.Service.Mempool qualified as M
 import TUI.Service.Types
@@ -31,7 +31,7 @@ import TUI.Widgets.Converter (initialConverterData, mkConverterForm)
 run :: IO ()
 run = do
   -- config defined in .env
-  config <- loadConfig
+  config <- getConfig
   -- out channel to send messages from TUI app
   outCh <- newTChanIO
   -- in channel to send messages into TUI app
@@ -65,6 +65,7 @@ run = do
                 _tick = 0,
                 _fetchTick = 0,
                 _lastFetchTick = 0,
+                maxFetchTick' = cfgReloadInterval config * fps, -- seconds -> fps
                 _prices = NotAsked,
                 _fees = NotAsked,
                 _block = NotAsked,

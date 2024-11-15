@@ -9,9 +9,37 @@ TUI app to handle Bitcoin data provided by [Mempool REST API](https://mempool.sp
 ![ttt](https://github.com/user-attachments/assets/ca790c1d-a29d-4913-9e96-814801167893)
 
 
+## Installation
+
+TODO
+
+
+## Arguments
+
+```bash
+tick-tock-tui --help
+
+Usage: tick-tock-tui [-m|--mempool URL] [-r|--refresh SECONDS]
+
+  TUI app to handle Bitcoin data provided by Mempool: fees, blocks and price
+  converter.
+
+Available options:
+  -m,--mempool URL         Mempool URL (default: "https://mempool.space")
+  -r,--refresh SECONDS     Interval to auto-reload data in seconds
+                           (default: 180)
+  -h,--help                Show this help text
+
+```
+
+## Build
+
+TODO
+
+
 ## FAQ
 
-TBD
+TODO
 
 ## License
 

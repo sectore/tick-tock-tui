@@ -13,6 +13,7 @@ import Control.Concurrent.STM (TChan)
 import Control.Monad.Reader (ReaderT)
 import Data.Text (Text)
 import Data.Time.LocalTime (TimeZone)
+import Lens.Micro (Getting, to)
 import Lens.Micro.TH (makeLenses)
 import TUI.Service.Types (Amount, ApiEvent, Bitcoin (..), BlockRD, FeesRD, Fiat (..), PricesRD)
 
@@ -98,6 +99,10 @@ data TUIState = TUIState
     _tick :: Int,
     _fetchTick :: Int,
     _lastFetchTick :: Int,
+    -- | private
+    -- Never get/set value from/to `maxFetchTick'` directly.
+    -- Use `maxFetchTick` (without `'`) to read data
+    maxFetchTick' :: Int,
     _prices :: PricesRD,
     _fees :: FeesRD,
     _block :: BlockRD,
@@ -107,6 +112,10 @@ data TUIState = TUIState
   }
 
 makeLenses ''TUIState
+
+-- custom getter to provide a read-only accessor only
+maxFetchTick :: Getting Int TUIState Int
+maxFetchTick = to maxFetchTick'
 
 type AppEventM = ReaderT AppEventEnv (EventM TUIResource TUIState)
 

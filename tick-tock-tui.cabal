@@ -42,12 +42,12 @@ library
                     ,   aeson >=0.8
                     ,   async
                     ,   brick ^>=2.5
-                    ,   dotenv
                     ,   http-conduit >= 2.3.9
                     ,   microlens >= 0.3.0.0
                     ,   microlens-th
                     ,   microlens-mtl
                     ,   mtl
+                    ,   optparse-applicative
                     ,   text
                     ,   transformers
                     ,   stm
