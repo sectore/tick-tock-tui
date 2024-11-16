@@ -60,10 +60,11 @@ data TUIEvent
   deriving (Show, Eq)
 
 data ConverterData = ConverterData
-  { -- | active `Fiat` value in form
-    _cdFiat :: Fiat,
-    -- | active `Bitcoin` value in form
-    _cdBitcoin :: Bitcoin,
+  { -- | selected `Fiat` value in form
+    _cdSelectedFiat :: Fiat,
+    -- | selected `Bitcoin` value in form
+    _cdSelectedBitcoin :: Bitcoin,
+    -- `Amount`s of all currencies
     _cdUsd :: Amount 'USD,
     _cdCAD :: Amount 'CAD,
     _cdEUR :: Amount 'EUR,

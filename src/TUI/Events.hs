@@ -105,7 +105,7 @@ updateConversion focusedField = do
     updateFiatBased :: (MonadState TUIState m) => Prices -> ConverterForm -> m ()
     updateFiatBased ps cf =
       let st = formState cf
-          newBtcAmount = case st ^. cdFiat of
+          newBtcAmount = case st ^. cdSelectedFiat of
             EUR -> fiatToBtc (st ^. cdEUR) (pEUR ps)
             CAD -> fiatToBtc (st ^. cdCAD) (pCAD ps)
             AUD -> fiatToBtc (st ^. cdAUD) (pAUD ps)
@@ -157,7 +157,7 @@ handleKeyEvent e = do
     V.EvKey (V.KChar 't') [] -> do
       sf <- selectedFiat <%= next
       -- Update `formState` with current selected `Fiat`
-      let updatedState = formState cf & cdFiat .~ sf
+      let updatedState = formState cf & cdSelectedFiat .~ sf
       -- and rebuild the form with it
       converterForm .= mkConverterForm updatedState
       updateConversion (focusGetCurrent $ formFocus cf)
@@ -168,8 +168,8 @@ handleKeyEvent e = do
     -- Action: switch btc <-> sat
     V.EvKey (V.KChar 's') [] -> do
       sb <- selectedBitcoin <%= switch
-      -- Update `formState` with current selected `Fiat`
-      let updatedState = formState cf & cdBitcoin .~ sb
+      -- Update `formState` with current selected `Bitcoin`
+      let updatedState = formState cf & cdSelectedBitcoin .~ sb
       -- and recreate the form with it
       converterForm .= mkConverterForm updatedState
       updateConversion (focusGetCurrent $ formFocus cf)

@@ -25,14 +25,14 @@ import TUI.Types
     TUIState,
     cdAUD,
     cdBTC,
-    cdBitcoin,
     cdCAD,
     cdCHF,
     cdEUR,
-    cdFiat,
     cdGBP,
     cdJPY,
     cdSATS,
+    cdSelectedBitcoin,
+    cdSelectedFiat,
     cdUsd,
     converterForm,
     prices,
@@ -44,8 +44,8 @@ import TUI.Widgets.Loader (drawSpinner)
 initialConverterData :: Fiat -> Bitcoin -> ConverterData
 initialConverterData initialFiat initialBitcoin =
   ConverterData
-    { _cdFiat = initialFiat,
-      _cdBitcoin = initialBitcoin,
+    { _cdSelectedFiat = initialFiat,
+      _cdSelectedBitcoin = initialBitcoin,
       _cdUsd = Amount 21,
       _cdGBP = Amount 21,
       _cdCAD = Amount 21,
@@ -65,7 +65,7 @@ mkConverterForm cd =
     ]
     cd
   where
-    fiatField = case cd ^. cdFiat of
+    fiatField = case cd ^. cdSelectedFiat of
       EUR -> editShowableField cdEUR ConverterFiatField
       CAD -> editShowableField cdCAD ConverterFiatField
       GBP -> editShowableField cdGBP ConverterFiatField
@@ -73,7 +73,7 @@ mkConverterForm cd =
       CHF -> editShowableField cdCHF ConverterFiatField
       JPY -> editShowableField cdJPY ConverterFiatField
       USD -> editShowableField cdUsd ConverterFiatField
-    bitcoinField = case cd ^. cdBitcoin of
+    bitcoinField = case cd ^. cdSelectedBitcoin of
       BTC -> editShowableField cdBTC ConverterBtcField
       SATS -> editShowableField cdSATS ConverterSatField
 
