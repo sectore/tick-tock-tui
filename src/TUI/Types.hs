@@ -91,7 +91,10 @@ data View = FeesView | BlockView | ConverterView
   deriving (Eq)
 
 data TUIState = TUIState
-  { _timeZone :: TimeZone,
+  { -- | private
+    -- Never get/set value from/to `maxFetchTick'` directly.
+    -- Use `maxFetchTick` (without `'`) to read data
+    timeZone' :: TimeZone,
     _currentView :: View,
     _converterForm :: ConverterForm,
     _prevConverterForm :: Maybe ConverterForm,
@@ -114,9 +117,15 @@ data TUIState = TUIState
 
 makeLenses ''TUIState
 
+-- | maxFetchTick lens
 -- custom getter to provide a read-only accessor only
 maxFetchTick :: Getting Int TUIState Int
 maxFetchTick = to maxFetchTick'
+
+-- | timeZone lens
+-- custom getter to provide a read-only accessor only
+timeZone :: Getting TimeZone TUIState TimeZone
+timeZone = to timeZone'
 
 type AppEventM = ReaderT AppEventEnv (EventM TUIResource TUIState)
 

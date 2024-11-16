@@ -56,7 +56,7 @@ run = do
           initialBitcoin = BTC
        in pure
             TUIState
-              { _timeZone = tz,
+              { timeZone' = tz,
                 _currentView = FeesView,
                 _converterForm = mkConverterForm (initialConverterData initialFiat initialBitcoin (Amount 0.00021)),
                 _prevConverterForm = Nothing,
