@@ -9,12 +9,12 @@ TUI app to handle Bitcoin data provided by [Mempool REST API](https://mempool.sp
 ![ttt](https://github.com/user-attachments/assets/ca790c1d-a29d-4913-9e96-814801167893)
 
 
-## Installation
+## ⚙️ Installation
 
 TODO
 
 
-## Arguments
+## 🔧 Arguments
 
 ```bash
 tick-tock-tui --help
@@ -36,12 +36,15 @@ Available options:
 
 TODO
 
-
 ## FAQ
 
-TODO
+#### Are there any data stored locally, e.g. an application state?
+
+Yes. Partial data (not all) of latest application state is stored locally at following directories
+defined by [`XdgState`](https://hackage.haskell.org/package/directory/docs/System-Directory.html#v:XdgState):
+- non-Windows `~/.local/state/tick-tock-tui/data{version}.json`
+- Windows: `%LOCALAPPDATA%` (e.g. `C:/Users/<user>/AppData/Local/tick-tock-tui/data{version}.json`)
 
 ## License
-
 
 [MIT License](./LICENSE)
