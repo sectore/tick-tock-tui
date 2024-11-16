@@ -23,6 +23,7 @@ import TUI.Config (Config (..), getConfig)
 import TUI.Events (appEvent, startEvent)
 import TUI.Service.Mempool qualified as M
 import TUI.Service.Types
+import TUI.Storage qualified as STG
 import TUI.Types
 import TUI.Utils (customMainWithInterval, fps)
 import TUI.Widgets.App (drawApp)
@@ -30,8 +31,10 @@ import TUI.Widgets.Converter (initialConverterData, mkConverterForm)
 
 run :: IO ()
 run = do
-  -- config defined in .env
+  -- get `Config` from args
   config <- getConfig
+  -- get `TUIStorage` from file
+  mStorage <- liftIO STG.load
   -- out channel to send messages from TUI app
   outCh <- newTChanIO
   -- in channel to send messages into TUI app
@@ -52,16 +55,17 @@ run = do
 
   initialState <-
     getCurrentTimeZone >>= \tz ->
-      let initialFiat = USD
-          initialBitcoin = BTC
+      let initialFiat = maybe USD stgSelectedFiat mStorage
+          initialBitcoin = maybe BTC stgSelectedBitcoin mStorage
+          initialBtcAmount = maybe (Amount 0.00021) stgBtcAmount mStorage
        in pure
             TUIState
               { timeZone' = tz,
-                _currentView = FeesView,
-                _converterForm = mkConverterForm (initialConverterData initialFiat initialBitcoin (Amount 0.00021)),
+                _currentView = maybe FeesView stgCurrentView mStorage,
+                _converterForm = mkConverterForm (initialConverterData initialFiat initialBitcoin initialBtcAmount),
                 _prevConverterForm = Nothing,
-                _animate = False,
-                _extraInfo = False,
+                _animate = maybe False stgAnimate mStorage,
+                _extraInfo = maybe False stgExtraInfo mStorage,
                 _tick = 0,
                 _fetchTick = 0,
                 _lastFetchTick = 0,
@@ -69,13 +73,15 @@ run = do
                 _prices = NotAsked,
                 _fees = NotAsked,
                 _block = NotAsked,
-                _selectedFiat = initialFiat,
-                _selectedBitcoin = initialBitcoin,
-                _showMenu = False
+                _selectedFiat = maybe initialFiat stgSelectedFiat mStorage,
+                _selectedBitcoin = maybe initialBitcoin stgSelectedBitcoin mStorage,
+                _showMenu = maybe False stgShowMenu mStorage
               }
   -- run TUI app
-  _ <- customMainWithInterval interval (Just inCh) (theApp outCh config) initialState
+  (lastState, _) <- customMainWithInterval interval (Just inCh) (theApp outCh config) initialState
 
+  -- persistant parts of `TUIState`
+  _ <- liftIO $ STG.save (STG.toStorage lastState)
   -- kill threads
   killThread foreverId
   where

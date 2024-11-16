@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module TUI.Types where
@@ -11,8 +12,10 @@ import Brick.Types
   )
 import Control.Concurrent.STM (TChan)
 import Control.Monad.Reader (ReaderT)
+import Data.Aeson qualified as A
 import Data.Text (Text)
 import Data.Time.LocalTime (TimeZone)
+import GHC.Generics (Generic)
 import Lens.Micro (Getting, to)
 import Lens.Micro.TH (makeLenses)
 import TUI.Service.Types (Amount, ApiEvent, Bitcoin (..), BlockRD, FeesRD, Fiat (..), PricesRD)
@@ -88,7 +91,11 @@ data ConverterField
 type ConverterForm = Form ConverterData TUIEvent TUIResource
 
 data View = FeesView | BlockView | ConverterView
-  deriving (Eq)
+  deriving (Eq, Show, Generic)
+
+instance A.FromJSON View
+
+instance A.ToJSON View
 
 data TUIState = TUIState
   { -- | private
@@ -126,6 +133,21 @@ maxFetchTick = to maxFetchTick'
 -- custom getter to provide a read-only accessor only
 timeZone :: Getting TimeZone TUIState TimeZone
 timeZone = to timeZone'
+
+data TUIStorage = TUIStorage
+  { stgCurrentView :: View,
+    stgAnimate :: Bool,
+    stgExtraInfo :: Bool,
+    stgSelectedFiat :: Fiat,
+    stgShowMenu :: Bool,
+    stgSelectedBitcoin :: Bitcoin,
+    stgBtcAmount :: Amount BTC
+  }
+  deriving (Generic, Show)
+
+instance A.ToJSON TUIStorage
+
+instance A.FromJSON TUIStorage
 
 type AppEventM = ReaderT AppEventEnv (EventM TUIResource TUIState)
 
