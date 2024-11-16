@@ -38,30 +38,30 @@ import TUI.Types
     prices,
     tick,
   )
-import TUI.Utils (emptyStr)
+import TUI.Utils (emptyStr, toSats)
 import TUI.Widgets.Loader (drawSpinner)
 
-initialConverterData :: Fiat -> Bitcoin -> ConverterData
-initialConverterData initialFiat initialBitcoin =
+initialConverterData :: Fiat -> Bitcoin -> Amount BTC -> ConverterData
+initialConverterData selectedFiat selectedBitcoin btcAmount =
   ConverterData
-    { _cdSelectedFiat = initialFiat,
-      _cdSelectedBitcoin = initialBitcoin,
-      _cdUsd = Amount 21,
-      _cdGBP = Amount 21,
-      _cdCAD = Amount 21,
-      _cdCHF = Amount 21,
-      _cdAUD = Amount 21,
-      _cdEUR = Amount 21,
-      _cdJPY = Amount 21,
-      _cdBTC = Amount 0,
-      _cdSATS = Amount 0
+    { _cdSelectedFiat = selectedFiat,
+      _cdSelectedBitcoin = selectedBitcoin,
+      _cdUsd = Amount 0,
+      _cdGBP = Amount 0,
+      _cdCAD = Amount 0,
+      _cdCHF = Amount 0,
+      _cdAUD = Amount 0,
+      _cdEUR = Amount 0,
+      _cdJPY = Amount 0,
+      _cdBTC = btcAmount,
+      _cdSATS = toSats btcAmount
     }
 
 mkConverterForm :: ConverterData -> ConverterForm
 mkConverterForm cd =
   newForm
-    [ fiatField,
-      bitcoinField
+    [ bitcoinField,
+      fiatField
     ]
     cd
   where

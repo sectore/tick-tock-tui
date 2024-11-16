@@ -58,7 +58,7 @@ run = do
             TUIState
               { _timeZone = tz,
                 _currentView = FeesView,
-                _converterForm = mkConverterForm (initialConverterData initialFiat initialBitcoin),
+                _converterForm = mkConverterForm (initialConverterData initialFiat initialBitcoin (Amount 0.00021)),
                 _prevConverterForm = Nothing,
                 _animate = False,
                 _extraInfo = False,
