@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module TUI.Types where
@@ -11,8 +12,10 @@ import Brick.Types
   )
 import Control.Concurrent.STM (TChan)
 import Control.Monad.Reader (ReaderT)
+import Data.Aeson qualified as A
 import Data.Text (Text)
 import Data.Time.LocalTime (TimeZone)
+import GHC.Generics (Generic)
 import Lens.Micro (Getting, to)
 import Lens.Micro.TH (makeLenses)
 import TUI.Service.Types (Amount, ApiEvent, Bitcoin (..), BlockRD, FeesRD, Fiat (..), PricesRD)
@@ -60,10 +63,11 @@ data TUIEvent
   deriving (Show, Eq)
 
 data ConverterData = ConverterData
-  { -- | active `Fiat` value in form
-    _cdFiat :: Fiat,
-    -- | active `Bitcoin` value in form
-    _cdBitcoin :: Bitcoin,
+  { -- | selected `Fiat` value in form
+    _cdSelectedFiat :: Fiat,
+    -- | selected `Bitcoin` value in form
+    _cdSelectedBitcoin :: Bitcoin,
+    -- `Amount`s of all currencies
     _cdUsd :: Amount 'USD,
     _cdCAD :: Amount 'CAD,
     _cdEUR :: Amount 'EUR,
@@ -87,10 +91,17 @@ data ConverterField
 type ConverterForm = Form ConverterData TUIEvent TUIResource
 
 data View = FeesView | BlockView | ConverterView
-  deriving (Eq)
+  deriving (Eq, Show, Generic)
+
+instance A.FromJSON View
+
+instance A.ToJSON View
 
 data TUIState = TUIState
-  { _timeZone :: TimeZone,
+  { -- | private
+    -- Never get/set value from/to `maxFetchTick'` directly.
+    -- Use `maxFetchTick` (without `'`) to read data
+    timeZone' :: TimeZone,
     _currentView :: View,
     _converterForm :: ConverterForm,
     _prevConverterForm :: Maybe ConverterForm,
@@ -113,9 +124,30 @@ data TUIState = TUIState
 
 makeLenses ''TUIState
 
+-- | maxFetchTick lens
 -- custom getter to provide a read-only accessor only
 maxFetchTick :: Getting Int TUIState Int
 maxFetchTick = to maxFetchTick'
+
+-- | timeZone lens
+-- custom getter to provide a read-only accessor only
+timeZone :: Getting TimeZone TUIState TimeZone
+timeZone = to timeZone'
+
+data TUIStorage = TUIStorage
+  { stgCurrentView :: View,
+    stgAnimate :: Bool,
+    stgExtraInfo :: Bool,
+    stgSelectedFiat :: Fiat,
+    stgShowMenu :: Bool,
+    stgSelectedBitcoin :: Bitcoin,
+    stgBtcAmount :: Amount BTC
+  }
+  deriving (Generic, Show)
+
+instance A.ToJSON TUIStorage
+
+instance A.FromJSON TUIStorage
 
 type AppEventM = ReaderT AppEventEnv (EventM TUIResource TUIState)
 

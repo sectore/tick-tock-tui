@@ -26,6 +26,7 @@ library
                     ,   TUI.Service.Types
                     ,   TUI.Service.Mempool
                     ,   TUI.Events
+                    ,   TUI.Storage
                     ,   TUI.Types
                     ,   TUI.Utils
                     ,   TUI.Widgets.App
@@ -41,7 +42,10 @@ library
     build-depends:      base ^>=4.18.2.1
                     ,   aeson >=0.8
                     ,   async
+                    ,   directory
                     ,   brick ^>=2.5
+                    ,   bytestring
+                    ,   filepath
                     ,   http-conduit >= 2.3.9
                     ,   microlens >= 0.3.0.0
                     ,   microlens-th

@@ -12,6 +12,7 @@ import Data.List (intercalate, unfoldr)
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
+import GHC.Generics (Generic)
 import Text.Printf (PrintfType, printf)
 
 -- | Helper to break down lists into chunks
@@ -19,10 +20,18 @@ chunksOf :: Int -> [a] -> [[a]]
 chunksOf n = takeWhile (not . null) . unfoldr (Just . splitAt n)
 
 data Bitcoin = BTC | SATS
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
+
+instance A.ToJSON Bitcoin
+
+instance A.FromJSON Bitcoin
 
 data Fiat = EUR | USD | GBP | CAD | CHF | AUD | JPY
-  deriving (Eq, Enum, Bounded, Show)
+  deriving (Eq, Enum, Bounded, Show, Generic)
+
+instance A.ToJSON Fiat
+
+instance A.FromJSON Fiat
 
 newtype Price (a :: Fiat) = Price {unPrice :: Double}
   deriving (Eq)
@@ -133,6 +142,12 @@ instance A.FromJSON Fees where
 
 newtype Amount a = Amount {unAmount :: Double}
   deriving (Eq)
+
+instance A.FromJSON (Amount a) where
+  parseJSON v = Amount <$> A.parseJSON v
+
+instance A.ToJSON (Amount a) where
+  toJSON (Amount x) = A.toJSON x
 
 instance Show (Amount 'USD) where
   show = showFiat USD . unAmount
