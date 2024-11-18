@@ -7,9 +7,9 @@ import Brick (CursorLocation)
 import Brick.BChan
 import Brick.Focus (focusRingCursor)
 import Brick.Forms (formFocus)
-import Brick.Main
-  ( App (..),
-  )
+import Brick.Main (
+  App (..),
+ )
 import Control.Concurrent (forkIO, killThread)
 import Control.Concurrent.STM (newTChanIO)
 import Control.Concurrent.STM qualified as STM
@@ -41,8 +41,8 @@ run = do
   inCh <- newBChan 10
   let sEnv =
         ServiceEnv
-          { envMempoolUrl = cfgMempoolUrl config,
-            envInChan = inCh
+          { envMempoolUrl = cfgMempoolUrl config
+          , envInChan = inCh
           }
   -- listen for messages coming from TUI app
   foreverId <- forkIO $ flip runReaderT sEnv $ forever $ do
@@ -60,22 +60,22 @@ run = do
           initialBtcAmount = maybe (Amount 0.00021) stgBtcAmount mStorage
        in pure
             TUIState
-              { timeZone' = tz,
-                _currentView = maybe FeesView stgCurrentView mStorage,
-                _converterForm = mkConverterForm (initialConverterData initialFiat initialBitcoin initialBtcAmount),
-                _prevConverterForm = Nothing,
-                _animate = maybe False stgAnimate mStorage,
-                _extraInfo = maybe False stgExtraInfo mStorage,
-                _tick = 0,
-                _fetchTick = 0,
-                _lastFetchTick = 0,
-                maxFetchTick' = cfgReloadInterval config * fps, -- seconds -> fps
-                _prices = NotAsked,
-                _fees = NotAsked,
-                _block = NotAsked,
-                _selectedFiat = maybe initialFiat stgSelectedFiat mStorage,
-                _selectedBitcoin = maybe initialBitcoin stgSelectedBitcoin mStorage,
-                _showMenu = maybe False stgShowMenu mStorage
+              { timeZone' = tz
+              , _currentView = maybe FeesView stgCurrentView mStorage
+              , _converterForm = mkConverterForm (initialConverterData initialFiat initialBitcoin initialBtcAmount)
+              , _prevConverterForm = Nothing
+              , _animate = maybe False stgAnimate mStorage
+              , _extraInfo = maybe False stgExtraInfo mStorage
+              , _tick = 0
+              , _fetchTick = 0
+              , _lastFetchTick = 0
+              , maxFetchTick' = cfgReloadInterval config * fps -- seconds -> fps
+              , _prices = NotAsked
+              , _fees = NotAsked
+              , _block = NotAsked
+              , _selectedFiat = maybe initialFiat stgSelectedFiat mStorage
+              , _selectedBitcoin = maybe initialBitcoin stgSelectedBitcoin mStorage
+              , _showMenu = maybe False stgShowMenu mStorage
               }
   -- run TUI app
   (lastState, _) <- customMainWithInterval interval (Just inCh) (theApp outCh config) initialState
@@ -87,16 +87,16 @@ run = do
   where
     interval = 1_000_000 `div` fps -- 60 FPS
     chooseCursor :: TUIState -> [CursorLocation TUIResource] -> Maybe (CursorLocation TUIResource)
-    chooseCursor TUIState {..} = chooseCursor' _currentView
+    chooseCursor TUIState{..} = chooseCursor' _currentView
       where
         chooseCursor' ConverterView = focusRingCursor formFocus _converterForm
         chooseCursor' _ = const Nothing
     theApp :: TChan ApiEvent -> Config -> App TUIState TUIEvent TUIResource
     theApp outCh conf =
       App
-        { appDraw = drawApp conf,
-          appChooseCursor = chooseCursor,
-          appHandleEvent = appEvent outCh,
-          appStartEvent = startEvent outCh,
-          appAttrMap = const tuiAttrMap
+        { appDraw = drawApp conf
+        , appChooseCursor = chooseCursor
+        , appHandleEvent = appEvent outCh
+        , appStartEvent = startEvent outCh
+        , appAttrMap = const tuiAttrMap
         }

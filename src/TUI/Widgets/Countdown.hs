@@ -1,14 +1,14 @@
 module TUI.Widgets.Countdown where
 
-import Brick.Types
-  ( Widget,
-  )
-import Brick.Widgets.Core
-  ( hLimit,
-    padLeftRight,
-    str,
-    (<+>),
-  )
+import Brick.Types (
+  Widget,
+ )
+import Brick.Widgets.Core (
+  hLimit,
+  padLeftRight,
+  str,
+  (<+>),
+ )
 import Brick.Widgets.ProgressBar qualified as P
 import Lens.Micro ((^.))
 import TUI.Types (TUIResource (..), TUIState, fetchTick, lastFetchTick, maxFetchTick)

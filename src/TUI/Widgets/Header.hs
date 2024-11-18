@@ -1,16 +1,16 @@
 module TUI.Widgets.Header (drawHeader) where
 
 import Brick ((<+>))
-import Brick.Types
-  ( Widget,
-  )
-import Brick.Widgets.Core
-  ( fill,
-    hBox,
-    padLeftRight,
-    str,
-    vLimit,
-  )
+import Brick.Types (
+  Widget,
+ )
+import Brick.Widgets.Core (
+  fill,
+  hBox,
+  padLeftRight,
+  str,
+  vLimit,
+ )
 import Lens.Micro ((^.))
 import TUI.Attr (withBtcColor)
 import TUI.Types (TUIResource (..), TUIState, animate, tick)

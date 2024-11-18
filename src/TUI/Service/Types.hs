@@ -99,13 +99,13 @@ instance Show (Price 'JPY) where
   show = showFiat JPY . unPrice
 
 data Prices = Prices
-  { pEUR :: Price EUR,
-    pUSD :: Price USD,
-    pGBP :: Price GBP,
-    pCAD :: Price CAD,
-    pCHF :: Price CHF,
-    pAUD :: Price AUD,
-    pJPY :: Price JPY
+  { pEUR :: Price EUR
+  , pUSD :: Price USD
+  , pGBP :: Price GBP
+  , pCAD :: Price CAD
+  , pCHF :: Price CHF
+  , pAUD :: Price AUD
+  , pJPY :: Price JPY
   }
   deriving (Show, Eq)
 
@@ -124,9 +124,9 @@ instance A.FromJSON Prices where
 type PricesRD = RemoteData String Prices
 
 data Fees = Fees
-  { fast :: Int,
-    medium :: Int,
-    slow :: Int
+  { fast :: Int
+  , medium :: Int
+  , slow :: Int
   }
   deriving (Show, Eq)
 
@@ -263,13 +263,13 @@ instance Read (Amount 'SATS) where
   readsPrec _ = readBitcoinAmount
 
 data Block = Block
-  { time :: UTCTime,
-    height :: Int,
-    txs :: Int,
-    size :: Int,
-    poolName :: Text,
-    poolFees :: Amount SATS,
-    reward :: Amount SATS
+  { time :: UTCTime
+  , height :: Int
+  , txs :: Int
+  , size :: Int
+  , poolName :: Text
+  , poolFees :: Amount SATS
+  , reward :: Amount SATS
   }
   deriving (Show, Eq)
 
@@ -293,13 +293,13 @@ instance A.FromJSON Block where
               reward <- extras .: "reward"
               pure
                 Block
-                  { height = height,
-                    txs = txs,
-                    size = size,
-                    time = posixSecondsToUTCTime (fromIntegral timestamp),
-                    poolName = name,
-                    poolFees = Amount fees,
-                    reward = Amount reward
+                  { height = height
+                  , txs = txs
+                  , size = size
+                  , time = posixSecondsToUTCTime (fromIntegral timestamp)
+                  , poolName = name
+                  , poolFees = Amount fees
+                  , reward = Amount reward
                   }
           )
           firstBlock

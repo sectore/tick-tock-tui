@@ -1,8 +1,8 @@
 module TUI.Widgets.App where
 
-import Brick.Types
-  ( Widget,
-  )
+import Brick.Types (
+  Widget,
+ )
 import Brick.Widgets.Center
 import Brick.Widgets.Core
 import Lens.Micro ((^.))
@@ -24,7 +24,7 @@ drawApp conf st = [padTopBottom 1 ui]
       ConverterView -> drawConverter st
     ui =
       vBox
-        [ drawHeader st,
-          hCenter $ vCenter main,
-          drawFooter st (cfgMempoolUrl conf)
+        [ drawHeader st
+        , hCenter $ vCenter main
+        , drawFooter st (cfgMempoolUrl conf)
         ]
