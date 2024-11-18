@@ -18,7 +18,7 @@ import Brick.Widgets.Core (
   (<+>),
  )
 import Brick.Widgets.Table
-import Data.Text qualified as T
+import qualified Data.Text as T
 import Data.Time.Format (defaultTimeLocale, formatTime)
 import Data.Time.LocalTime (utcToLocalTime)
 import Lens.Micro ((^.))

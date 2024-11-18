@@ -18,7 +18,8 @@ import Brick.Types (
   BrickEvent (..),
   EventM,
  )
-import Control.Concurrent.STM qualified as STM
+
+import qualified Control.Concurrent.STM as STM
 import Control.Concurrent.STM.TChan (TChan)
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
@@ -26,7 +27,7 @@ import Control.Monad.Reader (MonadTrans (lift), ReaderT (runReaderT), asks)
 import Control.Monad.State.Strict (MonadState)
 import Data.Foldable (traverse_)
 import Data.Functor ((<&>))
-import Graphics.Vty qualified as V
+import qualified Graphics.Vty as V
 import Lens.Micro (Lens', (&), (.~), (^.))
 import Lens.Micro.Mtl
 import TUI.Service.Types (

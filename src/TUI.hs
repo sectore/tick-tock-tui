@@ -12,7 +12,7 @@ import Brick.Main (
  )
 import Control.Concurrent (forkIO, killThread)
 import Control.Concurrent.STM (newTChanIO)
-import Control.Concurrent.STM qualified as STM
+import qualified Control.Concurrent.STM as STM
 import Control.Concurrent.STM.TChan (TChan)
 import Control.Monad (forever)
 import Control.Monad.IO.Class (liftIO)
@@ -21,9 +21,9 @@ import Data.Time.LocalTime (getCurrentTimeZone)
 import TUI.Attr (tuiAttrMap)
 import TUI.Config (Config (..), getConfig)
 import TUI.Events (appEvent, startEvent)
-import TUI.Service.Mempool qualified as M
+import qualified TUI.Service.Mempool as M
 import TUI.Service.Types
-import TUI.Storage qualified as STG
+import qualified TUI.Storage as STG
 import TUI.Types
 import TUI.Utils (customMainWithInterval, fps)
 import TUI.Widgets.App (drawApp)

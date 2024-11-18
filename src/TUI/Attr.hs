@@ -1,7 +1,7 @@
 module TUI.Attr where
 
-import Brick.AttrMap qualified as A
-import Brick.Forms qualified as F
+import qualified Brick.AttrMap as A
+import qualified Brick.Forms as F
 import Brick.Types (
   Widget,
  )
@@ -9,8 +9,8 @@ import Brick.Util (bg, fg)
 import Brick.Widgets.Core (
   withAttr,
  )
-import Brick.Widgets.ProgressBar qualified as P
-import Graphics.Vty qualified as V
+import qualified Brick.Widgets.ProgressBar as P
+import qualified Graphics.Vty as V
 
 boldAttr :: A.AttrName
 boldAttr = A.attrName "bold"

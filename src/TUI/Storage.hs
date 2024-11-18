@@ -3,8 +3,8 @@
 module TUI.Storage (save, load, toStorage) where
 
 import Brick.Forms (formState)
-import Data.Aeson qualified as A
-import Data.ByteString.Lazy qualified as BL
+import qualified Data.Aeson as A
+import qualified Data.ByteString.Lazy as BL
 import Lens.Micro (to, (^.))
 import System.Directory (
   XdgDirectory (..),

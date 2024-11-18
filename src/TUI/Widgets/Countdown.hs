@@ -9,7 +9,7 @@ import Brick.Widgets.Core (
   str,
   (<+>),
  )
-import Brick.Widgets.ProgressBar qualified as P
+import qualified Brick.Widgets.ProgressBar as P
 import Lens.Micro ((^.))
 import TUI.Types (TUIResource (..), TUIState, fetchTick, lastFetchTick, maxFetchTick)
 import TUI.Utils (fps)

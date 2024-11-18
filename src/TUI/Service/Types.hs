@@ -5,7 +5,7 @@
 module TUI.Service.Types where
 
 import Data.Aeson ((.:))
-import Data.Aeson qualified as A
+import qualified Data.Aeson as A
 import Data.Aeson.Types (Parser)
 import Data.Foldable (toList)
 import Data.List (intercalate, unfoldr)

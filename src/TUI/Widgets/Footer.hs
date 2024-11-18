@@ -6,8 +6,8 @@ module TUI.Widgets.Footer where
 import Brick.Types (
   Widget,
  )
-import Brick.Widgets.Border qualified as B
-import Brick.Widgets.Border.Style qualified as BS
+import qualified Brick.Widgets.Border as B
+import qualified Brick.Widgets.Border.Style as BS
 import Brick.Widgets.Core (
   Padding (..),
   emptyWidget,

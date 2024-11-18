@@ -12,7 +12,7 @@ import Brick.Types (
  )
 import Control.Concurrent.STM (TChan)
 import Control.Monad.Reader (ReaderT)
-import Data.Aeson qualified as A
+import qualified Data.Aeson as A
 import Data.Text (Text)
 import Data.Time.LocalTime (TimeZone)
 import GHC.Generics (Generic)
