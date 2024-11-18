@@ -46,9 +46,12 @@
             # Default programs can be disabled by setting to 'null'
             # tools = hp: { fourmolu = hp.fourmolu; ghcid = null; };
             tools = hp: {
-              inherit (pkgs)
-                zlib
-                pkg-config;
+                inherit (pkgs)
+                    nil
+                    zlib
+                    pkg-config;
+                inherit (hp)
+                    fourmolu;
             };
             # Check that haskell-language-server works
             # hlsCheck.enable = true; # Requires sandbox to be disabled
