@@ -4,21 +4,22 @@
 module TUI.Events where
 
 import Brick.Focus (focusGetCurrent)
-import Brick.Forms
-  ( Form (..),
-    formState,
-    handleFormEvent,
-    invalidFields,
-    updateFormState,
-  )
-import Brick.Main
-  ( halt,
-  )
-import Brick.Types
-  ( BrickEvent (..),
-    EventM,
-  )
-import Control.Concurrent.STM qualified as STM
+import Brick.Forms (
+  Form (..),
+  formState,
+  handleFormEvent,
+  invalidFields,
+  updateFormState,
+ )
+import Brick.Main (
+  halt,
+ )
+import Brick.Types (
+  BrickEvent (..),
+  EventM,
+ )
+
+import qualified Control.Concurrent.STM as STM
 import Control.Concurrent.STM.TChan (TChan)
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
@@ -26,10 +27,18 @@ import Control.Monad.Reader (MonadTrans (lift), ReaderT (runReaderT), asks)
 import Control.Monad.State.Strict (MonadState)
 import Data.Foldable (traverse_)
 import Data.Functor ((<&>))
-import Graphics.Vty qualified as V
+import qualified Graphics.Vty as V
 import Lens.Micro (Lens', (&), (.~), (^.))
 import Lens.Micro.Mtl
-import TUI.Service.Types (ApiEvent (..), Bitcoin (..), Fiat (..), Prices (..), RemoteData (..), pAUD, pJPY)
+import TUI.Service.Types (
+  ApiEvent (..),
+  Bitcoin (..),
+  Fiat (..),
+  Prices (..),
+  RemoteData (..),
+  pAUD,
+  pJPY,
+ )
 import TUI.Types
 import TUI.Utils (btcToFiat, fiatToBtc, satsToFiat, toBtc, toSats)
 import TUI.Widgets.Converter (mkConverterForm)
@@ -73,14 +82,22 @@ updateConversion focusedField = do
        in converterForm
             .= updateFormState
               ( st
-                  & cdUsd .~ btcToFiat newBtcAmount (pUSD ps)
-                  & cdCAD .~ btcToFiat newBtcAmount (pCAD ps)
-                  & cdEUR .~ btcToFiat newBtcAmount (pEUR ps)
-                  & cdGBP .~ btcToFiat newBtcAmount (pGBP ps)
-                  & cdAUD .~ btcToFiat newBtcAmount (pAUD ps)
-                  & cdJPY .~ btcToFiat newBtcAmount (pJPY ps)
-                  & cdCHF .~ btcToFiat newBtcAmount (pCHF ps)
-                  & cdSATS .~ toSats newBtcAmount
+                  & cdUsd
+                    .~ btcToFiat newBtcAmount (pUSD ps)
+                  & cdCAD
+                    .~ btcToFiat newBtcAmount (pCAD ps)
+                  & cdEUR
+                    .~ btcToFiat newBtcAmount (pEUR ps)
+                  & cdGBP
+                    .~ btcToFiat newBtcAmount (pGBP ps)
+                  & cdAUD
+                    .~ btcToFiat newBtcAmount (pAUD ps)
+                  & cdJPY
+                    .~ btcToFiat newBtcAmount (pJPY ps)
+                  & cdCHF
+                    .~ btcToFiat newBtcAmount (pCHF ps)
+                  & cdSATS
+                    .~ toSats newBtcAmount
               )
               cf
 
@@ -91,14 +108,22 @@ updateConversion focusedField = do
        in converterForm
             .= updateFormState
               ( st
-                  & cdUsd .~ satsToFiat newSatsAmount (pUSD ps)
-                  & cdCAD .~ satsToFiat newSatsAmount (pCAD ps)
-                  & cdEUR .~ satsToFiat newSatsAmount (pEUR ps)
-                  & cdGBP .~ satsToFiat newSatsAmount (pGBP ps)
-                  & cdAUD .~ satsToFiat newSatsAmount (pAUD ps)
-                  & cdJPY .~ satsToFiat newSatsAmount (pJPY ps)
-                  & cdCHF .~ satsToFiat newSatsAmount (pCHF ps)
-                  & cdBTC .~ toBtc newSatsAmount
+                  & cdUsd
+                    .~ satsToFiat newSatsAmount (pUSD ps)
+                  & cdCAD
+                    .~ satsToFiat newSatsAmount (pCAD ps)
+                  & cdEUR
+                    .~ satsToFiat newSatsAmount (pEUR ps)
+                  & cdGBP
+                    .~ satsToFiat newSatsAmount (pGBP ps)
+                  & cdAUD
+                    .~ satsToFiat newSatsAmount (pAUD ps)
+                  & cdJPY
+                    .~ satsToFiat newSatsAmount (pJPY ps)
+                  & cdCHF
+                    .~ satsToFiat newSatsAmount (pCHF ps)
+                  & cdBTC
+                    .~ toBtc newSatsAmount
               )
               cf
 
@@ -116,8 +141,10 @@ updateConversion focusedField = do
        in converterForm
             .= updateFormState
               ( st
-                  & cdBTC .~ newBtcAmount
-                  & cdSATS .~ toSats newBtcAmount
+                  & cdBTC
+                    .~ newBtcAmount
+                  & cdSATS
+                    .~ toSats newBtcAmount
               )
               cf
 

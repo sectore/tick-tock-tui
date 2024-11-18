@@ -2,8 +2,8 @@ module TUI.Service.Mempool where
 
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (asks)
-import Data.Text qualified as T
-import TUI.Service.API qualified as API
+import qualified Data.Text as T
+import qualified TUI.Service.API as API
 import TUI.Types (MempoolUrl (..), ServiceEnv (..), ServiceM)
 
 fetchPrices :: ServiceM ()

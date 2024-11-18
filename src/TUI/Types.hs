@@ -7,12 +7,12 @@ module TUI.Types where
 import Brick (EventM)
 import Brick.BChan (BChan)
 import Brick.Forms (Form)
-import Brick.Types
-  (
-  )
+import Brick.Types (
+
+ )
 import Control.Concurrent.STM (TChan)
 import Control.Monad.Reader (ReaderT)
-import Data.Aeson qualified as A
+import qualified Data.Aeson as A
 import Data.Text (Text)
 import Data.Time.LocalTime (TimeZone)
 import GHC.Generics (Generic)
@@ -36,8 +36,8 @@ newtype MempoolUrl = MempoolUrl {unMempoolUrl :: Text}
   deriving (Show)
 
 data ServiceEnv = ServiceEnv
-  { envMempoolUrl :: !MempoolUrl,
-    envInChan :: BChan TUIEvent
+  { envMempoolUrl :: !MempoolUrl
+  , envInChan :: BChan TUIEvent
   }
 
 type ServiceM a = ReaderT ServiceEnv IO a
@@ -63,20 +63,20 @@ data TUIEvent
   deriving (Show, Eq)
 
 data ConverterData = ConverterData
-  { -- | selected `Fiat` value in form
-    _cdSelectedFiat :: Fiat,
-    -- | selected `Bitcoin` value in form
-    _cdSelectedBitcoin :: Bitcoin,
-    -- `Amount`s of all currencies
-    _cdUsd :: Amount 'USD,
-    _cdCAD :: Amount 'CAD,
-    _cdEUR :: Amount 'EUR,
-    _cdGBP :: Amount 'GBP,
-    _cdCHF :: Amount 'CHF,
-    _cdJPY :: Amount 'JPY,
-    _cdAUD :: Amount 'AUD,
-    _cdBTC :: Amount 'BTC,
-    _cdSATS :: Amount 'SATS
+  { _cdSelectedFiat :: Fiat
+  -- ^ selected `Fiat` value in form
+  , _cdSelectedBitcoin :: Bitcoin
+  -- ^ selected `Bitcoin` value in form
+  , -- `Amount`s of all currencies
+    _cdUsd :: Amount 'USD
+  , _cdCAD :: Amount 'CAD
+  , _cdEUR :: Amount 'EUR
+  , _cdGBP :: Amount 'GBP
+  , _cdCHF :: Amount 'CHF
+  , _cdJPY :: Amount 'JPY
+  , _cdAUD :: Amount 'AUD
+  , _cdBTC :: Amount 'BTC
+  , _cdSATS :: Amount 'SATS
   }
   deriving (Eq, Show)
 
@@ -98,50 +98,52 @@ instance A.FromJSON View
 instance A.ToJSON View
 
 data TUIState = TUIState
-  { -- | private
-    -- Never get/set value from/to `maxFetchTick'` directly.
-    -- Use `maxFetchTick` (without `'`) to read data
-    timeZone' :: TimeZone,
-    _currentView :: View,
-    _converterForm :: ConverterForm,
-    _prevConverterForm :: Maybe ConverterForm,
-    _animate :: Bool,
-    _extraInfo :: Bool,
-    _tick :: Int,
-    _fetchTick :: Int,
-    _lastFetchTick :: Int,
-    -- | private
-    -- Never get/set value from/to `maxFetchTick'` directly.
-    -- Use `maxFetchTick` (without `'`) to read data
-    maxFetchTick' :: Int,
-    _prices :: PricesRD,
-    _fees :: FeesRD,
-    _block :: BlockRD,
-    _selectedFiat :: Fiat,
-    _selectedBitcoin :: Bitcoin,
-    _showMenu :: Bool
+  { timeZone' :: TimeZone
+  -- ^ private
+  -- Never get/set value from/to `maxFetchTick'` directly.
+  -- Use `maxFetchTick` (without `'`) to read data
+  , _currentView :: View
+  , _converterForm :: ConverterForm
+  , _prevConverterForm :: Maybe ConverterForm
+  , _animate :: Bool
+  , _extraInfo :: Bool
+  , _tick :: Int
+  , _fetchTick :: Int
+  , _lastFetchTick :: Int
+  , maxFetchTick' :: Int
+  -- ^ private
+  -- Never get/set value from/to `maxFetchTick'` directly.
+  -- Use `maxFetchTick` (without `'`) to read data
+  , _prices :: PricesRD
+  , _fees :: FeesRD
+  , _block :: BlockRD
+  , _selectedFiat :: Fiat
+  , _selectedBitcoin :: Bitcoin
+  , _showMenu :: Bool
   }
 
 makeLenses ''TUIState
 
--- | maxFetchTick lens
--- custom getter to provide a read-only accessor only
+{- | maxFetchTick lens
+custom getter to provide a read-only accessor only
+-}
 maxFetchTick :: Getting Int TUIState Int
 maxFetchTick = to maxFetchTick'
 
--- | timeZone lens
--- custom getter to provide a read-only accessor only
+{- | timeZone lens
+custom getter to provide a read-only accessor only
+-}
 timeZone :: Getting TimeZone TUIState TimeZone
 timeZone = to timeZone'
 
 data TUIStorage = TUIStorage
-  { stgCurrentView :: View,
-    stgAnimate :: Bool,
-    stgExtraInfo :: Bool,
-    stgSelectedFiat :: Fiat,
-    stgShowMenu :: Bool,
-    stgSelectedBitcoin :: Bitcoin,
-    stgBtcAmount :: Amount BTC
+  { stgCurrentView :: View
+  , stgAnimate :: Bool
+  , stgExtraInfo :: Bool
+  , stgSelectedFiat :: Fiat
+  , stgShowMenu :: Bool
+  , stgSelectedBitcoin :: Bitcoin
+  , stgBtcAmount :: Amount BTC
   }
   deriving (Generic, Show)
 

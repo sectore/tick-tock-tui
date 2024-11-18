@@ -2,9 +2,9 @@
 
 module TUI.Widgets.Price (drawPrice) where
 
-import Brick.Types
-  ( Widget,
-  )
+import Brick.Types (
+  Widget,
+ )
 import Brick.Widgets.Core
 import Lens.Micro ((^.))
 import TUI.Attr (withError)

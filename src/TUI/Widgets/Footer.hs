@@ -3,58 +3,68 @@
 {-# HLINT ignore "Move brackets to avoid $" #-}
 module TUI.Widgets.Footer where
 
-import Brick.Types
-  ( Widget,
-  )
-import Brick.Widgets.Border qualified as B
-import Brick.Widgets.Border.Style qualified as BS
-import Brick.Widgets.Core
-  ( Padding (..),
-    emptyWidget,
-    fill,
-    hBox,
-    padLeft,
-    padLeftRight,
-    padRight,
-    str,
-    txt,
-    vBox,
-    vLimit,
-    withBorderStyle,
-    (<+>),
-  )
+import Brick.Types (
+  Widget,
+ )
+import qualified Brick.Widgets.Border as B
+import qualified Brick.Widgets.Border.Style as BS
+import Brick.Widgets.Core (
+  Padding (..),
+  emptyWidget,
+  fill,
+  hBox,
+  padLeft,
+  padLeftRight,
+  padRight,
+  str,
+  txt,
+  vBox,
+  vLimit,
+  withBorderStyle,
+  (<+>),
+ )
 import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold)
 import TUI.Service.Types (Bitcoin (BTC))
-import TUI.Types (MempoolUrl (..), TUIResource (..), TUIState, View (..), animate, currentView, selectedBitcoin, showMenu)
+import TUI.Types (
+  MempoolUrl (..),
+  TUIResource (..),
+  TUIState,
+  View (..),
+  animate,
+  currentView,
+  selectedBitcoin,
+  showMenu,
+ )
 import TUI.Widgets.Countdown (drawCountdown)
 
 drawFooter :: TUIState -> MempoolUrl -> Widget TUIResource
 drawFooter st (MempoolUrl url) =
   vBox $
     [ hBox
-        [ padLeftRight 1 $ str $ "[m]enu " <> if st ^. showMenu then "↓" else "↑",
-          vLimit 1 $ fill ' ',
-          padLeftRight 1 $ drawCountdown st
+        [ padLeftRight 1 $ str $ "[m]enu " <> if st ^. showMenu then "↓" else "↑"
+        , vLimit 1 $ fill ' '
+        , padLeftRight 1 $ drawCountdown st
         ]
     ]
       <> [border | st ^. showMenu]
       <> ( [ padLeftRight 1 $
-               renderTable $
-                 surroundingBorder False $
-                   rowBorders False $
-                     columnBorders False $
-                       setDefaultColAlignment AlignLeft $
-                         table
-                           [ [col1 $ str "screens", views],
-                             [col1 $ str "actions", actions],
-                             [col1 emptyWidget, actions2],
-                             [ col1 $ str "endpoint",
-                               txt url
-                             ]
-                           ]
-             | st ^. showMenu
+            renderTable $
+              surroundingBorder False $
+                rowBorders False $
+                  columnBorders False $
+                    setDefaultColAlignment AlignLeft $
+                      table
+                        [ [col1 $ str "screens", views]
+                        , [col1 $ str "actions", actions]
+                        , [col1 emptyWidget, actions2]
+                        ,
+                          [ col1 $ str "endpoint"
+                          , txt url
+                          ]
+                        ]
+           | st ^. showMenu
            ]
          )
   where
@@ -62,29 +72,29 @@ drawFooter st (MempoolUrl url) =
     col1 = padRight (Pad 6) . withBold
     foldWithSpace = foldl1 (\x y -> x <+> (padLeft $ Pad 2) y)
     viewLabels =
-      [ (FeesView, "[f]ees"),
-        (BlockView, "[b]lock"),
-        (ConverterView, "[c]onverter")
+      [ (FeesView, "[f]ees")
+      , (BlockView, "[b]lock")
+      , (ConverterView, "[c]onverter")
       ]
     v = st ^. currentView
     views =
       foldWithSpace
         -- create a list of view labels
         [ if v' == v
-            then -- bold label for `currentView`
-              withBold (str label)
-            else str label
-          | (v', label) <- viewLabels
+          then -- bold label for `currentView`
+            withBold (str label)
+          else str label
+        | (v', label) <- viewLabels
         ]
     actionLabels =
-      [ "[r]eload data",
-        "[s]witch to " ++ if st ^. selectedBitcoin == BTC then "sat" else "btc",
-        "[t]oggle fiat"
+      [ "[r]eload data"
+      , "[s]witch to " ++ if st ^. selectedBitcoin == BTC then "sat" else "btc"
+      , "[t]oggle fiat"
       ]
     actionLabels2 =
-      [ "[e]xtra info",
-        "[a]nimation " ++ if st ^. animate then "stop" else "start",
-        "[q]uit"
+      [ "[e]xtra info"
+      , "[a]nimation " ++ if st ^. animate then "stop" else "start"
+      , "[q]uit"
       ]
     actions = foldWithSpace $ str <$> actionLabels
     actions2 = foldWithSpace $ str <$> actionLabels2

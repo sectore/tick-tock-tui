@@ -104,13 +104,18 @@ main = hspec $ do
         fiatToSats amount (Price 100_000 :: Price EUR) `shouldBe` Amount 50_000_000
     describe "USD" $ do
       it "to BTC" $ do
-        fiatToBtc (Amount 50_000 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` (Amount 0.25 :: Amount BTC)
-        fiatToBtc (Amount 50_000.01 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` (Amount 0.25000005 :: Amount BTC)
-        fiatToBtc (Amount 50_000.09 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` (Amount 0.25000045 :: Amount BTC)
+        fiatToBtc (Amount 50_000 :: Amount USD) (Price 200_000 :: Price USD)
+          `shouldBe` (Amount 0.25 :: Amount BTC)
+        fiatToBtc (Amount 50_000.01 :: Amount USD) (Price 200_000 :: Price USD)
+          `shouldBe` (Amount 0.25000005 :: Amount BTC)
+        fiatToBtc (Amount 50_000.09 :: Amount USD) (Price 200_000 :: Price USD)
+          `shouldBe` (Amount 0.25000045 :: Amount BTC)
       it "to SATS" $ do
         fiatToSats (Amount 50_000 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` Amount 25_000_000
-        fiatToSats (Amount 50_000.01 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` (Amount 25000005 :: Amount SATS)
-        fiatToSats (Amount 50_000.09 :: Amount USD) (Price 200_000 :: Price USD) `shouldBe` (Amount 25000045 :: Amount SATS)
+        fiatToSats (Amount 50_000.01 :: Amount USD) (Price 200_000 :: Price USD)
+          `shouldBe` (Amount 25000005 :: Amount SATS)
+        fiatToSats (Amount 50_000.09 :: Amount USD) (Price 200_000 :: Price USD)
+          `shouldBe` (Amount 25000045 :: Amount SATS)
 
   describe "Show Amount a / ShowAmount" $ do
     it "USD" $ do

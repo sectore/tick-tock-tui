@@ -3,18 +3,18 @@
 module TUI.Utils where
 
 import Brick.BChan
-import Brick.Main
-  ( App (..),
-    customMainWithDefaultVty,
-  )
+import Brick.Main (
+  App (..),
+  customMainWithDefaultVty,
+ )
 import Brick.Types (Widget)
 import Brick.Widgets.Core (str)
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever)
 import Control.Monad.IO.Class (liftIO)
-import Graphics.Vty
-  ( Vty,
-  )
+import Graphics.Vty (
+  Vty,
+ )
 import TUI.Service.Types
 import TUI.Types
 
@@ -24,17 +24,17 @@ fps = 60
 -- Creates a Brick application by providing an `TickEvent`
 -- which is sent to the Brick application by a custom defined time interval
 -- TODO: Extract to a (simple) library??
-customMainWithInterval ::
-  (Ord n, HasTickEvent e) =>
-  -- | interval in microseconds
-  Int ->
-  -- | Custom event channel sending into Brick app
-  Maybe (BChan e) ->
-  -- | Brick application
-  App s e n ->
-  -- | Initial application state
-  s ->
-  IO (s, Vty)
+customMainWithInterval
+  :: (Ord n, HasTickEvent e)
+  => Int
+  -- ^ interval in microseconds
+  -> Maybe (BChan e)
+  -- ^ Custom event channel sending into Brick app
+  -> App s e n
+  -- ^ Brick application
+  -> s
+  -- ^ Initial application state
+  -> IO (s, Vty)
 customMainWithInterval ms mUserChan app initialAppState = do
   inCh <- case mUserChan of
     Nothing -> liftIO $ newBChan 10

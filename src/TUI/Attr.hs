@@ -1,16 +1,16 @@
 module TUI.Attr where
 
-import Brick.AttrMap qualified as A
-import Brick.Forms qualified as F
-import Brick.Types
-  ( Widget,
-  )
+import qualified Brick.AttrMap as A
+import qualified Brick.Forms as F
+import Brick.Types (
+  Widget,
+ )
 import Brick.Util (bg, fg)
-import Brick.Widgets.Core
-  ( withAttr,
-  )
-import Brick.Widgets.ProgressBar qualified as P
-import Graphics.Vty qualified as V
+import Brick.Widgets.Core (
+  withAttr,
+ )
+import qualified Brick.Widgets.ProgressBar as P
+import qualified Graphics.Vty as V
 
 boldAttr :: A.AttrName
 boldAttr = A.attrName "bold"
@@ -39,9 +39,9 @@ tuiAttrMap :: A.AttrMap
 tuiAttrMap =
   A.attrMap
     V.defAttr
-    [ (boldAttr, V.defAttr `V.withStyle` V.bold),
-      (errorAttr, fg V.red),
-      (btcColorAttr, fg btcColor'),
-      (P.progressCompleteAttr, fg btcColor'),
-      (F.invalidFormInputAttr, bg V.red)
+    [ (boldAttr, V.defAttr `V.withStyle` V.bold)
+    , (errorAttr, fg V.red)
+    , (btcColorAttr, fg btcColor')
+    , (P.progressCompleteAttr, fg btcColor')
+    , (F.invalidFormInputAttr, bg V.red)
     ]

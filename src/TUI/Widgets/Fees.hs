@@ -2,24 +2,31 @@
 
 module TUI.Widgets.Fees (drawFees) where
 
-import Brick.Types
-  ( Widget,
-  )
+import Brick.Types (
+  Widget,
+ )
 import Brick.Widgets.Center (hCenter)
-import Brick.Widgets.Core
-  ( Padding (..),
-    emptyWidget,
-    padBottom,
-    padLeft,
-    padRight,
-    str,
-    vBox,
-    (<+>),
-  )
+import Brick.Widgets.Core (
+  Padding (..),
+  emptyWidget,
+  padBottom,
+  padLeft,
+  padRight,
+  str,
+  vBox,
+  (<+>),
+ )
 import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
-import TUI.Service.Types (Amount (Amount), Fees (..), FeesRD, Fiat (..), Prices (..), RemoteData (..))
+import TUI.Service.Types (
+  Amount (Amount),
+  Fees (..),
+  FeesRD,
+  Fiat (..),
+  Prices (..),
+  RemoteData (..),
+ )
 import TUI.Types (TUIResource (..), TUIState (..), extraInfo, fees, prices, selectedFiat, tick)
 import TUI.Utils (emptyStr, satsToFiat)
 import TUI.Widgets.Loader (drawLoadingString2, drawSpinner)
@@ -27,42 +34,45 @@ import TUI.Widgets.Loader (drawLoadingString2, drawSpinner)
 drawFees :: TUIState -> Widget TUIResource
 drawFees st =
   vBox
-    [ hCenter $ padBottom (Pad 2) $ withBold $ str "FEES" <+> padLeft (Pad 1) loadingAnimation,
-      hCenter $
+    [ hCenter $ padBottom (Pad 2) $ withBold $ str "FEES" <+> padLeft (Pad 1) loadingAnimation
+    , hCenter $
         renderTable $
           surroundingBorder False $
             rowBorders False $
               columnBorders False $
                 setDefaultColAlignment AlignLeft $
                   table
-                    [ [ col1Left (str "fast") <+> col1Right (str "~10min"),
-                        col2Left $
+                    [
+                      [ col1Left (str "fast") <+> col1Right (str "~10min")
+                      , col2Left $
                           vBox
                             [ withBold
                                 ( feesRdStr fast rdFees
                                     <+> col1Right (str " sat/vB")
-                                ),
-                              if st ^. extraInfo then fiatPriceStr fast else emptyWidget
+                                )
+                            , if st ^. extraInfo then fiatPriceStr fast else emptyWidget
                             ]
-                      ],
-                      [ col1Left (str "medium") <+> col1Right (str "~30min"),
-                        col2Left $
+                      ]
+                    ,
+                      [ col1Left (str "medium") <+> col1Right (str "~30min")
+                      , col2Left $
                           vBox
                             [ withBold
                                 ( feesRdStr medium rdFees
                                     <+> col1Right (str " sat/vB")
-                                ),
-                              if st ^. extraInfo then fiatPriceStr medium else emptyWidget
+                                )
+                            , if st ^. extraInfo then fiatPriceStr medium else emptyWidget
                             ]
-                      ],
-                      [ col1Left (str "slow") <+> col1Right (str "~60min"),
-                        col2Left $
+                      ]
+                    ,
+                      [ col1Left (str "slow") <+> col1Right (str "~60min")
+                      , col2Left $
                           vBox
                             [ withBold
                                 ( feesRdStr slow rdFees
                                     <+> col1Right (str " sat/vB")
-                                ),
-                              if st ^. extraInfo then fiatPriceStr slow else emptyWidget
+                                )
+                            , if st ^. extraInfo then fiatPriceStr slow else emptyWidget
                             ]
                       ]
                     ]

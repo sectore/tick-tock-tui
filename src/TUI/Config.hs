@@ -6,8 +6,8 @@ import Options.Applicative
 import TUI.Types (MempoolUrl (..))
 
 data Config = Config
-  { cfgMempoolUrl :: !MempoolUrl,
-    cfgReloadInterval :: !Int
+  { cfgMempoolUrl :: !MempoolUrl
+  , cfgReloadInterval :: !Int
   }
   deriving (Show)
 

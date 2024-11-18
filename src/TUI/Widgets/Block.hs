@@ -2,29 +2,38 @@
 
 module TUI.Widgets.Block (drawBlock) where
 
-import Brick.Types
-  ( Widget,
-  )
+import Brick.Types (
+  Widget,
+ )
 import Brick.Widgets.Center (hCenter)
-import Brick.Widgets.Core
-  ( Padding (..),
-    emptyWidget,
-    padBottom,
-    padLeft,
-    padRight,
-    padTop,
-    str,
-    vBox,
-    (<+>),
-  )
+import Brick.Widgets.Core (
+  Padding (..),
+  emptyWidget,
+  padBottom,
+  padLeft,
+  padRight,
+  padTop,
+  str,
+  vBox,
+  (<+>),
+ )
 import Brick.Widgets.Table
-import Data.Text qualified as T
+import qualified Data.Text as T
 import Data.Time.Format (defaultTimeLocale, formatTime)
 import Data.Time.LocalTime (utcToLocalTime)
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Amount, Bitcoin (..), Block (..), Fiat (..), Prices (..), RemoteData (..))
-import TUI.Types (TUIResource (..), TUIState (..), block, extraInfo, prices, selectedFiat, tick, timeZone)
+import TUI.Types (
+  TUIResource (..),
+  TUIState (..),
+  block,
+  extraInfo,
+  prices,
+  selectedFiat,
+  tick,
+  timeZone,
+ )
 import TUI.Utils (emptyStr, satsToFiat, toBtc)
 import TUI.Widgets.Loader (drawLoadingString4, drawSpinner)
 import Text.Printf (printf)
@@ -32,8 +41,8 @@ import Text.Printf (printf)
 drawBlock :: TUIState -> Widget TUIResource
 drawBlock st =
   vBox
-    [ hCenter $ padBottom (Pad 2) $ withBold $ str "LATEST BLOCK" <+> padLeft (Pad 1) loadingAnimation,
-      hCenter $
+    [ hCenter $ padBottom (Pad 2) $ withBold $ str "LATEST BLOCK" <+> padLeft (Pad 1) loadingAnimation
+    , hCenter $
         renderTable $
           surroundingBorder False $
             rowBorders False $
@@ -41,34 +50,41 @@ drawBlock st =
                 setDefaultColAlignment AlignLeft $
                   table
                     [ -- block data
-                      [ col1 (str "height"),
-                        col2 (rdToStr height show)
-                      ],
-                      [ col1 (str "timestamp"),
-                        col2 (rdToStr time formatLocalTime)
-                      ],
-                      [ col1 (str "size"),
-                        col2 (rdToStr size formatSize)
-                      ],
-                      [ col1 (str "txs"),
-                        col2 (rdToStr txs show)
-                      ],
-                      -- miner data
-                      [ padTop (Pad 2) $ col1 (str "miner"),
-                        padTop (Pad 2) $ col2 (rdToStr poolName T.unpack)
-                      ],
-                      [ col1 (str "fees"),
-                        col2 $
+
+                      [ col1 (str "height")
+                      , col2 (rdToStr height show)
+                      ]
+                    ,
+                      [ col1 (str "timestamp")
+                      , col2 (rdToStr time formatLocalTime)
+                      ]
+                    ,
+                      [ col1 (str "size")
+                      , col2 (rdToStr size formatSize)
+                      ]
+                    ,
+                      [ col1 (str "txs")
+                      , col2 (rdToStr txs show)
+                      ]
+                    , -- miner data
+
+                      [ padTop (Pad 2) $ col1 (str "miner")
+                      , padTop (Pad 2) $ col2 (rdToStr poolName T.unpack)
+                      ]
+                    ,
+                      [ col1 (str "fees")
+                      , col2 $
                           vBox
-                            [ (if st ^. extraInfo then withBold else id) $ rdToStr poolFees (show . toBtc),
-                              if st ^. extraInfo then rdToFiatStr poolFees else emptyWidget
+                            [ (if st ^. extraInfo then withBold else id) $ rdToStr poolFees (show . toBtc)
+                            , if st ^. extraInfo then rdToFiatStr poolFees else emptyWidget
                             ]
-                      ],
-                      [ col1 (str "reward"),
-                        col2 $
+                      ]
+                    ,
+                      [ col1 (str "reward")
+                      , col2 $
                           vBox
-                            [ (if st ^. extraInfo then withBold else id) $ rdToStr reward (show . toBtc),
-                              if st ^. extraInfo then rdToFiatStr reward else emptyWidget
+                            [ (if st ^. extraInfo then withBold else id) $ rdToStr reward (show . toBtc)
+                            , if st ^. extraInfo then rdToFiatStr reward else emptyWidget
                             ]
                       ]
                     ]
