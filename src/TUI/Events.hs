@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-
 module TUI.Events where
 
 import Brick.Focus (focusGetCurrent)
