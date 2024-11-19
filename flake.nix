@@ -47,7 +47,6 @@
             # tools = hp: { fourmolu = hp.fourmolu; ghcid = null; };
             tools = hp: {
                 inherit (pkgs)
-                    nil
                     zlib
                     pkg-config;
                 inherit (hp)
