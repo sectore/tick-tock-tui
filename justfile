@@ -14,7 +14,7 @@ alias rc := run-custom
 
 # build app
 build:
-    cabal build
+    cabal build --enable-tests
 
 # run tests
 test:
