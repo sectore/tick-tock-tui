@@ -1,5 +1,3 @@
-{-# LANGUAGE DataKinds #-}
-
 module TUI.Widgets.Converter (
   drawConverter,
   ConverterData (..),

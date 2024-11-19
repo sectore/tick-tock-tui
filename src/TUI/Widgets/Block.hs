@@ -1,5 +1,3 @@
-{-# LANGUAGE DataKinds #-}
-
 module TUI.Widgets.Block (drawBlock) where
 
 import Brick.Types (

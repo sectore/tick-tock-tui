@@ -47,10 +47,11 @@
             # tools = hp: { fourmolu = hp.fourmolu; ghcid = null; };
             tools = hp: {
                 inherit (pkgs)
-                    nil
+                    just
                     zlib
                     pkg-config;
                 inherit (hp)
+                    cabal-fmt
                     fourmolu;
             };
             # Check that haskell-language-server works

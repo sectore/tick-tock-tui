@@ -1,5 +1,3 @@
-{-# LANGUAGE DataKinds #-}
-
 module TUI.Service.API where
 
 import Brick.BChan (BChan, writeBChan)

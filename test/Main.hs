@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds #-}
+{- HLINT ignore "Move brackets to avoid $" -}
 
 module Main (main) where
 

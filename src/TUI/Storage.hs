@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module TUI.Storage (save, load, toStorage) where
 
 import Brick.Forms (formState)
