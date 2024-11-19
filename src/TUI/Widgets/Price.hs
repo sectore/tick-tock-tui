@@ -1,5 +1,3 @@
-{-# LANGUAGE DataKinds #-}
-
 module TUI.Widgets.Price (drawPrice) where
 
 import Brick.Types (
