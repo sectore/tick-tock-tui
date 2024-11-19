@@ -1,99 +1,109 @@
-cabal-version:      3.0
-name:               tick-tock-tui
-version:            0.1.0.0
-synopsis:           bitcoin ticker tui
+cabal-version:   3.0
+name:            tick-tock-tui
+version:         0.1.0.0
+synopsis:        bitcoin ticker tui
+
 -- description:
-homepage:           https://github.com/BitcoinBeachTravemuende/tick-tock-tui
-license:            MIT
-license-file:       LICENSE
-author:             jk
+homepage:        https://github.com/BitcoinBeachTravemuende/tick-tock-tui
+license:         MIT
+license-file:    LICENSE
+author:          jk
+
 -- maintainer:
 -- copyright:
-category:           TUI
-build-type:         Simple
-extra-doc-files:    CHANGELOG.md
+category:        TUI
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
+
 -- extra-source-files:
 
 common warnings
-    ghc-options: -Wall
+  ghc-options: -Wall
 
 library
-    import:           warnings
-    exposed-modules:    TUI
-    other-modules:      TUI.Attr
-                    ,   TUI.Config
-                    ,   TUI.Service.API
-                    ,   TUI.Service.Types
-                    ,   TUI.Service.Mempool
-                    ,   TUI.Events
-                    ,   TUI.Storage
-                    ,   TUI.Types
-                    ,   TUI.Utils
-                    ,   TUI.Widgets.App
-                    ,   TUI.Widgets.Block
-                    ,   TUI.Widgets.Converter
-                    ,   TUI.Widgets.Countdown
-                    ,   TUI.Widgets.Fees
-                    ,   TUI.Widgets.Footer
-                    ,   TUI.Widgets.Header
-                    ,   TUI.Widgets.Loader
-                    ,   TUI.Widgets.Price
-    default-extensions: NoImportQualifiedPost
-    build-depends:      base ^>=4.18.2.1
-                    ,   aeson >=0.8
-                    ,   async
-                    ,   directory
-                    ,   brick ^>=2.5
-                    ,   bytestring
-                    ,   filepath
-                    ,   http-conduit >= 2.3.9
-                    ,   microlens >= 0.3.0.0
-                    ,   microlens-th
-                    ,   microlens-mtl
-                    ,   mtl
-                    ,   optparse-applicative
-                    ,   text
-                    ,   transformers
-                    ,   stm
-                    ,   time
-                    ,   vty
-                    ,   vty-crossplatform
-    hs-source-dirs: src
-    default-language: GHC2021
+  import:             warnings
+  exposed-modules:    TUI
+  other-modules:
+    TUI.Attr
+    TUI.Config
+    TUI.Events
+    TUI.Service.API
+    TUI.Service.Mempool
+    TUI.Service.Types
+    TUI.Storage
+    TUI.Types
+    TUI.Utils
+    TUI.Widgets.App
+    TUI.Widgets.Block
+    TUI.Widgets.Converter
+    TUI.Widgets.Countdown
+    TUI.Widgets.Fees
+    TUI.Widgets.Footer
+    TUI.Widgets.Header
+    TUI.Widgets.Loader
+    TUI.Widgets.Price
+
+  default-extensions: NoImportQualifiedPost
+  build-depends:
+    , aeson                 >=0.8
+    , async
+    , base                  ^>=4.18.2.1
+    , brick                 ^>=2.5
+    , bytestring
+    , directory
+    , filepath
+    , http-conduit          >=2.3.9
+    , microlens             >=0.3.0.0
+    , microlens-mtl
+    , microlens-th
+    , mtl
+    , optparse-applicative
+    , stm
+    , text
+    , time
+    , transformers
+    , vty
+    , vty-crossplatform
+
+  hs-source-dirs:     src
+  default-language:   GHC2021
 
 executable tick-tock-tui
-    import:           warnings
-    main-is:          Main.hs
-    -- other-modules:
-    default-extensions: NoImportQualifiedPost
-    build-depends:
-        base ^>=4.18.2.1,
-        tick-tock-tui
+  import:             warnings
+  main-is:            Main.hs
 
-    hs-source-dirs:   app
-    ghc-options:    -threaded -Wall -Wcompat -O2
-    default-language: GHC2021
+  -- other-modules:
+  default-extensions: NoImportQualifiedPost
+  build-depends:
+    , base           ^>=4.18.2.1
+    , tick-tock-tui
+
+  hs-source-dirs:     app
+  ghc-options:        -threaded -Wall -Wcompat -O2
+  default-language:   GHC2021
 
 test-suite tick-tock-tui-test
-    import:           warnings
-    default-language: GHC2021
-    other-modules:      TUI.Service.Types
-                    ,   TUI.Types
-                    ,   TUI.Utils
-    default-extensions: NoImportQualifiedPost
-    type:             exitcode-stdio-1.0
-    hs-source-dirs:   test, src
-    main-is:          Main.hs
-    build-depends:
-        ,   base ^>=4.18.2.1
-        ,   brick ^>=2.5
-        ,   aeson >=0.8
-        ,   hspec
-        ,   microlens >= 0.3.0.0
-        ,   microlens-th
-        ,   mtl
-        ,   stm
-        ,   text
-        ,   tick-tock-tui
-        ,   time
-        ,   vty
+  import:             warnings
+  default-language:   GHC2021
+  other-modules:
+    TUI.Service.Types
+    TUI.Types
+    TUI.Utils
+
+  default-extensions: NoImportQualifiedPost
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     test src
+  main-is:            Main.hs
+  build-depends:
+    , aeson          >=0.8
+    , base           ^>=4.18.2.1
+    , brick          ^>=2.5
+    , hspec
+    , microlens      >=0.3.0.0
+    , microlens-th
+    , mtl
+    , stm
+    , text
+    , tick-tock-tui
+    , time
+    , vty
