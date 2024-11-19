@@ -1,6 +1,6 @@
 module Main where
 
-import TUI qualified (run)
+import qualified TUI
 
 main :: IO ()
 main = TUI.run
