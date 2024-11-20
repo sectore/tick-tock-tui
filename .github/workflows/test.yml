@@ -1,0 +1,34 @@
+name: lint, format, test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  # option to run workflow manually
+  # see: https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow
+  workflow_dispatch:
+
+jobs:
+  lint-format-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: ❄️ Install Nix
+        uses: cachix/install-nix-action@v30
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: "Check format: *.cabal"
+        run: nix develop --command bash -c 'cabal-fmt --check --Werror tick-tock-tui.cabal'
+
+      - name: "Check format: *.hs"
+        run: nix develop --command bash -c 'fourmolu --mode check app src test'
+
+      - name: "lint: *.hs"
+        run: nix develop --command bash -c 'hlint app src test'
+
+      - name: "test"
+        run: nix develop --command bash -c 'cabal test all'
