@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    # (optional) glob patterns for branches, tags ...
+    # see: https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#onpushbranchestagsbranches-ignoretags-ignore
+    branches:
+      - "release/**"
+    # tags:
+    #   - "v*"
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # Linux only for now
+        os: [ubuntu-latest]
+        # os: [ubuntu-latest, macOS-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            artifact_suffix: linux
+          # - os: macOS-latest
+          #   artifact_suffix: macos
+          # - os: windows-latest
+          #   artifact_suffix: windows.exe
+
+    steps:
+      - name: 📥 Check out repository
+        uses: actions/checkout@v4
+
+      - name: ❄️ Install Nix
+        uses: cachix/install-nix-action@v30
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Get name/version from *.cabal
+        id: cabal-info
+        shell: bash
+        run: |
+          name=$(awk '/^name:/ {print $2}' *.cabal)
+          version=$(awk '/^version:/ {print $2}' *.cabal)
+          echo "name=${name}" >> $GITHUB_OUTPUT
+          echo "version=${version}" >> $GITHUB_OUTPUT
+
+      # Cache Haskell - Cabal
+      # https://github.com/actions/cache/blob/main/examples.md#haskell---cabal
+      - name: Cache Cabal files
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/packages
+            ~/.cabal/store
+            dist-newstyle
+          key: ${{ runner.os }}-cabal-${{ hashFiles('**/*.cabal', '**/cabal.project', '**/cabal.project.freeze') }}
+          restore-keys: |
+            ${{ runner.os }}-cabal-
+
+      - name: Build
+        run: |
+          nix develop --command bash -c 'cabal update'
+          nix develop --command bash -c 'cabal build'
+
+      - name: 💾 Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.cabal-info.outputs.name }}-${{ steps.cabal-info.outputs.version }}-${{ matrix.artifact_suffix }}
+          path: nix develop --command bash -c '$(cabal list-bin ${{ steps.cabal-info.outputs.name }})'

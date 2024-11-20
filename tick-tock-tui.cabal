@@ -1,9 +1,10 @@
 cabal-version:   3.0
 name:            tick-tock-tui
-version:         0.1.0.0
+version:         0.0.1-alpha-1
 synopsis:        bitcoin ticker tui
 
 -- description:
+stability:       alpha
 homepage:        https://github.com/BitcoinBeachTravemuende/tick-tock-tui
 license:         MIT
 license-file:    LICENSE
