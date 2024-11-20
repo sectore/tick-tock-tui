@@ -30,5 +30,8 @@ jobs:
       - name: "lint: *.hs"
         run: nix develop --command bash -c 'hlint app src test'
 
-      - name: "test"
+      - name: Update Cabal's package index
+        run: nix develop --command bash -c 'cabal update'
+
+      - name: test
         run: nix develop --command bash -c 'cabal test all'
