@@ -1,4 +1,4 @@
-name: Release
+name: release
 
 on:
   push:
@@ -57,14 +57,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cabal-
 
-      - name: Build
+      - name: Build app
         run: |
           nix develop --command bash -c 'cabal update'
           nix develop --command bash -c 'cabal build'
-          mkdir -p bin
-          nix develop --command bash -c "cp $(cabal list-bin tick-tock-tui) bin"
 
-      - name: show artifacts
+      - name: Prepare artifacts
+        run: |
+          mkdir -p bin
+          nix develop --command bash -c 'cp $(cabal list-bin tick-tock-tui) bin'
+
+      - name: Show artifacts
         run: ls bin
 
       - name: 💾 Upload artifacts
