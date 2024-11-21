@@ -1,6 +1,6 @@
 module TUI.Service.Types where
 
-import Data.Aeson ((.:))
+import Data.Aeson ((.:), (.:?))
 import qualified Data.Aeson as A
 import Data.Aeson.Types (Parser)
 import Data.Foldable (toList)
@@ -264,7 +264,7 @@ data Block = Block
   , txs :: Int
   , size :: Int
   , poolName :: Text
-  , poolFees :: Amount SATS
+  , poolFees :: Maybe (Amount SATS)
   , reward :: Amount SATS
   }
   deriving (Show, Eq)
@@ -283,7 +283,7 @@ instance A.FromJSON Block where
               size <- o .: "size"
               txs <- o .: "tx_count"
               extras <- o .: "extras"
-              fees <- extras .: "expectedFees"
+              fees <- extras .:? "expectedFees"
               pool <- extras .: "pool"
               name <- pool .: "name"
               reward <- extras .: "reward"
@@ -294,7 +294,7 @@ instance A.FromJSON Block where
                   , size = size
                   , time = posixSecondsToUTCTime (fromIntegral timestamp)
                   , poolName = name
-                  , poolFees = Amount fees
+                  , poolFees = Amount <$> fees
                   , reward = Amount reward
                   }
           )
