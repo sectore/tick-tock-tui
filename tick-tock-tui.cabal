@@ -1,11 +1,11 @@
 cabal-version:   3.0
 name:            tick-tock-tui
 version:         0.0.1
-synopsis:        bitcoin ticker tui
+synopsis:        bitcoin mempool tui
 
 -- description:
 stability:       alpha
-homepage:        https://github.com/BitcoinBeachTravemuende/tick-tock-tui
+homepage:        https://github.com/sectore/tick-tock-tui
 license:         MIT
 license-file:    LICENSE
 author:          jk
