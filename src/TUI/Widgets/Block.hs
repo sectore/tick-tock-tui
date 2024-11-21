@@ -73,8 +73,8 @@ drawBlock st =
                       [ col1 (str "fees")
                       , col2 $
                           vBox
-                            [ (if st ^. extraInfo then withBold else id) $ rdToStr poolFees (show . toBtc)
-                            , if st ^. extraInfo then rdToFiatStr poolFees else emptyWidget
+                            [ (if st ^. extraInfo then withBold else id) $ mRdToStr poolFees (show . toBtc)
+                            , if st ^. extraInfo then mRdToFiatStr poolFees else emptyWidget
                             ]
                       ]
                     ,
@@ -112,22 +112,39 @@ drawBlock st =
             Loading ma -> maybe loadingStr (str . show' . accessor) ma
             Failure _ -> withError $ str "error"
             Success b -> str $ show' $ accessor b
+    mRdToStr :: forall a n. (Show a) => (Block -> Maybe a) -> (a -> String) -> Widget n
+    mRdToStr mAccessor show' =
+      let loadingStr = drawLoadingString4 (st ^. tick)
+       in case rdBlock of
+            NotAsked -> loadingStr
+            Loading ma -> maybe loadingStr (str . maybe "unknown" show' . mAccessor) ma
+            Failure _ -> withError $ str "error"
+            Success b -> str . maybe "unknown" show' $ mAccessor b
+    priceStr :: Amount 'SATS -> Prices -> Widget n
+    priceStr s ps =
+      case st ^. selectedFiat of
+        EUR -> str $ show $ satsToFiat s (pEUR ps)
+        USD -> str $ show $ satsToFiat s (pUSD ps)
+        GBP -> str $ show $ satsToFiat s (pGBP ps)
+        CAD -> str $ show $ satsToFiat s (pCAD ps)
+        CHF -> str $ show $ satsToFiat s (pCHF ps)
+        AUD -> str $ show $ satsToFiat s (pAUD ps)
+        JPY -> str $ show $ satsToFiat s (pJPY ps)
+
     rdToFiatStr :: forall n. (Block -> Amount 'SATS) -> Widget n
     rdToFiatStr accessor =
       let errorStr = withError $ str "error"
-          priceStr :: Block -> Prices -> Widget n
-          priceStr b ps =
-            let s = accessor b
-             in case st ^. selectedFiat of
-                  EUR -> str $ show $ satsToFiat s (pEUR ps)
-                  USD -> str $ show $ satsToFiat s (pUSD ps)
-                  GBP -> str $ show $ satsToFiat s (pGBP ps)
-                  CAD -> str $ show $ satsToFiat s (pCAD ps)
-                  CHF -> str $ show $ satsToFiat s (pCHF ps)
-                  AUD -> str $ show $ satsToFiat s (pAUD ps)
-                  JPY -> str $ show $ satsToFiat s (pJPY ps)
        in case liftA2 (,) rdBlock (st ^. prices) of
-            Loading (Just (b, ps)) -> priceStr b ps
-            Success (b, ps) -> priceStr b ps
+            Loading (Just (b, ps)) -> priceStr (accessor b) ps
+            Success (b, ps) -> priceStr (accessor b) ps
+            Failure _ -> errorStr
+            _ -> drawLoadingString4 (st ^. tick)
+
+    mRdToFiatStr :: forall n. (Block -> Maybe (Amount 'SATS)) -> Widget n
+    mRdToFiatStr mAccessor =
+      let errorStr = withError $ str "error"
+       in case liftA2 (,) rdBlock (st ^. prices) of
+            Loading (Just (b, ps)) -> maybe (str "unknown") (`priceStr` ps) (mAccessor b)
+            Success (b, ps) -> maybe (str "unknown") (`priceStr` ps) (mAccessor b)
             Failure _ -> errorStr
             _ -> drawLoadingString4 (st ^. tick)
