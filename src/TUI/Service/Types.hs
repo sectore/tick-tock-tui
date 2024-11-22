@@ -95,7 +95,8 @@ instance Show (Price 'JPY) where
   show = showFiat JPY . unPrice
 
 data Prices = Prices
-  { pEUR :: Price EUR
+  { pTime :: UTCTime
+  , pEUR :: Price EUR
   , pUSD :: Price USD
   , pGBP :: Price GBP
   , pCAD :: Price CAD
@@ -103,19 +104,29 @@ data Prices = Prices
   , pAUD :: Price AUD
   , pJPY :: Price JPY
   }
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
 
 instance A.FromJSON Prices where
-  parseJSON (A.Object o) =
-    Prices
-      <$> (Price <$> o .: "EUR")
-      <*> (Price <$> o .: "USD")
-      <*> (Price <$> o .: "GBP")
-      <*> (Price <$> o .: "CAD")
-      <*> (Price <$> o .: "CHF")
-      <*> (Price <$> o .: "AUD")
-      <*> (Price <$> o .: "JPY")
-  parseJSON v = fail $ "Could not parse PriceData from " ++ show v
+  parseJSON = A.withObject "Prices" $ \o -> do
+    timestamp <- o .: "time" :: Parser Integer
+    pEUR <- Price <$> o .: "EUR"
+    pUSD <- Price <$> o .: "USD"
+    pGBP <- Price <$> o .: "GBP"
+    pCAD <- Price <$> o .: "CAD"
+    pCHF <- Price <$> o .: "CHF"
+    pAUD <- Price <$> o .: "AUD"
+    pJPY <- Price <$> o .: "JPY"
+    pure
+      Prices
+        { pTime = posixSecondsToUTCTime (fromIntegral timestamp)
+        , pEUR = pEUR
+        , pUSD = pUSD
+        , pGBP = pGBP
+        , pCAD = pCAD
+        , pCHF = pCHF
+        , pAUD = pAUD
+        , pJPY = pJPY
+        }
 
 type PricesRD = RemoteData String Prices
 
