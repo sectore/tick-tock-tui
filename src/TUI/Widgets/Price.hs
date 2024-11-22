@@ -5,19 +5,40 @@ import Brick.Types (
  )
 import Brick.Widgets.Core
 import Lens.Micro ((^.))
-import TUI.Attr (withError)
-import TUI.Service.Types (Amount (..), Bitcoin (..), Fiat (..), Prices (..), RemoteData (..))
-import TUI.Types (TUIResource (..), TUIState (..), prices, selectedBitcoin, selectedFiat, tick)
-import TUI.Utils (btcToFiat, emptyStr, satsToFiat)
+import TUI.Attr (withBold, withError)
+import TUI.Service.Types (
+  Amount (..),
+  Bitcoin (..),
+  Fiat (..),
+  Prices (..),
+  PricesRD,
+  RemoteData (..),
+ )
+import TUI.Types (
+  TUIResource (..),
+  TUIState (..),
+  extraInfo,
+  prices,
+  selectedBitcoin,
+  selectedFiat,
+  tick,
+  timeZone,
+ )
+import TUI.Utils (btcToFiat, emptyStr, formatLocalTime, satsToFiat)
 import TUI.Widgets.Loader (drawLoadingString4, drawSpinner)
 
 drawPrice :: TUIState -> Widget TUIResource
 drawPrice st =
-  padRight (Pad 1) loadingAnimation
-    <+> btcStr
-    <+> padLeftRight 1 (str "=")
-    <+> rdToStr rdPrices
+  vBox
+    [ (if st ^. extraInfo then withBold else id) $
+        padRight (Pad 1) loadingAnimation
+          <+> btcStr
+          <+> padLeftRight 1 (str "=")
+          <+> rdToStr rdPrices
+    , if st ^. extraInfo then padLeft (Pad 2) $ rdToTimeStr rdPrices else emptyWidget
+    ]
   where
+    rdPrices :: PricesRD
     rdPrices = st ^. prices
     loadingAnimation =
       let spinner = drawSpinner (st ^. tick)
@@ -50,6 +71,19 @@ drawPrice st =
       let loadingStr = drawLoadingString4 (st ^. tick)
        in case rd of
             NotAsked -> loadingStr
-            Loading mp -> maybe loadingStr priceStr mp
+            Loading Nothing -> loadingStr
+            Loading (Just p) -> priceStr p
             Failure _ -> withError $ str "error"
             Success p -> priceStr p
+
+    rdToTimeStr :: PricesRD -> Widget n
+    rdToTimeStr rd =
+      let loadingStr = drawLoadingString4 (st ^. tick)
+          timeStr :: Prices -> Widget n
+          timeStr ps = str $ formatLocalTime (st ^. timeZone) (pTime ps)
+       in case rd of
+            NotAsked -> loadingStr
+            Loading Nothing -> loadingStr
+            Loading (Just ps) -> timeStr ps
+            Failure _ -> withError $ str "error"
+            Success ps -> timeStr ps

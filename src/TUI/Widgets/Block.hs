@@ -17,8 +17,6 @@ import Brick.Widgets.Core (
  )
 import Brick.Widgets.Table
 import qualified Data.Text as T
-import Data.Time.Format (defaultTimeLocale, formatTime)
-import Data.Time.LocalTime (utcToLocalTime)
 import Lens.Micro ((^.))
 import TUI.Attr (withBold, withError)
 import TUI.Service.Types (Amount, Bitcoin (..), Block (..), Fiat (..), Prices (..), RemoteData (..))
@@ -32,7 +30,7 @@ import TUI.Types (
   tick,
   timeZone,
  )
-import TUI.Utils (emptyStr, satsToFiat, toBtc)
+import TUI.Utils (emptyStr, formatLocalTime, satsToFiat, toBtc)
 import TUI.Widgets.Loader (drawLoadingString4, drawSpinner)
 import Text.Printf (printf)
 
@@ -53,8 +51,8 @@ drawBlock st =
                       , col2 (rdToStr height show)
                       ]
                     ,
-                      [ col1 (str "timestamp")
-                      , col2 (rdToStr time formatLocalTime)
+                      [ col1 (str "time")
+                      , col2 (rdToStr time (formatLocalTime (st ^. timeZone)))
                       ]
                     ,
                       [ col1 (str "size")
@@ -97,7 +95,6 @@ drawBlock st =
             _ -> emptyStr
     col1 = withBold . padRight (Pad 1)
     col2 = padLeft (Pad 10) . padRight (Pad 1)
-    formatLocalTime = formatTime defaultTimeLocale "%d-%m-%y %H:%M:%S" . utcToLocalTime (st ^. timeZone)
     -- Format block `size` using decimal (SI) system (similar to Mempool.com)
     -- Others (e.g. Blockstream.com) might use binary (1024-based) based formats
     formatSize bytes

@@ -10,6 +10,10 @@ import Brick.Widgets.Core (str)
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever)
 import Control.Monad.IO.Class (liftIO)
+import Data.Time (TimeZone)
+import Data.Time.Clock (UTCTime)
+import Data.Time.Format (defaultTimeLocale, formatTime)
+import Data.Time.LocalTime (utcToLocalTime)
 import Graphics.Vty (
   Vty,
  )
@@ -85,3 +89,6 @@ fiatToBtc (Amount a) (Price p) =
 -- | Helper to convert any `Amount` of `Fiat` to `SATS` by given `Price`
 fiatToSats :: forall (a :: Fiat). Amount a -> Price a -> Amount SATS
 fiatToSats a p = toSats $ fiatToBtc a p
+
+formatLocalTime :: TimeZone -> UTCTime -> String
+formatLocalTime tz t = formatTime defaultTimeLocale "%d-%m-%y %H:%M:%S" $ utcToLocalTime tz t
