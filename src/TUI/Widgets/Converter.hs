@@ -8,6 +8,7 @@ where
 
 import Brick
 import Brick.Forms (
+  Form (formState),
   editShowableField,
   newForm,
   renderForm,
@@ -77,12 +78,26 @@ mkConverterForm cd =
 
 drawConverter :: TUIState -> Widget TUIResource
 drawConverter st =
-  hCenter $
-    vBox
-      [ padBottom (Pad 2) $ hCenter $ withBold $ str "CONVERTER" <+> padLeft (Pad 1) loadingAnimation
-      , padTopBottom 1 $ hCenter $ hLimit 20 $ renderForm (st ^. converterForm)
-      ]
+  vBox
+    [ padBottom (Pad 2) $ hCenter $ withBold $ str "CONVERTER" <+> padLeft (Pad 1) loadingAnimation
+    , padTopBottom 1 $ hCenter $ hLimit hSize $ renderForm (st ^. converterForm)
+    ]
   where
+    hSize =
+      let cd = formState (st ^. converterForm)
+          fiatL = case cd ^. cdSelectedFiat of
+            EUR -> length $ show $ cd ^. cdEUR
+            AUD -> length $ show $ cd ^. cdAUD
+            CAD -> length $ show $ cd ^. cdCAD
+            GBP -> length $ show $ cd ^. cdGBP
+            CHF -> length $ show $ cd ^. cdCHF
+            JPY -> length $ show $ cd ^. cdJPY
+            USD -> length $ show $ cd ^. cdUsd
+          bitcoinL = case cd ^. cdSelectedBitcoin of
+            BTC -> length $ show $ cd ^. cdBTC
+            SATS -> length $ show $ cd ^. cdSATS
+       in max fiatL bitcoinL + 1
+
     loadingAnimation =
       let spinner = drawSpinner (st ^. tick)
        in case st ^. prices of
