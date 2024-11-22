@@ -6,7 +6,7 @@ import Brick.Types (
 import Brick.Widgets.Center
 import Brick.Widgets.Core
 import Lens.Micro ((^.))
-import TUI.Config (Config, cfgMempoolUrl)
+import TUI.Config (Config)
 import TUI.Types
 import TUI.Widgets.Block (drawBlock)
 import TUI.Widgets.Converter (drawConverter)
@@ -26,5 +26,5 @@ drawApp conf st = [padTopBottom 1 ui]
       vBox
         [ drawHeader st
         , hCenter $ vCenter main
-        , drawFooter st (cfgMempoolUrl conf)
+        , drawFooter st conf
         ]
