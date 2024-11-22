@@ -73,8 +73,8 @@ drawBlock st =
                       [ col1 (str "fees")
                       , col2 $
                           vBox
-                            [ (if st ^. extraInfo then withBold else id) $ mRdToStr poolFees (show . toBtc)
-                            , if st ^. extraInfo then mRdToFiatStr poolFees else emptyWidget
+                            [ (if st ^. extraInfo then withBold else id) $ rdToStr' poolFees (show . toBtc)
+                            , if st ^. extraInfo then rdToFiatStr' poolFees else emptyWidget
                             ]
                       ]
                     ,
@@ -109,15 +109,18 @@ drawBlock st =
       let loadingStr = drawLoadingString4 (st ^. tick)
        in case rdBlock of
             NotAsked -> loadingStr
-            Loading ma -> maybe loadingStr (str . show' . accessor) ma
+            Loading Nothing -> loadingStr
+            Loading (Just b) -> str . show' $ accessor b
             Failure _ -> withError $ str "error"
             Success b -> str $ show' $ accessor b
-    mRdToStr :: forall a n. (Show a) => (Block -> Maybe a) -> (a -> String) -> Widget n
-    mRdToStr mAccessor show' =
+    -- Similar to `rdToStr` but accepting a `Block -> Maybe a` instead of `Block -> a`
+    rdToStr' :: forall a n. (Show a) => (Block -> Maybe a) -> (a -> String) -> Widget n
+    rdToStr' mAccessor show' =
       let loadingStr = drawLoadingString4 (st ^. tick)
        in case rdBlock of
             NotAsked -> loadingStr
-            Loading ma -> maybe loadingStr (str . maybe "unknown" show' . mAccessor) ma
+            Loading Nothing -> loadingStr
+            Loading (Just b) -> str $ maybe "unknown" show' $ mAccessor b
             Failure _ -> withError $ str "error"
             Success b -> str . maybe "unknown" show' $ mAccessor b
     priceStr :: Amount 'SATS -> Prices -> Widget n
@@ -140,8 +143,9 @@ drawBlock st =
             Failure _ -> errorStr
             _ -> drawLoadingString4 (st ^. tick)
 
-    mRdToFiatStr :: forall n. (Block -> Maybe (Amount 'SATS)) -> Widget n
-    mRdToFiatStr mAccessor =
+    -- Similar to `rdToFiatStr` but accepting a `Maybe (Amount 'SATS)` instead of `Amount 'SATS`
+    rdToFiatStr' :: forall n. (Block -> Maybe (Amount 'SATS)) -> Widget n
+    rdToFiatStr' mAccessor =
       let errorStr = withError $ str "error"
        in case liftA2 (,) rdBlock (st ^. prices) of
             Loading (Just (b, ps)) -> maybe (str "unknown") (`priceStr` ps) (mAccessor b)
