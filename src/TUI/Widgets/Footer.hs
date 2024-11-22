@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-
-{-# HLINT ignore "Move brackets to avoid $" #-}
 module TUI.Widgets.Footer where
 
 import Brick.Types (
@@ -16,6 +13,7 @@ import Brick.Widgets.Core (
   padLeft,
   padLeftRight,
   padRight,
+  padTop,
   str,
   txt,
   vBox,
@@ -26,7 +24,9 @@ import Brick.Widgets.Core (
 import Brick.Widgets.Table
 import Lens.Micro ((^.))
 import TUI.Attr (withBold)
+import TUI.Config (Config (cfgMempoolUrl, cfgStorageDirectory))
 import TUI.Service.Types (Bitcoin (BTC))
+import TUI.Storage (getStoragePath)
 import TUI.Types (
   MempoolUrl (..),
   TUIResource (..),
@@ -34,13 +34,14 @@ import TUI.Types (
   View (..),
   animate,
   currentView,
+  extraInfo,
   selectedBitcoin,
   showMenu,
  )
 import TUI.Widgets.Countdown (drawCountdown)
 
-drawFooter :: TUIState -> MempoolUrl -> Widget TUIResource
-drawFooter st (MempoolUrl url) =
+drawFooter :: TUIState -> Config -> Widget TUIResource
+drawFooter st config =
   vBox $
     [ hBox
         [ padLeftRight 1 $ str $ "[m]enu " <> if st ^. showMenu then "↓" else "↑"
@@ -56,14 +57,22 @@ drawFooter st (MempoolUrl url) =
                   columnBorders False $
                     setDefaultColAlignment AlignLeft $
                       table
-                        [ [col1 $ str "screens", views]
-                        , [col1 $ str "actions", actions]
-                        , [col1 emptyWidget, actions2]
-                        ,
-                          [ col1 $ str "endpoint"
-                          , txt url
+                        ( [ [col1 $ str "screens", views]
+                          , [col1 $ str "actions", actions]
+                          , [col1 emptyWidget, actions2]
                           ]
-                        ]
+                            ++ [ row | st ^. extraInfo, row <-
+                                                          [
+                                                            [ padTop (Pad 1) $ col1 $ str "endpoint"
+                                                            , padTop (Pad 1) $ txt $ unMempoolUrl $ cfgMempoolUrl config
+                                                            ]
+                                                          ,
+                                                            [ col1 $ str "storage"
+                                                            , str $ getStoragePath $ cfgStorageDirectory config
+                                                            ]
+                                                          ]
+                               ]
+                        )
            | st ^. showMenu
            ]
          )

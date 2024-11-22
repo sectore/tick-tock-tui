@@ -1,14 +1,12 @@
-module TUI.Storage (save, load, toStorage) where
+module TUI.Storage (save, load, toStorage, getStoragePath) where
 
 import Brick.Forms (formState)
 import qualified Data.Aeson as A
-import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy as LBS
 import Lens.Micro (to, (^.))
 import System.Directory (
-  XdgDirectory (..),
   createDirectoryIfMissing,
   doesFileExist,
-  getXdgDirectory,
  )
 import System.FilePath ((</>))
 import TUI.Types
@@ -28,25 +26,18 @@ toStorage st =
     , stgBtcAmount = st ^. converterForm . to formState . cdBTC
     }
 
-path :: FilePath -> FilePath
-path dir = dir </> "data" <> show stgVersion <> ".json"
+getStoragePath :: FilePath -> FilePath
+getStoragePath dir = dir </> "data" <> show stgVersion <> ".json"
 
-{- | Path to store data
-Note: It uses 'System.Directory.XdgState' to save parts of 'TUIState'
--}
-getStorageDirectory :: IO FilePath
-getStorageDirectory = getXdgDirectory XdgState "tick-tock-tui"
-
-save :: TUIStorage -> IO ()
-save st = do
-  dir <- getStorageDirectory
+save :: TUIStorage -> FilePath -> IO ()
+save st dir = do
   createDirectoryIfMissing True dir
-  BL.writeFile (path dir) (A.encode st)
+  LBS.writeFile (getStoragePath dir) (A.encode st)
 
-load :: IO (Maybe TUIStorage)
-load = do
-  filePath <- path <$> getStorageDirectory
+load :: FilePath -> IO (Maybe TUIStorage)
+load dir = do
+  let filePath = getStoragePath dir
   exists <- doesFileExist filePath
   if exists
-    then A.decode <$> BL.readFile filePath
+    then A.decode <$> LBS.readFile filePath
     else pure Nothing

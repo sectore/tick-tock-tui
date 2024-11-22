@@ -33,7 +33,7 @@ run = do
   -- get `Config` from args
   config <- getConfig
   -- get `TUIStorage` from file
-  mStorage <- liftIO STG.load
+  mStorage <- liftIO $ STG.load $ cfgStorageDirectory config
   -- out channel to send messages from TUI app
   outCh <- newTChanIO
   -- in channel to send messages into TUI app
@@ -80,7 +80,7 @@ run = do
   (lastState, _) <- customMainWithInterval interval (Just inCh) (theApp outCh config) initialState
 
   -- persistant parts of `TUIState`
-  _ <- liftIO $ STG.save (STG.toStorage lastState)
+  _ <- liftIO $ STG.save (STG.toStorage lastState) (cfgStorageDirectory config)
   -- kill threads
   killThread foreverId
   where
