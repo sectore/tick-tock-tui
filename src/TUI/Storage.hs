@@ -1,4 +1,10 @@
-module TUI.Storage (save, load, toStorage, getStoragePath) where
+module TUI.Storage (
+  save,
+  load,
+  toStorage,
+  getStoragePath,
+  defaultStorage,
+) where
 
 import Brick.Forms (formState)
 import qualified Data.Aeson as A
@@ -9,7 +15,21 @@ import System.Directory (
   doesFileExist,
  )
 import System.FilePath ((</>))
+import TUI.Service.Types (Amount (..), Bitcoin (..), Fiat (..))
 import TUI.Types
+
+-- | Default instance
+defaultStorage :: TUIStorage
+defaultStorage =
+  TUIStorage
+    { stgCurrentView = FeesView
+    , stgAnimate = False
+    , stgExtraInfo = False
+    , stgSelectedFiat = USD
+    , stgShowMenu = False
+    , stgSelectedBitcoin = BTC
+    , stgBtcAmount = Amount 0.00021
+    }
 
 stgVersion :: Int
 stgVersion = 1

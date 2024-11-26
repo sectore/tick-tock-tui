@@ -20,7 +20,7 @@ soon
 tick-tock-tui --help
 
 Usage: tick-tock-tui [-m|--mempool URL] [-r|--refresh SECONDS]
-                     [-s|--storage DIRECTORY]
+                     [-s|--storage DIRECTORY] [-i|--ignore]
 
   TUI app to handle Bitcoin data provided by Mempool: fees, blocks and price
   converter.
@@ -31,6 +31,8 @@ Available options:
                            (default: 180)
   -s,--storage DIRECTORY   Folder to store application state
                            (default: "~/.local/state/tick-tock-tui")
+  -i,--ignore              Ignore previous stored application state to use
+                           default data instead.
   -h,--help                Show this help text
 ```
 
