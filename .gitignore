@@ -24,3 +24,5 @@ cabal.project.local~
 
 .direnv
 .env
+
+demo/tick-tock-price*
