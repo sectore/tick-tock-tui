@@ -1,21 +1,19 @@
 module TUI.Config where
 
 import Options.Applicative
-import System.Directory (
-  XdgDirectory (..),
-  getXdgDirectory,
- )
+
 import TUI.Types (MempoolUrl (..))
 
 data Config = Config
   { cfgMempoolUrl :: !MempoolUrl
   , cfgReloadInterval :: !Int
   , cfgStorageDirectory :: !FilePath
+  , cfgIgnoreStorage :: !Bool
   }
   deriving (Show)
 
-parser :: FilePath -> Parser Config
-parser defaultStorageDirectory =
+parser :: FilePath -> MempoolUrl -> Parser Config
+parser defaultStorageDirectory (MempoolUrl defaultMempoolUrl) =
   Config
     <$> ( MempoolUrl
             <$> strOption
@@ -23,7 +21,7 @@ parser defaultStorageDirectory =
                   <> short 'm'
                   <> metavar "URL"
                   <> help "Mempool URL"
-                  <> value "https://mempool.space"
+                  <> value defaultMempoolUrl
                   <> showDefault
               )
         )
@@ -45,16 +43,20 @@ parser defaultStorageDirectory =
           <> value defaultStorageDirectory
           <> showDefault
       )
+    <*> switch
+      ( long "ignore"
+          <> short 'i'
+          <> help "Ignore previous stored application state to use default data instead."
+      )
 
-getConfig :: IO Config
-getConfig = do
-  defaultStorageDirectory <- getXdgDirectory XdgState "tick-tock-tui"
-  execParser (opts defaultStorageDirectory)
+getConfig :: MempoolUrl -> FilePath -> IO Config
+getConfig defaultMempoolUrl defaultStorageDirectory = do
+  execParser opts
   where
-    opts :: FilePath -> ParserInfo Config
-    opts path =
+    opts :: ParserInfo Config
+    opts =
       info
-        (parser path <**> helper)
+        (parser defaultStorageDirectory defaultMempoolUrl <**> helper)
         ( fullDesc
             <> progDesc "TUI app to handle Bitcoin data provided by Mempool: fees, blocks and price converter."
             <> header "tick-tock-tui"

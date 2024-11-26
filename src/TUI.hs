@@ -16,12 +16,19 @@ import Control.Concurrent.STM.TChan (TChan)
 import Control.Monad (forever)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ReaderT (..))
+import Data.Functor ((<&>))
+import Data.Maybe (fromMaybe)
 import Data.Time.LocalTime (getCurrentTimeZone)
+import System.Directory (
+  XdgDirectory (..),
+  getXdgDirectory,
+ )
 import TUI.Attr (tuiAttrMap)
 import TUI.Config (Config (..), getConfig)
 import TUI.Events (appEvent, startEvent)
 import qualified TUI.Service.Mempool as M
 import TUI.Service.Types
+import TUI.Storage (defaultStorage)
 import qualified TUI.Storage as STG
 import TUI.Types
 import TUI.Utils (customMainWithInterval, fps)
@@ -31,9 +38,18 @@ import TUI.Widgets.Converter (initialConverterData, mkConverterForm)
 run :: IO ()
 run = do
   -- get `Config` from args
-  config <- getConfig
-  -- get `TUIStorage` from file
-  mStorage <- liftIO $ STG.load $ cfgStorageDirectory config
+  config <-
+    getXdgDirectory XdgState "tick-tock-tui"
+      >>= getConfig (MempoolUrl "https://mempool.space")
+  storage <-
+    -- by ignoring previous stored data, return default data.
+    if cfgIgnoreStorage config
+      then pure defaultStorage
+      else do
+        -- Try to get `TUIStorage` data from file or use default data
+        STG.load (cfgStorageDirectory config)
+          <&> fromMaybe defaultStorage
+
   -- out channel to send messages from TUI app
   outCh <- newTChanIO
   -- in channel to send messages into TUI app
@@ -54,17 +70,17 @@ run = do
 
   initialState <-
     getCurrentTimeZone >>= \tz ->
-      let initialFiat = maybe USD stgSelectedFiat mStorage
-          initialBitcoin = maybe BTC stgSelectedBitcoin mStorage
-          initialBtcAmount = maybe (Amount 0.00021) stgBtcAmount mStorage
+      let initialFiat = stgSelectedFiat storage
+          initialBitcoin = stgSelectedBitcoin storage
+          initialBtcAmount = stgBtcAmount storage
        in pure
             TUIState
               { timeZone' = tz
-              , _currentView = maybe FeesView stgCurrentView mStorage
-              , _converterForm = mkConverterForm (initialConverterData initialFiat initialBitcoin initialBtcAmount)
+              , _currentView = stgCurrentView storage
+              , _converterForm = mkConverterForm $ initialConverterData initialFiat initialBitcoin initialBtcAmount
               , _prevConverterForm = Nothing
-              , _animate = maybe False stgAnimate mStorage
-              , _extraInfo = maybe False stgExtraInfo mStorage
+              , _animate = stgAnimate storage
+              , _extraInfo = stgExtraInfo storage
               , _tick = 0
               , _fetchTick = 0
               , _lastFetchTick = 0
@@ -72,9 +88,9 @@ run = do
               , _prices = NotAsked
               , _fees = NotAsked
               , _block = NotAsked
-              , _selectedFiat = maybe initialFiat stgSelectedFiat mStorage
-              , _selectedBitcoin = maybe initialBitcoin stgSelectedBitcoin mStorage
-              , _showMenu = maybe False stgShowMenu mStorage
+              , _selectedFiat = initialFiat
+              , _selectedBitcoin = initialBitcoin
+              , _showMenu = stgShowMenu storage
               }
   -- run TUI app
   (lastState, _) <- customMainWithInterval interval (Just inCh) (theApp outCh config) initialState
