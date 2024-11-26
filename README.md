@@ -6,7 +6,9 @@ TUI app to handle Bitcoin data provided by [Mempool REST API](https://mempool.sp
 
 ## Preview
 
-![ttt](https://github.com/user-attachments/assets/ca790c1d-a29d-4913-9e96-814801167893)
+<a href="demo/tick-tock-demo.gif">
+  <img alt="preview" src="demo/tick-tock-demo.gif" />
+</a>
 
 
 ## Installation ⚙️
