@@ -177,6 +177,8 @@ handleKeyEvent e = do
     V.EvKey (V.KChar 'a') [] -> animate %= not
     -- Action: toggle menu
     V.EvKey (V.KChar 'm') [] -> showMenu %= not
+    V.EvKey V.KDown [] -> showMenu .= False
+    V.EvKey V.KUp [] -> showMenu .= True
     -- Action: toggle fiat
     V.EvKey (V.KChar 't') [] -> do
       sf <- selectedFiat <%= next
