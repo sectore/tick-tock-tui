@@ -3,7 +3,6 @@ module TUI.Widgets.Footer where
 import Brick.Types (
   Widget,
  )
-import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import Brick.Widgets.Core (
   Padding (..),
@@ -18,7 +17,6 @@ import Brick.Widgets.Core (
   txt,
   vBox,
   vLimit,
-  withBorderStyle,
   (<+>),
  )
 import Brick.Widgets.Table
@@ -43,13 +41,14 @@ import TUI.Widgets.Countdown (drawCountdown)
 drawFooter :: TUIState -> Config -> Widget TUIResource
 drawFooter st config =
   vBox $
+    -- menu title + border + countdown
     [ hBox
         [ padLeftRight 1 $ str $ "[m]enu " <> if st ^. showMenu then "↓" else "↑"
-        , vLimit 1 $ fill ' '
+        , vLimit 1 $ fill $ BS.bsHorizontal BS.ascii
         , padLeftRight 1 $ drawCountdown st
         ]
     ]
-      <> [border | st ^. showMenu]
+      -- menu content
       <> ( [ padLeftRight 1 $
             renderTable $
               surroundingBorder False $
@@ -77,7 +76,6 @@ drawFooter st config =
            ]
          )
   where
-    border = withBorderStyle BS.ascii B.hBorder
     col1 = padRight (Pad 6) . withBold
     foldWithSpace = foldl1 (\x y -> x <+> (padLeft $ Pad 2) y)
     viewLabels =
