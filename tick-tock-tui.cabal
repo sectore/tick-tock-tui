@@ -53,8 +53,8 @@ library
   build-depends:
     , aeson                 >=0.8
     , async
-    , base                  ^>=4.18.2.1
-    , brick                 ^>=2.5
+    , base                  ^>=4.19.2.0
+    , brick                 ^>=2.8
     , bytestring
     , directory
     , filepath
@@ -81,7 +81,7 @@ executable tick-tock-tui
   -- other-modules:
   default-extensions: NoImportQualifiedPost
   build-depends:
-    , base           ^>=4.18.2.1
+    , base           ^>=4.19.2.0
     , tick-tock-tui
 
   hs-source-dirs:     app
@@ -107,8 +107,8 @@ test-suite tick-tock-tui-test
   main-is:            Main.hs
   build-depends:
     , aeson          >=0.8
-    , base           ^>=4.18.2.1
-    , brick          ^>=2.5
+    , base           ^>=4.19.2.0
+    , brick          ^>=2.8
     , hspec
     , microlens      >=0.3.0.0
     , microlens-th

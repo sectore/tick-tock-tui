@@ -4,20 +4,28 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     haskell-flake.url = "github:srid/haskell-flake";
   };
-  outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
+  outputs = inputs @ {
+    self,
+    nixpkgs,
+    flake-parts,
+    ...
+  }:
+    flake-parts.lib.mkFlake {inherit inputs;} {
       systems = nixpkgs.lib.systems.flakeExposed;
-      imports = [ inputs.haskell-flake.flakeModule ];
+      imports = [inputs.haskell-flake.flakeModule];
 
-      perSystem = { self', pkgs, ... }: {
-
+      perSystem = {
+        self',
+        pkgs,
+        ...
+      }: {
         # Typically, you just want a single project named "default". But
         # multiple projects are also possible, each using different GHC version.
         haskellProjects.default = {
           # The base package set representing a specific GHC version.
           # By default, this is pkgs.haskellPackages.
           # You may also create your own. See https://community.flake.parts/haskell-flake/package-set
-          # basePackages = pkgs.haskellPackages;
+          basePackages = pkgs.haskell.packages.ghc984;
 
           # Extra package information. See https://community.flake.parts/haskell-flake/dependency
           #
@@ -26,6 +34,7 @@
           #
           packages = {
             # aeson.source = "1.5.0.0";      # Override aeson to a custom version from Hackage
+            hlint.source = "3.8";
             # shower.source = inputs.shower; # Override shower to a custom source path
           };
           settings = {
@@ -46,13 +55,22 @@
             # Default programs can be disabled by setting to 'null'
             # tools = hp: { fourmolu = hp.fourmolu; ghcid = null; };
             tools = hp: {
-                inherit (pkgs)
-                    just
-                    zlib
-                    pkg-config;
-                inherit (hp)
-                    cabal-fmt
-                    fourmolu;
+              inherit
+                (pkgs)
+                just
+                zlib
+                pkg-config
+                ;
+              inherit
+                (hp)
+                # Note:
+                # cabal-install, haskell-language-server, ghcid, hlint
+                # are all installed by `haskell-flake` by default:
+                # @see https://github.com/srid/haskell-flake/blob/master/nix/modules/project/defaults.nix#L25-L28
+                ghcide
+                cabal-fmt
+                fourmolu
+                ;
             };
             # Check that haskell-language-server works
             # hlsCheck.enable = true; # Requires sandbox to be disabled
