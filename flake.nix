@@ -69,6 +69,7 @@
                 # @see https://github.com/srid/haskell-flake/blob/master/nix/modules/project/defaults.nix#L25-L28
                 ghcide
                 cabal-fmt
+                cabal-gild
                 fourmolu
                 ;
             };
