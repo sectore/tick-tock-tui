@@ -35,10 +35,12 @@ import TUI.Service.Types (
   Fiat (..),
   Prices (..),
   RemoteData (..),
+  Ticker(..),
   pAUD,
   pJPY,
  )
 import TUI.Types
+import qualified Data.Text as T
 import TUI.Utils (btcToFiat, fiatToBtc, satsToFiat, toBtc, toSats)
 import TUI.Widgets.Converter (mkConverterForm)
 
@@ -224,7 +226,9 @@ handleKeyEvent e = do
           sendApiEvent FetchBlock
         ConverterView -> pure ()
 #ifdef ratio
-        RatioView -> pure ()
+        RatioView -> do
+          setLoading assetPrice
+          sendApiEvent $ FetchAssetPrice $ Ticker $ T.pack "ETH"
 #endif
     -- Action: toggle extra info
     V.EvKey (V.KChar 'e') [] -> extraInfo %= not
@@ -262,6 +266,7 @@ handleAppEvent e = do
         setLoading prices
         setLoading fees
         setLoading block
+        setLoading assetPrice
         -- load all data
         sendApiEvent FetchAllData
 
@@ -275,4 +280,6 @@ handleAppEvent e = do
       fees .= f
     BlockUpdated b -> do
       block .= b
+    AssetPriceUpdated _ p -> do
+      assetPrice .= p
     _ -> pure ()

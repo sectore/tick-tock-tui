@@ -9,7 +9,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Network.HTTP.Client.Conduit (HttpException, parseRequest)
 import Network.HTTP.Simple (getResponseBody, httpLBS)
-import TUI.Service.Types (RemoteData (..))
+import TUI.Service.Types (RemoteData (..), Ticker (..))
 import TUI.Types
 
 fetchData :: (A.FromJSON a) => Text -> IO (Either String a)
@@ -48,3 +48,6 @@ fetchFees = fetchAndNotify FeesUpdated
 
 fetchBlock :: Text -> BChan TUIEvent -> IO ()
 fetchBlock = fetchAndNotify BlockUpdated
+
+fetchAssetPrice :: Ticker -> Text -> BChan TUIEvent -> IO ()
+fetchAssetPrice ticker = fetchAndNotify (AssetPriceUpdated ticker)

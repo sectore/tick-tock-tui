@@ -18,7 +18,7 @@ extra-doc-files: CHANGELOG.md
 --
 -- ratio flag to enable `Ratio` screen
 flag ratio
-  description: Enable ratio screen. It connects to Krakens Spot Rest API. An API-Key is needed.
+  description: Enable ratio screen. It connects to Krakens (public) Spot Rest API.
   default: True
   manual: True
 
@@ -37,6 +37,8 @@ library
     TUI.Config
     TUI.Events
     TUI.Service.API
+    TUI.Service.Common
+    TUI.Service.Kraken
     TUI.Service.Mempool
     TUI.Service.Types
     TUI.Storage
@@ -80,6 +82,7 @@ library
     text,
     time,
     transformers,
+    unordered-containers,
     vty,
     vty-crossplatform,
 

@@ -18,6 +18,7 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ReaderT (..))
 import Data.Functor ((<&>))
 import Data.Maybe (fromMaybe)
+import qualified Data.Text as T
 import Data.Time.LocalTime (getCurrentTimeZone)
 import System.Directory (
   XdgDirectory (..),
@@ -26,6 +27,8 @@ import System.Directory (
 import TUI.Attr (tuiAttrMap)
 import TUI.Config (Config (..), getConfig)
 import TUI.Events (appEvent, startEvent)
+import qualified TUI.Service.Common as C
+import qualified TUI.Service.Kraken as K
 import qualified TUI.Service.Mempool as M
 import TUI.Service.Types
 import TUI.Storage (defaultStorage)
@@ -66,7 +69,9 @@ run = do
       FetchFees -> M.fetchFees
       FetchPrices -> M.fetchPrices
       FetchBlock -> M.fetchBlock
-      FetchAllData -> M.fetchAllData
+      FetchAssetPrice t -> K.fetchAssetPrice t
+      -- TODO: get selected ticker from state or storage
+      FetchAllData -> C.fetchAllData $ Ticker $ T.pack "ETH"
 
   initialState <-
     getCurrentTimeZone >>= \tz ->
@@ -88,6 +93,7 @@ run = do
               , _prices = NotAsked
               , _fees = NotAsked
               , _block = NotAsked
+              , _assetPrice = NotAsked
               , _selectedFiat = initialFiat
               , _selectedBitcoin = initialBitcoin
               , _showMenu = stgShowMenu storage
