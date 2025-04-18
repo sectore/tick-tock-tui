@@ -23,10 +23,3 @@ fetchBlock = do
   (MempoolUrl baseUrl) <- asks envMempoolUrl
   inCh <- asks envInChan
   liftIO $ API.fetchBlock (baseUrl <> T.pack "/api/v1/blocks") inCh
-
-fetchAllData :: ServiceM ()
-fetchAllData = do
-  fetchPrices
-  fetchFees
-  fetchBlock
-  pure ()

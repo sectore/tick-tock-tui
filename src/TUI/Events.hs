@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module TUI.Events where
 
 import Brick.Focus (focusGetCurrent)
@@ -33,10 +35,12 @@ import TUI.Service.Types (
   Fiat (..),
   Prices (..),
   RemoteData (..),
+  Ticker(..),
   pAUD,
   pJPY,
  )
 import TUI.Types
+import qualified Data.Text as T
 import TUI.Utils (btcToFiat, fiatToBtc, satsToFiat, toBtc, toSats)
 import TUI.Widgets.Converter (mkConverterForm)
 
@@ -173,6 +177,9 @@ handleKeyEvent e = do
     V.EvKey (V.KChar 'f') [] -> currentView .= FeesView
     V.EvKey (V.KChar 'b') [] -> currentView .= BlockView
     V.EvKey (V.KChar 'c') [] -> currentView .= ConverterView
+#ifdef ratio
+    V.EvKey (V.KChar 'r') [] -> currentView .= RatioView
+#endif
     -- Action: toggle animation
     V.EvKey (V.KChar 'a') [] -> animate %= not
     -- Action: toggle menu
@@ -204,7 +211,7 @@ handleKeyEvent e = do
           | b == BTC = SATS
           | otherwise = BTC
     -- Action: reload data
-    V.EvKey (V.KChar 'r') [] -> do
+    V.EvKey (V.KChar 'r') [V.MCtrl] -> do
       -- reset fetch ticks
       fetchTick .= 0
       lastFetchTick .= 0
@@ -218,6 +225,11 @@ handleKeyEvent e = do
           setLoading block
           sendApiEvent FetchBlock
         ConverterView -> pure ()
+#ifdef ratio
+        RatioView -> do
+          setLoading assetPrice
+          sendApiEvent $ FetchAssetPrice $ Ticker $ T.pack "ETH"
+#endif
     -- Action: toggle extra info
     V.EvKey (V.KChar 'e') [] -> extraInfo %= not
     -- all the other events - but for `ConverterView` only
@@ -254,6 +266,7 @@ handleAppEvent e = do
         setLoading prices
         setLoading fees
         setLoading block
+        setLoading assetPrice
         -- load all data
         sendApiEvent FetchAllData
 
@@ -267,4 +280,6 @@ handleAppEvent e = do
       fees .= f
     BlockUpdated b -> do
       block .= b
+    AssetPriceUpdated _ p -> do
+      assetPrice .= p
     _ -> pure ()

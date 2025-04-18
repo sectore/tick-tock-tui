@@ -87,6 +87,7 @@ drawBlock st =
     ]
   where
     rdBlock = st ^. block
+    rdPrices = st ^. prices
     loadingAnimation =
       let spinner = drawSpinner (st ^. tick)
        in case rdBlock of
@@ -134,7 +135,7 @@ drawBlock st =
     rdToFiatStr :: forall n. (Block -> Amount 'SATS) -> Widget n
     rdToFiatStr accessor =
       let errorStr = withError $ str "error"
-       in case liftA2 (,) rdBlock (st ^. prices) of
+       in case liftA2 (,) rdBlock rdPrices of
             Loading (Just (b, ps)) -> priceStr (accessor b) ps
             Success (b, ps) -> priceStr (accessor b) ps
             Failure _ -> errorStr
@@ -144,7 +145,7 @@ drawBlock st =
     rdToFiatStr' :: forall n. (Block -> Maybe (Amount 'SATS)) -> Widget n
     rdToFiatStr' mAccessor =
       let errorStr = withError $ str "error"
-       in case liftA2 (,) rdBlock (st ^. prices) of
+       in case liftA2 (,) rdBlock rdPrices of
             Loading (Just (b, ps)) -> maybe (str "unknown") (`priceStr` ps) (mAccessor b)
             Success (b, ps) -> maybe (str "unknown") (`priceStr` ps) (mAccessor b)
             Failure _ -> errorStr

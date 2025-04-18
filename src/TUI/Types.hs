@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -17,7 +18,17 @@ import Data.Time.LocalTime (TimeZone)
 import GHC.Generics (Generic)
 import Lens.Micro (Getting, to)
 import Lens.Micro.TH (makeLenses)
-import TUI.Service.Types (Amount, ApiEvent, Bitcoin (..), BlockRD, FeesRD, Fiat (..), PricesRD)
+import TUI.Service.Types (
+  Amount,
+  ApiEvent,
+  AssetPriceRD,
+  Bitcoin (..),
+  BlockRD,
+  FeesRD,
+  Fiat (..),
+  PricesRD,
+  Ticker,
+ )
 
 -- Resource names (needed to handle events of form elements etc.)
 -- https://github.com/jtdaugherty/brick/blob/master/docs/guide.rst#resource-names
@@ -58,6 +69,7 @@ data TUIEvent
   = PriceUpdated PricesRD
   | FeesUpdated FeesRD
   | BlockUpdated BlockRD
+  | AssetPriceUpdated Ticker AssetPriceRD
   | FPSTick
   deriving (Show, Eq)
 
@@ -89,8 +101,13 @@ data ConverterField
 
 type ConverterForm = Form ConverterData TUIEvent TUIResource
 
+#ifdef ratio
+data View = FeesView | BlockView | ConverterView | RatioView
+  deriving (Eq, Show, Generic)
+#else
 data View = FeesView | BlockView | ConverterView
   deriving (Eq, Show, Generic)
+#endif
 
 instance A.FromJSON View
 
@@ -116,6 +133,7 @@ data TUIState = TUIState
   , _prices :: PricesRD
   , _fees :: FeesRD
   , _block :: BlockRD
+  , _assetPrice :: AssetPriceRD
   , _selectedFiat :: Fiat
   , _selectedBitcoin :: Bitcoin
   , _showMenu :: Bool

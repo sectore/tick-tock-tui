@@ -3,13 +3,16 @@ module TUI.Service.Types where
 import Data.Aeson ((.:), (.:?))
 import qualified Data.Aeson as A
 import Data.Aeson.Types (Parser)
+import qualified Data.Aeson.Types as A
 import Data.Foldable (toList)
+import qualified Data.HashMap.Strict as HM
 import Data.List (intercalate, unfoldr)
-import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import GHC.Generics (Generic)
 import Text.Printf (PrintfType, printf)
+import Text.Read (readMaybe)
 
 -- | Helper to break down lists into chunks
 chunksOf :: Int -> [a] -> [[a]]
@@ -274,7 +277,7 @@ data Block = Block
   , height :: Int
   , txs :: Int
   , size :: Int
-  , poolName :: Text
+  , poolName :: T.Text
   , poolFees :: Maybe (Amount SATS)
   , reward :: Amount SATS
   }
@@ -311,6 +314,24 @@ instance A.FromJSON Block where
           )
           firstBlock
       [] -> fail "Empty array of blocks"
+
+newtype Ticker = Ticker T.Text
+  deriving (Show, Eq)
+
+type AssetPriceRD = RemoteData String (Price USD)
+
+instance A.FromJSON (Price USD) where
+  parseJSON = A.withObject "result" $ \obj -> do
+    resultObj <- obj .: "result" :: A.Parser (HM.HashMap T.Text A.Value)
+    case HM.elems resultObj of
+      -- one asset is expected in `result` only
+      (asset : _) -> do
+        -- first string in list is the price
+        (priceStr : _) <- A.withObject "prices" (.: "c") asset
+        case readMaybe priceStr of
+          Just p -> return $ Price p
+          Nothing -> fail $ "Failed to parse price from: " ++ priceStr
+      _ -> fail "No asset found in result"
 
 data RemoteData e a
   = NotAsked
@@ -352,4 +373,5 @@ data ApiEvent
   | FetchPrices
   | FetchFees
   | FetchBlock
+  | FetchAssetPrice Ticker
   deriving (Eq, Show)
