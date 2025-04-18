@@ -1,29 +1,37 @@
-cabal-version:   3.0
-name:            tick-tock-tui
-version:         0.0.1
-synopsis:        bitcoin mempool tui
-
+cabal-version: 3.0
+name: tick-tock-tui
+version: 0.0.1
+synopsis: bitcoin mempool tui
 -- description:
-stability:       alpha
-homepage:        https://github.com/sectore/tick-tock-tui
-license:         MIT
-license-file:    LICENSE
-author:          jk
-
+stability: alpha
+homepage: https://github.com/sectore/tick-tock-tui
+license: MIT
+license-file: LICENSE
+author: jk
 -- maintainer:
 -- copyright:
-category:        TUI
-build-type:      Simple
+category: TUI
+build-type: Simple
 extra-doc-files: CHANGELOG.md
 
 -- extra-source-files:
+--
+-- ratio flag to enable `Ratio` screen
+flag ratio
+  description: Enable ratio screen. It connects to Krakens Spot Rest API. An API-Key is needed.
+  default: True
+  manual: True
 
 common warnings
   ghc-options: -Wall
 
+common feature-flags
+  if flag(ratio)
+    cpp-options: -Dratio
+
 library
-  import:             warnings
-  exposed-modules:    TUI
+  import: warnings, feature-flags
+  exposed-modules: TUI
   other-modules:
     TUI.Attr
     TUI.Config
@@ -44,6 +52,10 @@ library
     TUI.Widgets.Loader
     TUI.Widgets.Price
 
+  if flag(ratio)
+  other-modules:
+    TUI.Widgets.Ratio
+
   default-extensions:
     DataKinds
     LambdaCase
@@ -51,46 +63,49 @@ library
     OverloadedStrings
 
   build-depends:
-    , aeson                 >=0.8
-    , async
-    , base                  ^>=4.19.2.0
-    , brick                 ^>=2.8
-    , bytestring
-    , directory
-    , filepath
-    , http-conduit          >=2.3.9
-    , microlens             >=0.3.0.0
-    , microlens-mtl
-    , microlens-th
-    , mtl
-    , optparse-applicative
-    , stm
-    , text
-    , time
-    , transformers
-    , vty
-    , vty-crossplatform
+    aeson >=0.8,
+    async,
+    base ^>=4.19.2.0,
+    brick ^>=2.8,
+    bytestring,
+    directory,
+    filepath,
+    http-conduit >=2.3.9,
+    microlens >=0.3.0.0,
+    microlens-mtl,
+    microlens-th,
+    mtl,
+    optparse-applicative,
+    stm,
+    text,
+    time,
+    transformers,
+    vty,
+    vty-crossplatform,
 
-  hs-source-dirs:     src
-  default-language:   GHC2021
+  hs-source-dirs: src
+  default-language: GHC2021
 
 executable tick-tock-tui
-  import:             warnings
-  main-is:            Main.hs
-
+  import: warnings, feature-flags
+  main-is: Main.hs
   -- other-modules:
   default-extensions: NoImportQualifiedPost
   build-depends:
-    , base           ^>=4.19.2.0
-    , tick-tock-tui
+    base ^>=4.19.2.0,
+    tick-tock-tui,
 
-  hs-source-dirs:     app
-  ghc-options:        -threaded -Wall -Wcompat -O2
-  default-language:   GHC2021
+  hs-source-dirs: app
+  ghc-options:
+    -threaded
+    -Wcompat
+    -O2
+
+  default-language: GHC2021
 
 test-suite tick-tock-tui-test
-  import:             warnings
-  default-language:   GHC2021
+  import: warnings, feature-flags
+  default-language: GHC2021
   other-modules:
     TUI.Service.Types
     TUI.Types
@@ -102,19 +117,22 @@ test-suite tick-tock-tui-test
     NoImportQualifiedPost
     OverloadedStrings
 
-  type:               exitcode-stdio-1.0
-  hs-source-dirs:     test src
-  main-is:            Main.hs
+  type: exitcode-stdio-1.0
+  hs-source-dirs:
+    test
+    src
+
+  main-is: Main.hs
   build-depends:
-    , aeson          >=0.8
-    , base           ^>=4.19.2.0
-    , brick          ^>=2.8
-    , hspec
-    , microlens      >=0.3.0.0
-    , microlens-th
-    , mtl
-    , stm
-    , text
-    , tick-tock-tui
-    , time
-    , vty
+    aeson >=0.8,
+    base ^>=4.19.2.0,
+    brick ^>=2.8,
+    hspec,
+    microlens >=0.3.0.0,
+    microlens-th,
+    mtl,
+    stm,
+    text,
+    tick-tock-tui,
+    time,
+    vty,

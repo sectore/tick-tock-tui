@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -89,8 +90,13 @@ data ConverterField
 
 type ConverterForm = Form ConverterData TUIEvent TUIResource
 
+#ifdef ratio
+data View = FeesView | BlockView | ConverterView | RatioView
+  deriving (Eq, Show, Generic)
+#else
 data View = FeesView | BlockView | ConverterView
   deriving (Eq, Show, Generic)
+#endif
 
 instance A.FromJSON View
 

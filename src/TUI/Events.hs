@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module TUI.Events where
 
 import Brick.Focus (focusGetCurrent)
@@ -173,6 +175,9 @@ handleKeyEvent e = do
     V.EvKey (V.KChar 'f') [] -> currentView .= FeesView
     V.EvKey (V.KChar 'b') [] -> currentView .= BlockView
     V.EvKey (V.KChar 'c') [] -> currentView .= ConverterView
+#ifdef ratio
+    V.EvKey (V.KChar 'r') [] -> currentView .= RatioView
+#endif
     -- Action: toggle animation
     V.EvKey (V.KChar 'a') [] -> animate %= not
     -- Action: toggle menu
@@ -204,7 +209,7 @@ handleKeyEvent e = do
           | b == BTC = SATS
           | otherwise = BTC
     -- Action: reload data
-    V.EvKey (V.KChar 'r') [] -> do
+    V.EvKey (V.KChar 'r') [V.MCtrl] -> do
       -- reset fetch ticks
       fetchTick .= 0
       lastFetchTick .= 0
@@ -218,6 +223,9 @@ handleKeyEvent e = do
           setLoading block
           sendApiEvent FetchBlock
         ConverterView -> pure ()
+#ifdef ratio
+        RatioView -> pure ()
+#endif
     -- Action: toggle extra info
     V.EvKey (V.KChar 'e') [] -> extraInfo %= not
     -- all the other events - but for `ConverterView` only
