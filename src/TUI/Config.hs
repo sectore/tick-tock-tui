@@ -15,16 +15,16 @@ data Config = Config
 parser :: FilePath -> MempoolUrl -> Parser Config
 parser defaultStorageDirectory (MempoolUrl defaultMempoolUrl) =
   Config
-    <$> ( MempoolUrl
-            <$> strOption
-              ( long "mempool"
-                  <> short 'm'
-                  <> metavar "URL"
-                  <> help "Mempool URL"
-                  <> value defaultMempoolUrl
-                  <> showDefault
-              )
-        )
+    . ( MempoolUrl
+          <$> strOption
+            ( long "mempool"
+                <> short 'm'
+                <> metavar "URL"
+                <> help "Mempool URL"
+                <> value defaultMempoolUrl
+                <> showDefault
+            )
+      )
     <*> option
       auto
       ( long "refresh"
