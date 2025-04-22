@@ -124,15 +124,16 @@ test-suite tick-tock-tui-test
   hs-source-dirs:     test src
   main-is:            Main.hs
   build-depends:
-    , aeson          >=0.8
-    , base           ^>=4.19.2.0
-    , brick          ^>=2.8
+    , aeson                 >=0.8
+    , base                  ^>=4.19.2.0
+    , brick                 ^>=2.8
     , hspec
-    , microlens      >=0.3.0.0
+    , microlens             >=0.3.0.0
     , microlens-th
     , mtl
     , stm
     , text
     , tick-tock-tui
     , time
+    , unordered-containers
     , vty
