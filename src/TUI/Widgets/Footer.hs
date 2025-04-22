@@ -84,9 +84,7 @@ drawFooter st config =
       [ (FeesView, "[f]ees")
       , (BlockView, "[b]lock")
       , (ConverterView, "[c]onverter")
-#ifdef ratio
       , (RatioView, "[r]atio")
-#endif
       ]
     v = st ^. currentView
     views =

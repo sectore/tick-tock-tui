@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 module TUI.Events where
 
 import Brick.Focus (focusGetCurrent)
@@ -17,17 +15,18 @@ import Brick.Types (
   BrickEvent (..),
   EventM,
  )
-
 import qualified Control.Concurrent.STM as STM
 import Control.Concurrent.STM.TChan (TChan)
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (MonadTrans (lift), ReaderT (runReaderT), asks)
 import Control.Monad.State.Strict (MonadState)
+import Data.Char (toUpper)
 import Data.Foldable (traverse_)
 import Data.Functor ((<&>))
+import qualified Data.Text as T
 import qualified Graphics.Vty as V
-import Lens.Micro (Lens', (&), (.~), (^.))
+import Lens.Micro (Lens', (%~), (&), (.~), (^.))
 import Lens.Micro.Mtl
 import TUI.Service.Types (
   ApiEvent (..),
@@ -35,12 +34,13 @@ import TUI.Service.Types (
   Fiat (..),
   Prices (..),
   RemoteData (..),
-  Ticker(..),
+  mkTicker,
   pAUD,
   pJPY,
+  tickerToString,
+  unTicker,
  )
 import TUI.Types
-import qualified Data.Text as T
 import TUI.Utils (btcToFiat, fiatToBtc, satsToFiat, toBtc, toSats)
 import TUI.Widgets.Converter (mkConverterForm)
 
@@ -71,6 +71,8 @@ updateConversion focusedField = do
         Just ConverterBtcField -> updateBtcBased ps cf
         Just ConverterSatField -> updateSatBased ps cf
         Just ConverterFiatField -> updateFiatBased ps cf
+        -- ignore fields from other views
+        Just _ -> pure ()
         Nothing -> updateFiatBased ps cf
       -- update previous state
       use converterForm >>= \v -> prevConverterForm .= Just v
@@ -162,6 +164,7 @@ handleKeyEvent :: V.Event -> AppEventM ()
 handleKeyEvent e = do
   currentView' <- use currentView
   cf <- use converterForm
+  rf <- use ratioForm
   case e of
     -- Action: quit app (two ways)
     V.EvKey (V.KChar 'q') [V.MCtrl] -> lift halt
@@ -173,13 +176,19 @@ handleKeyEvent e = do
       | currentView' == ConverterView
           && not (null (invalidFields cf)) ->
           lift $ zoom converterForm $ handleFormEvent (VtyEvent ev)
+    -- Special case for `RatioView`:
+    -- In case of a validation error an user needs still to type any chars
+    -- but without getting in conflict with other `KChar` events (to navigate etc.)
+    ev@(V.EvKey (V.KChar _) [])
+      | currentView' == RatioView
+          -- TODO: Refactor to check focus or edit mode
+          && (not (null (invalidFields cf)) || (T.length (unTicker $ formState rf ^. rdTicker) <= 3)) ->
+          lift $ zoom ratioForm $ handleFormEvent (VtyEvent ev)
     -- Action: navigate screens
     V.EvKey (V.KChar 'f') [] -> currentView .= FeesView
     V.EvKey (V.KChar 'b') [] -> currentView .= BlockView
     V.EvKey (V.KChar 'c') [] -> currentView .= ConverterView
-#ifdef ratio
     V.EvKey (V.KChar 'r') [] -> currentView .= RatioView
-#endif
     -- Action: toggle animation
     V.EvKey (V.KChar 'a') [] -> animate %= not
     -- Action: toggle menu
@@ -225,14 +234,13 @@ handleKeyEvent e = do
           setLoading block
           sendApiEvent FetchBlock
         ConverterView -> pure ()
-#ifdef ratio
         RatioView -> do
           setLoading assetPrice
-          sendApiEvent $ FetchAssetPrice $ Ticker $ T.pack "ETH"
-#endif
+          sendApiEvent $ FetchAssetPrice $ formState rf ^. rdTicker
     -- Action: toggle extra info
     V.EvKey (V.KChar 'e') [] -> extraInfo %= not
-    -- all the other events - but for `ConverterView` only
+    -- all the other events
+    -- `ConverterView` only
     ev | currentView' == ConverterView -> do
       let currentField = focusGetCurrent $ formFocus cf
       lift $ zoom converterForm $ handleFormEvent (VtyEvent ev)
@@ -241,9 +249,24 @@ handleKeyEvent e = do
         V.EvKey (V.KChar '\t') [] -> updateConversion currentField
         V.EvKey V.KBackTab [] -> updateConversion currentField
         V.EvKey V.KEsc [] ->
-          -- Restore converterForm with previous its previous state
+          -- Restore converterForm with its previous state
           use prevConverterForm
             >>= traverse_ (converterForm .=)
+        _ -> pure ()
+    -- `RatioView` only
+    ev | currentView' == RatioView -> do
+      lift $ zoom ratioForm $ handleFormEvent (VtyEvent ev)
+      case ev of
+        -- call API for valid data only
+        V.EvKey V.KEnter [] | null (invalidFields rf) -> do
+          setLoading assetPrice
+          -- update from state to have current ticker value always in uppercase
+          ratioForm %= \rf' -> updateFormState (formState rf' & rdTicker %~ (mkTicker . map toUpper . tickerToString)) rf'
+          sendApiEvent $ FetchAssetPrice $ formState rf ^. rdTicker
+        V.EvKey V.KEsc [] ->
+          -- Restore ratioForm with its previous state
+          use prevRatioForm
+            >>= traverse_ (ratioForm .=)
         _ -> pure ()
     _ -> pure ()
 

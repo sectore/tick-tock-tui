@@ -18,7 +18,6 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ReaderT (..))
 import Data.Functor ((<&>))
 import Data.Maybe (fromMaybe)
-import qualified Data.Text as T
 import Data.Time.LocalTime (getCurrentTimeZone)
 import System.Directory (
   XdgDirectory (..),
@@ -37,6 +36,7 @@ import TUI.Types
 import TUI.Utils (customMainWithInterval, fps)
 import TUI.Widgets.App (drawApp)
 import TUI.Widgets.Converter (initialConverterData, mkConverterForm)
+import TUI.Widgets.Ratio (initialRatioData, mkRatioForm)
 
 run :: IO ()
 run = do
@@ -62,6 +62,9 @@ run = do
           { envMempoolUrl = cfgMempoolUrl config
           , envInChan = inCh
           }
+
+  -- TODO: get selected ticker from state or storage
+  let initialTicker :: Ticker = mkTicker "ETH"
   -- listen for messages coming from TUI app
   foreverId <- forkIO $ flip runReaderT sEnv $ forever $ do
     e <- liftIO $ STM.atomically $ STM.readTChan outCh
@@ -70,8 +73,8 @@ run = do
       FetchPrices -> M.fetchPrices
       FetchBlock -> M.fetchBlock
       FetchAssetPrice t -> K.fetchAssetPrice t
-      -- TODO: get selected ticker from state or storage
-      FetchAllData -> C.fetchAllData $ Ticker $ T.pack "ETH"
+      -- TODO: Don't use `initialTicker`,  get `ticker` from `FetchAllData`
+      FetchAllData -> C.fetchAllData initialTicker
 
   initialState <-
     getCurrentTimeZone >>= \tz ->
@@ -84,6 +87,8 @@ run = do
               , _currentView = stgCurrentView storage
               , _converterForm = mkConverterForm $ initialConverterData initialFiat initialBitcoin initialBtcAmount
               , _prevConverterForm = Nothing
+              , _ratioForm = mkRatioForm $ initialRatioData initialTicker
+              , _prevRatioForm = Nothing
               , _animate = stgAnimate storage
               , _extraInfo = stgExtraInfo storage
               , _tick = 0
@@ -111,6 +116,7 @@ run = do
     chooseCursor TUIState{..} = chooseCursor' _currentView
       where
         chooseCursor' ConverterView = focusRingCursor formFocus _converterForm
+        chooseCursor' RatioView = focusRingCursor formFocus _ratioForm
         chooseCursor' _ = const Nothing
     theApp :: TChan ApiEvent -> Config -> App TUIState TUIEvent TUIResource
     theApp outCh conf =

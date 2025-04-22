@@ -4,6 +4,7 @@ import Data.Aeson ((.:), (.:?))
 import qualified Data.Aeson as A
 import Data.Aeson.Types (Parser)
 import qualified Data.Aeson.Types as A
+import Data.Char (isLetter, toUpper)
 import Data.Foldable (toList)
 import qualified Data.HashMap.Strict as HM
 import Data.List (intercalate, unfoldr)
@@ -316,22 +317,47 @@ instance A.FromJSON Block where
       [] -> fail "Empty array of blocks"
 
 newtype Ticker = Ticker T.Text
-  deriving (Show, Eq)
+  deriving (Eq)
+
+unTicker :: Ticker -> T.Text
+unTicker (Ticker text) = text
+
+tickerToString :: Ticker -> String
+tickerToString = T.unpack . unTicker
+
+mkTicker :: String -> Ticker
+mkTicker = Ticker . T.pack
+
+instance Show Ticker where
+  show = map toUpper . tickerToString
+
+instance Read Ticker where
+  readsPrec _ str
+    | length str == 3 || length str == 4
+    , all isLetter str =
+        [(mkTicker (map toUpper str), "")]
+    | otherwise = []
 
 type AssetPriceRD = RemoteData String (Price USD)
 
+-- Price USD is fetched by Krakans API
 instance A.FromJSON (Price USD) where
   parseJSON = A.withObject "result" $ \obj -> do
-    resultObj <- obj .: "result" :: A.Parser (HM.HashMap T.Text A.Value)
-    case HM.elems resultObj of
-      -- one asset is expected in `result` only
-      (asset : _) -> do
-        -- first string in list is the price
-        (priceStr : _) <- A.withObject "prices" (.: "c") asset
-        case readMaybe priceStr of
-          Just p -> return $ Price p
-          Nothing -> fail $ "Failed to parse price from: " ++ priceStr
-      _ -> fail "No asset found in result"
+    mResult <- obj .:? "result" :: A.Parser (Maybe (HM.HashMap T.Text A.Value))
+    mError <- obj .:? "error" :: A.Parser (Maybe [T.Text])
+    case (mResult, mError) of
+      (Just resultObj, _) ->
+        case HM.elems resultObj of
+          -- one asset is expected in `result` only
+          (asset : _) -> do
+            -- first string in list is the price
+            (priceStr : _) <- A.withObject "prices" (.: "c") asset
+            case readMaybe priceStr of
+              Just p -> return $ Price p
+              Nothing -> fail $ "Failed to parse price from: " ++ priceStr
+          _ -> fail "No asset found in result"
+      (_, Just e) -> fail . T.unpack $ T.concat e
+      _ -> fail "unknown error"
 
 data RemoteData e a
   = NotAsked
@@ -369,7 +395,8 @@ isSuccess (Success _) = True
 isSuccess _ = False
 
 data ApiEvent
-  = FetchAllData
+  = -- TODO: Extend `FetchAllData` with Ticker
+    FetchAllData
   | FetchPrices
   | FetchFees
   | FetchBlock

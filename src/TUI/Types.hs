@@ -7,9 +7,7 @@ module TUI.Types where
 import Brick (EventM)
 import Brick.BChan (BChan)
 import Brick.Forms (Form)
-import Brick.Types (
 
- )
 import Control.Concurrent.STM (TChan)
 import Control.Monad.Reader (ReaderT)
 import qualified Data.Aeson as A
@@ -36,6 +34,7 @@ data TUIResource
   = ConverterFiatField
   | ConverterBtcField
   | ConverterSatField
+  | RatioTickerField
   deriving (Eq, Ord, Show)
 
 newtype AppEventEnv = AppEventEnv
@@ -101,6 +100,15 @@ data ConverterField
 
 type ConverterForm = Form ConverterData TUIEvent TUIResource
 
+newtype RatioData = RatioData
+  { _rdTicker :: Ticker
+  }
+  deriving (Eq, Show)
+
+makeLenses ''RatioData
+
+type RatioForm = Form RatioData TUIEvent TUIResource
+
 #ifdef ratio
 data View = FeesView | BlockView | ConverterView | RatioView
   deriving (Eq, Show, Generic)
@@ -121,6 +129,9 @@ data TUIState = TUIState
   , _currentView :: View
   , _converterForm :: ConverterForm
   , _prevConverterForm :: Maybe ConverterForm
+  , _ratioForm :: RatioForm
+  , -- TODO: Check to remove it
+    _prevRatioForm :: Maybe RatioForm
   , _animate :: Bool
   , _extraInfo :: Bool
   , _tick :: Int
