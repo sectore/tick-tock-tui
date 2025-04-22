@@ -73,8 +73,7 @@ run = do
       FetchPrices -> M.fetchPrices
       FetchBlock -> M.fetchBlock
       FetchAssetPrice t -> K.fetchAssetPrice t
-      -- TODO: Don't use `initialTicker`,  get `ticker` from `FetchAllData`
-      FetchAllData -> C.fetchAllData initialTicker
+      FetchAllData ticker -> C.fetchAllData ticker
 
   initialState <-
     getCurrentTimeZone >>= \tz ->
@@ -104,7 +103,8 @@ run = do
               , _showMenu = stgShowMenu storage
               }
   -- run TUI app
-  (lastState, _) <- customMainWithInterval interval (Just inCh) (theApp outCh config) initialState
+  (lastState, _) <-
+    customMainWithInterval interval (Just inCh) (theApp outCh config initialTicker) initialState
 
   -- persistant parts of `TUIState`
   _ <- liftIO $ STG.save (STG.toStorage lastState) (cfgStorageDirectory config)
@@ -118,12 +118,12 @@ run = do
         chooseCursor' ConverterView = focusRingCursor formFocus _converterForm
         chooseCursor' RatioView = focusRingCursor formFocus _ratioForm
         chooseCursor' _ = const Nothing
-    theApp :: TChan ApiEvent -> Config -> App TUIState TUIEvent TUIResource
-    theApp outCh conf =
+    theApp :: TChan ApiEvent -> Config -> Ticker -> App TUIState TUIEvent TUIResource
+    theApp outCh conf ticker =
       App
         { appDraw = drawApp conf
         , appChooseCursor = chooseCursor
         , appHandleEvent = appEvent outCh
-        , appStartEvent = startEvent outCh
+        , appStartEvent = startEvent ticker outCh
         , appAttrMap = const tuiAttrMap
         }

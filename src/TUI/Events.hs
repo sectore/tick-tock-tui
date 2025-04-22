@@ -34,6 +34,7 @@ import TUI.Service.Types (
   Fiat (..),
   Prices (..),
   RemoteData (..),
+  Ticker,
   mkTicker,
   pAUD,
   pJPY,
@@ -49,10 +50,10 @@ sendApiEvent e = do
   ch <- asks outChan
   liftIO $ STM.atomically $ STM.writeTChan ch e
 
-startEvent :: TChan ApiEvent -> EventM TUIResource TUIState ()
-startEvent outCh =
+startEvent :: Ticker -> TChan ApiEvent -> EventM TUIResource TUIState ()
+startEvent ticker outCh =
   -- fetch all data at start
-  runReaderT (sendApiEvent FetchAllData) (AppEventEnv outCh)
+  runReaderT (sendApiEvent $ FetchAllData ticker) (AppEventEnv outCh)
 
 setLoading :: Lens' TUIState (RemoteData e a) -> AppEventM ()
 setLoading lens = do
@@ -281,6 +282,7 @@ handleAppEvent e = do
       currentF <- use fetchTick
       lastF <- use lastFetchTick
       maxF <- use maxFetchTick
+      rf <- use ratioForm
       -- trigger reload data
       when (currentF - lastF >= maxF) $ do
         -- reset last fetch time
@@ -291,7 +293,7 @@ handleAppEvent e = do
         setLoading block
         setLoading assetPrice
         -- load all data
-        sendApiEvent FetchAllData
+        sendApiEvent $ FetchAllData $ formState rf ^. rdTicker
 
       fetchTick %= (`mod` (maxF + 1)) . (+ 1)
     PriceUpdated p -> do

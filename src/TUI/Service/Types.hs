@@ -395,8 +395,7 @@ isSuccess (Success _) = True
 isSuccess _ = False
 
 data ApiEvent
-  = -- TODO: Extend `FetchAllData` with Ticker
-    FetchAllData
+  = FetchAllData Ticker
   | FetchPrices
   | FetchFees
   | FetchBlock
