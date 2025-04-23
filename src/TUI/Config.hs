@@ -57,6 +57,7 @@ getConfig defaultMempoolUrl defaultStorageDirectory = do
       info
         (parser defaultStorageDirectory defaultMempoolUrl <**> helper)
         ( fullDesc
-            <> progDesc "TUI app to handle Bitcoin data provided by Mempool: fees, blocks and price converter."
+            <> progDesc
+              "Get latest Bitcoin data in your terminal: fees, blocks, ratio and prices incl. a price converter. Most data are provided by Mempool. Connect to your own Mempool instance if you like. Latest prices of other assets coming from Krakens Spot API."
             <> header "tick-tock-tui"
         )

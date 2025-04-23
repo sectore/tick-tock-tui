@@ -2,7 +2,11 @@
 
 > TICK TOCK NEXT ₿LOCK
 
-TUI app to handle Bitcoin data provided by [Mempool REST API](https://mempool.space/docs/api/rest) incl. blocks, fees and price converter. Connect to your own Mempool instance if you like.
+Get latest [Bitcoin](https://bitcoin.org) data in your terminal: `blocks`, `fees`, `ratio` and `prices` incl. a `price` converter.
+
+Most data based on [Mempool REST API](https://mempool.space/docs/api/rest). [Kraken Spot Rest API](https://docs.kraken.com/api/docs/rest-api/get-ticker-information) is used as a price oracle to get latest prices other assets (needed to calculate ratio `BTC/Asset`).
+
+BTW: Connect `tick-tock-tui` to your own Mempool instance if your like. Check [FAQ](./#faq).
 
 ## Preview
 
@@ -11,12 +15,12 @@ TUI app to handle Bitcoin data provided by [Mempool REST API](https://mempool.sp
 </a>
 
 
-## Installation ⚙️
+## Installation
 
 soon
 
 
-## Customize via arguments 🔧
+## CLI
 
 ```sh
 tick-tock-tui --help
@@ -24,8 +28,10 @@ tick-tock-tui --help
 Usage: tick-tock-tui [-m|--mempool URL] [-r|--refresh SECONDS]
                      [-s|--storage DIRECTORY] [-i|--ignore]
 
-  TUI app to handle Bitcoin data provided by Mempool: fees, blocks and price
-  converter.
+  Get latest Bitcoin data in your terminal: fees, blocks, ratio and prices incl.
+  a price converter. Most data are provided by Mempool. Connect to your own
+  Mempool instance if you like. Latest prices of other assets coming from
+  Krakens Spot API.
 
 Available options:
   -m,--mempool URL         Mempool URL (default: "https://mempool.space")
@@ -82,13 +88,17 @@ Available recipes:
 Start the app with `-m` parameter:
 ```sh
 cabal run tick-tock-tui -- -m {custom-mempool-url}
-
 ```
+
+#### Do I need an API key to get asset price data from Kraken's API?
+
+Nope. Quote from [Kraken Support page](https://support.kraken.com/hc/en-us/articles/360000919966-How-to-create-an-API-key):
+
+> "API keys are not required to call the market data (public) API endpoints, as the market data endpoints are not associated with any specific Kraken account."
 
 #### Any data are stored locally?
 
-Yes. To start the app with latest settings, some data (not all) of latest application state
-is stored locally. Locations to store data are following [`XdgState`](https://hackage.haskell.org/package/directory/docs/System-Directory.html#v:XdgState):
+Yes, users settings are stored locally. That's needed to start the app with latest user settings. Locations to persist data are defined by [`XdgState`](https://hackage.haskell.org/package/directory/docs/System-Directory.html#v:XdgState):
 - non-Windows `~/.local/state/tick-tock-tui/data{version}.json`
 - Windows: `%LOCALAPPDATA%` (e.g. `C:/Users/<user>/AppData/Local/tick-tock-tui/data{version}.json`)
 
