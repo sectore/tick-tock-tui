@@ -15,7 +15,7 @@ import System.Directory (
   doesFileExist,
  )
 import System.FilePath ((</>))
-import TUI.Service.Types (Amount (..), Bitcoin (..), Fiat (..))
+import TUI.Service.Types (Amount (..), Bitcoin (..), Fiat (..), mkTicker)
 import TUI.Types
 
 -- | Default instance
@@ -29,6 +29,7 @@ defaultStorage =
     , stgShowMenu = False
     , stgSelectedBitcoin = BTC
     , stgBtcAmount = Amount 0.00021
+    , stgAssetTicker = mkTicker "ETH"
     }
 
 stgVersion :: Int
@@ -44,6 +45,7 @@ toStorage st =
     , stgSelectedBitcoin = st ^. selectedBitcoin
     , stgShowMenu = st ^. showMenu
     , stgBtcAmount = st ^. converterForm . to formState . cdBTC
+    , stgAssetTicker = st ^. ratioForm . to formState . rdTicker
     }
 
 getStoragePath :: FilePath -> FilePath

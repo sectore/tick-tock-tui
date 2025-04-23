@@ -63,8 +63,6 @@ run = do
           , envInChan = inCh
           }
 
-  -- TODO: get selected ticker from state or storage
-  let initialTicker :: Ticker = mkTicker "ETH"
   -- listen for messages coming from TUI app
   foreverId <- forkIO $ flip runReaderT sEnv $ forever $ do
     e <- liftIO $ STM.atomically $ STM.readTChan outCh
@@ -80,7 +78,7 @@ run = do
       let initialFiat = stgSelectedFiat storage
           initialBitcoin = stgSelectedBitcoin storage
           initialBtcAmount = stgBtcAmount storage
-          initialRatioForm = mkRatioForm $ initialRatioData initialTicker
+          initialRatioForm = mkRatioForm $ initialRatioData $ stgAssetTicker storage
        in pure
             TUIState
               { timeZone' = tz
@@ -107,7 +105,7 @@ run = do
               }
   -- run TUI app
   (lastState, _) <-
-    customMainWithInterval interval (Just inCh) (theApp outCh config initialTicker) initialState
+    customMainWithInterval interval (Just inCh) (theApp outCh config storage) initialState
 
   -- persistant parts of `TUIState`
   _ <- liftIO $ STG.save (STG.toStorage lastState) (cfgStorageDirectory config)
@@ -121,12 +119,12 @@ run = do
         chooseCursor' ConverterView = focusRingCursor formFocus _converterForm
         chooseCursor' RatioView = focusRingCursor formFocus _ratioForm
         chooseCursor' _ = const Nothing
-    theApp :: TChan ApiEvent -> Config -> Ticker -> App TUIState TUIEvent TUIResource
-    theApp outCh conf ticker =
+    theApp :: TChan ApiEvent -> Config -> TUIStorage -> App TUIState TUIEvent TUIResource
+    theApp outCh conf storage =
       App
         { appDraw = drawApp conf
         , appChooseCursor = chooseCursor
         , appHandleEvent = appEvent outCh
-        , appStartEvent = startEvent ticker outCh
+        , appStartEvent = startEvent (stgAssetTicker storage) outCh
         , appAttrMap = const tuiAttrMap
         }

@@ -317,7 +317,7 @@ instance A.FromJSON Block where
       [] -> fail "Empty array of blocks"
 
 newtype Ticker = Ticker T.Text
-  deriving (Eq)
+  deriving (Eq, Generic)
 
 unTicker :: Ticker -> T.Text
 unTicker (Ticker text) = text
@@ -337,6 +337,9 @@ instance Read Ticker where
     , all isLetter str =
         [(mkTicker (map toUpper str), "")]
     | otherwise = []
+
+instance A.ToJSON Ticker
+instance A.FromJSON Ticker
 
 type AssetPriceRD = RemoteData String (Price USD)
 

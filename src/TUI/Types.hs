@@ -167,6 +167,7 @@ data TUIStorage = TUIStorage
   , stgShowMenu :: Bool
   , stgSelectedBitcoin :: Bitcoin
   , stgBtcAmount :: Amount BTC
+  , stgAssetTicker :: Ticker
   }
   deriving (Generic, Show)
 
