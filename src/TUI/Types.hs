@@ -109,13 +109,8 @@ makeLenses ''RatioData
 
 type RatioForm = Form RatioData TUIEvent TUIResource
 
-#ifdef ratio
 data View = FeesView | BlockView | ConverterView | RatioView
   deriving (Eq, Show, Generic)
-#else
-data View = FeesView | BlockView | ConverterView
-  deriving (Eq, Show, Generic)
-#endif
 
 instance A.FromJSON View
 

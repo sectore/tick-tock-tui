@@ -16,25 +16,11 @@ category:        TUI
 build-type:      Simple
 extra-doc-files: CHANGELOG.md
 
--- extra-source-files:
---
--- ratio flag to enable `Ratio` screen
-flag ratio
-  description:
-    Enable ratio screen. It connects to Krakens (public) Spot Rest API.
-
-  default:     True
-  manual:      True
-
 common warnings
   ghc-options: -Wall
 
-common feature-flags
-  if flag(ratio)
-    cpp-options: -Dratio
-
 library
-  import:             warnings, feature-flags
+  import:             warnings
   exposed-modules:    TUI
   other-modules:
     TUI.Attr
@@ -57,10 +43,8 @@ library
     TUI.Widgets.Header
     TUI.Widgets.Loader
     TUI.Widgets.Price
+    TUI.Widgets.Ratio
 
-  if flag(ratio)
-
-  other-modules:      TUI.Widgets.Ratio
   default-extensions:
     DataKinds
     LambdaCase
@@ -93,7 +77,7 @@ library
   default-language:   GHC2021
 
 executable tick-tock-tui
-  import:             warnings, feature-flags
+  import:             warnings
   main-is:            Main.hs
 
   -- other-modules:
@@ -107,7 +91,7 @@ executable tick-tock-tui
   default-language:   GHC2021
 
 test-suite tick-tock-tui-test
-  import:             warnings, feature-flags
+  import:             warnings
   default-language:   GHC2021
   other-modules:
     TUI.Service.Types
