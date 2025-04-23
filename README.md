@@ -2,11 +2,11 @@
 
 > TICK TOCK NEXT ₿LOCK
 
-Get latest [Bitcoin](https://bitcoin.org) data in your terminal: `blocks`, `fees`, `ratio` and `prices` incl. a `price` converter.
+Get the latest [Bitcoin](https://bitcoin.org) data in your terminal: `blocks`, `fees`, `ratio` and `prices` incl. a `price` converter.
 
-Most data based on [Mempool REST API](https://mempool.space/docs/api/rest). [Kraken Spot Rest API](https://docs.kraken.com/api/docs/rest-api/get-ticker-information) is used as a price oracle to get latest prices other assets (needed to calculate ratio `BTC/Asset`).
+Most data is based on [Mempool REST API](https://mempool.space/docs/api/rest). To calculate the `BTC/Asset` ratio [Kraken Spot Rest API](https://docs.kraken.com/api/docs/rest-api/get-ticker-information) is used to get latest prices for other assets.
 
-BTW: Connect `tick-tock-tui` to your own Mempool instance if your like. Check [FAQ](./#faq).
+BTW: Connect `tick-tock-tui` to your own Mempool instance if you like. Check [FAQ](./#faq).
 
 ## Preview
 
@@ -28,10 +28,10 @@ tick-tock-tui --help
 Usage: tick-tock-tui [-m|--mempool URL] [-r|--refresh SECONDS]
                      [-s|--storage DIRECTORY] [-i|--ignore]
 
-  Get latest Bitcoin data in your terminal: fees, blocks, ratio and prices incl.
-  a price converter. Most data are provided by Mempool. Connect to your own
-  Mempool instance if you like. Latest prices of other assets coming from
-  Krakens Spot API.
+  Get the latest Bitcoin data in your terminal: fees, blocks, ratio and prices
+  incl. a price converter. Most data is provided by Mempool. Connect to your own
+  Mempool instance if you like. Latest prices of other assets come from Krakens
+  Spot API.
 
 Available options:
   -m,--mempool URL         Mempool URL (default: "https://mempool.space")
@@ -52,7 +52,7 @@ Available options:
 
 Install [`Nix`](https://zero-to-nix.com/start/install). Enable [`flakes`](https://zero-to-nix.com/concepts/flakes).
 
-After that, `cd` into project directory to run `nix develop`. Check out available commands in a next chapter.
+`cd` into project directory to run `nix develop`. Check out available commands in a next chapter.
 
 #### Others:
 
@@ -64,7 +64,7 @@ Following needs to be installed:
 - [fourmoulu](https://github.com/fourmolu/fourmolu)
 - [just](https://just.systems)
 
-After installing everyting, check out available commands in next chapter.
+When everything is installed, check out all the commands available below.
 
 #### Commands to build etc.
 
@@ -96,9 +96,9 @@ Nope. Quote from [Kraken Support page](https://support.kraken.com/hc/en-us/artic
 
 > "API keys are not required to call the market data (public) API endpoints, as the market data endpoints are not associated with any specific Kraken account."
 
-#### Any data are stored locally?
+#### Is any data stored locally?
 
-Yes, users settings are stored locally. That's needed to start the app with latest user settings. Locations to persist data are defined by [`XdgState`](https://hackage.haskell.org/package/directory/docs/System-Directory.html#v:XdgState):
+Yes, users settings are stored locally. That's needed to start the app with the latest user settings. Locations to persist data are defined by [`XdgState`](https://hackage.haskell.org/package/directory/docs/System-Directory.html#v:XdgState):
 - non-Windows `~/.local/state/tick-tock-tui/data{version}.json`
 - Windows: `%LOCALAPPDATA%` (e.g. `C:/Users/<user>/AppData/Local/tick-tock-tui/data{version}.json`)
 
