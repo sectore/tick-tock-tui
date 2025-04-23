@@ -7,6 +7,7 @@ where
 
 import Brick
 import Brick.Forms (
+  Form (formState),
   editShowableFieldWithValidate,
   newForm,
   renderForm,
@@ -40,6 +41,7 @@ import TUI.Types (
   TUIResource (..),
   TUIState,
   assetPrice,
+  editMode,
   extraInfo,
   prices,
   ratioForm,
@@ -86,10 +88,11 @@ drawRatio st =
                     [
                       [ col1 $ str "pair"
                       , col2 $
-                          padRight (Pad 12) $
+                          -- one more `Pad` if cursor is visible
+                          padRight (Pad $ if editable then 12 else 11) $
                             hBox
                               [ str "BTC/"
-                              , hLimit 5 $ renderForm (st ^. ratioForm)
+                              , hLimit 5 $ if editable then renderForm rf else str $ show $ formState rf ^. rdTicker
                               ]
                       ]
                     ,
@@ -105,6 +108,8 @@ drawRatio st =
                     ]
     ]
   where
+    rf = st ^. ratioForm
+    editable = st ^. editMode
     rdAssetPrice = st ^. assetPrice
     loadingAnimation =
       let spinner = padLeft (Pad 1) $ drawSpinner (st ^. tick)

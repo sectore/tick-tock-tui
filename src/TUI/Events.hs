@@ -24,7 +24,6 @@ import Control.Monad.State.Strict (MonadState)
 import Data.Char (toUpper)
 import Data.Foldable (traverse_)
 import Data.Functor ((<&>))
-import qualified Data.Text as T
 import qualified Graphics.Vty as V
 import Lens.Micro (Lens', (%~), (&), (.~), (^.))
 import Lens.Micro.Mtl
@@ -39,7 +38,6 @@ import TUI.Service.Types (
   pAUD,
   pJPY,
   tickerToString,
-  unTicker,
  )
 import TUI.Types
 import TUI.Utils (btcToFiat, fiatToBtc, satsToFiat, toBtc, toSats)
@@ -164,30 +162,74 @@ appEvent outCh e =
 handleKeyEvent :: V.Event -> AppEventM ()
 handleKeyEvent e = do
   currentView' <- use currentView
+  changeScreenMode' <- use changeScreenMode
+  editMode' <- use editMode
   cf <- use converterForm
   rf <- use ratioForm
   case e of
     -- Action: quit app (two ways)
     V.EvKey (V.KChar 'q') [V.MCtrl] -> lift halt
     V.EvKey (V.KChar 'q') [] -> lift halt
-    -- Special case for `ConverterView`:
-    -- In case of a validation error an user needs still to type any chars (eg. sat)
-    -- but without getting in conflict with other `KChar` events (to navigate etc.)
-    ev@(V.EvKey (V.KChar _) [])
-      | currentView' == ConverterView
-          && not (null (invalidFields cf)) ->
-          lift $ zoom converterForm $ handleFormEvent (VtyEvent ev)
-    -- Special case for `RatioView`:
-    -- TODO: Refactor to check focus or edit mode
-    ev@(V.EvKey (V.KChar _) [])
-      | currentView' == RatioView
-          && (not (null (invalidFields cf)) || (T.length (unTicker $ formState rf ^. rdTicker) <= 3)) ->
-          lift $ zoom ratioForm $ handleFormEvent (VtyEvent ev)
-    -- Action: navigate screens
-    V.EvKey (V.KChar 'f') [] -> currentView .= FeesView
-    V.EvKey (V.KChar 'b') [] -> currentView .= BlockView
-    V.EvKey (V.KChar 'c') [] -> currentView .= ConverterView
-    V.EvKey (V.KChar 'r') [] -> currentView .= RatioView
+    -- enter `changeScreenMode``
+    V.EvKey (V.KChar 's') [V.MCtrl] | not changeScreenMode' -> changeScreenMode .= True
+    -- change views (in `changeScreenMod` only)
+    V.EvKey (V.KChar c) [] | c `elem` ['1', 'f'] && changeScreenMode' -> do
+      currentView .= FeesView
+      changeScreenMode .= False
+    V.EvKey (V.KChar c) [] | c `elem` ['2', 'b'] && changeScreenMode' -> do
+      currentView .= BlockView
+      changeScreenMode .= False
+    V.EvKey (V.KChar c) [] | c `elem` ['3', 'c'] && changeScreenMode' -> do
+      currentView .= ConverterView
+      changeScreenMode .= False
+    V.EvKey (V.KChar c) [] | c `elem` ['4', 'r'] && changeScreenMode' -> do
+      currentView .= RatioView
+      changeScreenMode .= False
+    -- clear `changeScreenMode``
+    V.EvKey V.KEsc [] | changeScreenMode' -> changeScreenMode .= False
+    V.EvKey (V.KChar _) [] | changeScreenMode' -> changeScreenMode .= False
+    V.EvKey (V.KChar _) [V.MCtrl] | changeScreenMode' -> changeScreenMode .= False
+    -- enter `editMode`
+    V.EvKey (V.KChar 'e') [V.MCtrl]
+      | (currentView' == ConverterView || currentView' == RatioView) && not editMode' ->
+          editMode .= True
+    -- `ConverterView` -> events in `editMode`
+    ev | currentView' == ConverterView && editMode' -> do
+      let currentField = focusGetCurrent $ formFocus cf
+      lift $ zoom converterForm $ handleFormEvent (VtyEvent ev)
+      case ev of
+        V.EvKey V.KEnter [] | null (invalidFields rf) -> do
+          updateConversion currentField
+          -- clear `editMode`
+          editMode .= False
+        V.EvKey (V.KChar '\t') [] -> updateConversion currentField
+        V.EvKey V.KBackTab [] -> updateConversion currentField
+        V.EvKey V.KEsc [] -> do
+          -- skip changes by restoring to previous form state
+          use prevConverterForm >>= traverse_ (converterForm .=)
+          -- clear `editMode`
+          editMode .= False
+        _ -> pure ()
+    -- `RatioView` -> events in `editMode`
+    ev | currentView' == RatioView && editMode' -> do
+      lift $ zoom ratioForm $ handleFormEvent (VtyEvent ev)
+      case ev of
+        -- call API for valid data only
+        V.EvKey V.KEnter [] | null (invalidFields rf) -> do
+          setLoading assetPrice
+          -- update form state to have current ticker value always in uppercase
+          ratioForm %= \rf' -> updateFormState (formState rf' & rdTicker %~ (mkTicker . map toUpper . tickerToString)) rf'
+          sendApiEvent $ FetchAssetPrice $ formState rf ^. rdTicker
+          -- Update `prevRatioForm`
+          use ratioForm >>= \v -> prevRatioForm .= Just v
+          -- clear `editMode`
+          editMode .= False
+        V.EvKey V.KEsc [] -> do
+          -- skip changes by restoring to previous form state
+          use prevRatioForm >>= traverse_ (ratioForm .=)
+          -- clear `editMode`
+          editMode .= False
+        _ -> pure ()
     -- Action: toggle animation
     V.EvKey (V.KChar 'a') [] -> animate %= not
     -- Action: toggle menu
@@ -219,7 +261,7 @@ handleKeyEvent e = do
           | b == BTC = SATS
           | otherwise = BTC
     -- Action: reload data
-    V.EvKey (V.KChar 'r') [V.MCtrl] -> do
+    V.EvKey (V.KChar 'r') [] -> do
       -- reset fetch ticks
       fetchTick .= 0
       lastFetchTick .= 0
@@ -238,35 +280,6 @@ handleKeyEvent e = do
           sendApiEvent $ FetchAssetPrice $ formState rf ^. rdTicker
     -- Action: toggle extra info
     V.EvKey (V.KChar 'e') [] -> extraInfo %= not
-    -- all the other events
-    -- `ConverterView` only
-    ev | currentView' == ConverterView -> do
-      let currentField = focusGetCurrent $ formFocus cf
-      lift $ zoom converterForm $ handleFormEvent (VtyEvent ev)
-      case ev of
-        V.EvKey V.KEnter [] -> updateConversion currentField
-        V.EvKey (V.KChar '\t') [] -> updateConversion currentField
-        V.EvKey V.KBackTab [] -> updateConversion currentField
-        V.EvKey V.KEsc [] ->
-          -- Restore converterForm with its previous state
-          use prevConverterForm
-            >>= traverse_ (converterForm .=)
-        _ -> pure ()
-    -- `RatioView` only
-    ev | currentView' == RatioView -> do
-      lift $ zoom ratioForm $ handleFormEvent (VtyEvent ev)
-      case ev of
-        -- call API for valid data only
-        V.EvKey V.KEnter [] | null (invalidFields rf) -> do
-          setLoading assetPrice
-          -- update form state to have current ticker value always in uppercase
-          ratioForm %= \rf' -> updateFormState (formState rf' & rdTicker %~ (mkTicker . map toUpper . tickerToString)) rf'
-          sendApiEvent $ FetchAssetPrice $ formState rf ^. rdTicker
-        V.EvKey V.KEsc [] ->
-          -- Restore ratioForm with its previous state
-          use prevRatioForm
-            >>= traverse_ (ratioForm .=)
-        _ -> pure ()
     _ -> pure ()
 
 handleAppEvent :: TUIEvent -> AppEventM ()
