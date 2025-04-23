@@ -1,6 +1,5 @@
 module TUI.Widgets.Converter (
   drawConverter,
-  ConverterData (..),
   mkConverterForm,
   initialConverterData,
 )

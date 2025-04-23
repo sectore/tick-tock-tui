@@ -32,11 +32,9 @@
           # Note that local packages are automatically included in `packages`
           # (defined by `defaults.packages` option).
           #
-          packages = {
-            # aeson.source = "1.5.0.0";      # Override aeson to a custom version from Hackage
-            hlint.source = "3.8";
-            # shower.source = inputs.shower; # Override shower to a custom source path
-          };
+          # packages = {
+          #   hlint.source = "3.8";
+          # };
           settings = {
             #  aeson = {
             #    check = false;
@@ -69,6 +67,7 @@
                 # @see https://github.com/srid/haskell-flake/blob/master/nix/modules/project/defaults.nix#L25-L28
                 ghcide
                 cabal-fmt
+                cabal-gild
                 fourmolu
                 ;
             };

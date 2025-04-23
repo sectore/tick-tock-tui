@@ -15,17 +15,18 @@ import Brick.Types (
   BrickEvent (..),
   EventM,
  )
-
 import qualified Control.Concurrent.STM as STM
 import Control.Concurrent.STM.TChan (TChan)
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (MonadTrans (lift), ReaderT (runReaderT), asks)
 import Control.Monad.State.Strict (MonadState)
+import Data.Char (toUpper)
 import Data.Foldable (traverse_)
 import Data.Functor ((<&>))
+import qualified Data.Text as T
 import qualified Graphics.Vty as V
-import Lens.Micro (Lens', (&), (.~), (^.))
+import Lens.Micro (Lens', (%~), (&), (.~), (^.))
 import Lens.Micro.Mtl
 import TUI.Service.Types (
   ApiEvent (..),
@@ -33,8 +34,12 @@ import TUI.Service.Types (
   Fiat (..),
   Prices (..),
   RemoteData (..),
+  Ticker,
+  mkTicker,
   pAUD,
   pJPY,
+  tickerToString,
+  unTicker,
  )
 import TUI.Types
 import TUI.Utils (btcToFiat, fiatToBtc, satsToFiat, toBtc, toSats)
@@ -45,10 +50,10 @@ sendApiEvent e = do
   ch <- asks outChan
   liftIO $ STM.atomically $ STM.writeTChan ch e
 
-startEvent :: TChan ApiEvent -> EventM TUIResource TUIState ()
-startEvent outCh =
+startEvent :: Ticker -> TChan ApiEvent -> EventM TUIResource TUIState ()
+startEvent ticker outCh =
   -- fetch all data at start
-  runReaderT (sendApiEvent FetchAllData) (AppEventEnv outCh)
+  runReaderT (sendApiEvent $ FetchAllData ticker) (AppEventEnv outCh)
 
 setLoading :: Lens' TUIState (RemoteData e a) -> AppEventM ()
 setLoading lens = do
@@ -67,6 +72,8 @@ updateConversion focusedField = do
         Just ConverterBtcField -> updateBtcBased ps cf
         Just ConverterSatField -> updateSatBased ps cf
         Just ConverterFiatField -> updateFiatBased ps cf
+        -- ignore fields from other views
+        Just _ -> pure ()
         Nothing -> updateFiatBased ps cf
       -- update previous state
       use converterForm >>= \v -> prevConverterForm .= Just v
@@ -158,6 +165,7 @@ handleKeyEvent :: V.Event -> AppEventM ()
 handleKeyEvent e = do
   currentView' <- use currentView
   cf <- use converterForm
+  rf <- use ratioForm
   case e of
     -- Action: quit app (two ways)
     V.EvKey (V.KChar 'q') [V.MCtrl] -> lift halt
@@ -169,10 +177,17 @@ handleKeyEvent e = do
       | currentView' == ConverterView
           && not (null (invalidFields cf)) ->
           lift $ zoom converterForm $ handleFormEvent (VtyEvent ev)
+    -- Special case for `RatioView`:
+    -- TODO: Refactor to check focus or edit mode
+    ev@(V.EvKey (V.KChar _) [])
+      | currentView' == RatioView
+          && (not (null (invalidFields cf)) || (T.length (unTicker $ formState rf ^. rdTicker) <= 3)) ->
+          lift $ zoom ratioForm $ handleFormEvent (VtyEvent ev)
     -- Action: navigate screens
     V.EvKey (V.KChar 'f') [] -> currentView .= FeesView
     V.EvKey (V.KChar 'b') [] -> currentView .= BlockView
     V.EvKey (V.KChar 'c') [] -> currentView .= ConverterView
+    V.EvKey (V.KChar 'r') [] -> currentView .= RatioView
     -- Action: toggle animation
     V.EvKey (V.KChar 'a') [] -> animate %= not
     -- Action: toggle menu
@@ -204,7 +219,7 @@ handleKeyEvent e = do
           | b == BTC = SATS
           | otherwise = BTC
     -- Action: reload data
-    V.EvKey (V.KChar 'r') [] -> do
+    V.EvKey (V.KChar 'r') [V.MCtrl] -> do
       -- reset fetch ticks
       fetchTick .= 0
       lastFetchTick .= 0
@@ -218,9 +233,13 @@ handleKeyEvent e = do
           setLoading block
           sendApiEvent FetchBlock
         ConverterView -> pure ()
+        RatioView -> do
+          setLoading assetPrice
+          sendApiEvent $ FetchAssetPrice $ formState rf ^. rdTicker
     -- Action: toggle extra info
     V.EvKey (V.KChar 'e') [] -> extraInfo %= not
-    -- all the other events - but for `ConverterView` only
+    -- all the other events
+    -- `ConverterView` only
     ev | currentView' == ConverterView -> do
       let currentField = focusGetCurrent $ formFocus cf
       lift $ zoom converterForm $ handleFormEvent (VtyEvent ev)
@@ -229,9 +248,24 @@ handleKeyEvent e = do
         V.EvKey (V.KChar '\t') [] -> updateConversion currentField
         V.EvKey V.KBackTab [] -> updateConversion currentField
         V.EvKey V.KEsc [] ->
-          -- Restore converterForm with previous its previous state
+          -- Restore converterForm with its previous state
           use prevConverterForm
             >>= traverse_ (converterForm .=)
+        _ -> pure ()
+    -- `RatioView` only
+    ev | currentView' == RatioView -> do
+      lift $ zoom ratioForm $ handleFormEvent (VtyEvent ev)
+      case ev of
+        -- call API for valid data only
+        V.EvKey V.KEnter [] | null (invalidFields rf) -> do
+          setLoading assetPrice
+          -- update form state to have current ticker value always in uppercase
+          ratioForm %= \rf' -> updateFormState (formState rf' & rdTicker %~ (mkTicker . map toUpper . tickerToString)) rf'
+          sendApiEvent $ FetchAssetPrice $ formState rf ^. rdTicker
+        V.EvKey V.KEsc [] ->
+          -- Restore ratioForm with its previous state
+          use prevRatioForm
+            >>= traverse_ (ratioForm .=)
         _ -> pure ()
     _ -> pure ()
 
@@ -246,6 +280,7 @@ handleAppEvent e = do
       currentF <- use fetchTick
       lastF <- use lastFetchTick
       maxF <- use maxFetchTick
+      rf <- use ratioForm
       -- trigger reload data
       when (currentF - lastF >= maxF) $ do
         -- reset last fetch time
@@ -254,8 +289,9 @@ handleAppEvent e = do
         setLoading prices
         setLoading fees
         setLoading block
+        setLoading assetPrice
         -- load all data
-        sendApiEvent FetchAllData
+        sendApiEvent $ FetchAllData $ formState rf ^. rdTicker
 
       fetchTick %= (`mod` (maxF + 1)) . (+ 1)
     PriceUpdated p -> do
@@ -267,4 +303,6 @@ handleAppEvent e = do
       fees .= f
     BlockUpdated b -> do
       block .= b
+    AssetPriceUpdated _ p -> do
+      assetPrice .= p
     _ -> pure ()

@@ -26,6 +26,8 @@ import System.Directory (
 import TUI.Attr (tuiAttrMap)
 import TUI.Config (Config (..), getConfig)
 import TUI.Events (appEvent, startEvent)
+import qualified TUI.Service.Common as C
+import qualified TUI.Service.Kraken as K
 import qualified TUI.Service.Mempool as M
 import TUI.Service.Types
 import TUI.Storage (defaultStorage)
@@ -34,6 +36,7 @@ import TUI.Types
 import TUI.Utils (customMainWithInterval, fps)
 import TUI.Widgets.App (drawApp)
 import TUI.Widgets.Converter (initialConverterData, mkConverterForm)
+import TUI.Widgets.Ratio (initialRatioData, mkRatioForm)
 
 run :: IO ()
 run = do
@@ -59,6 +62,9 @@ run = do
           { envMempoolUrl = cfgMempoolUrl config
           , envInChan = inCh
           }
+
+  -- TODO: get selected ticker from state or storage
+  let initialTicker :: Ticker = mkTicker "ETH"
   -- listen for messages coming from TUI app
   foreverId <- forkIO $ flip runReaderT sEnv $ forever $ do
     e <- liftIO $ STM.atomically $ STM.readTChan outCh
@@ -66,7 +72,8 @@ run = do
       FetchFees -> M.fetchFees
       FetchPrices -> M.fetchPrices
       FetchBlock -> M.fetchBlock
-      FetchAllData -> M.fetchAllData
+      FetchAssetPrice ticker -> K.fetchAssetPrice ticker
+      FetchAllData ticker -> C.fetchAllData ticker
 
   initialState <-
     getCurrentTimeZone >>= \tz ->
@@ -79,6 +86,8 @@ run = do
               , _currentView = stgCurrentView storage
               , _converterForm = mkConverterForm $ initialConverterData initialFiat initialBitcoin initialBtcAmount
               , _prevConverterForm = Nothing
+              , _ratioForm = mkRatioForm $ initialRatioData initialTicker
+              , _prevRatioForm = Nothing
               , _animate = stgAnimate storage
               , _extraInfo = stgExtraInfo storage
               , _tick = 0
@@ -88,12 +97,14 @@ run = do
               , _prices = NotAsked
               , _fees = NotAsked
               , _block = NotAsked
+              , _assetPrice = NotAsked
               , _selectedFiat = initialFiat
               , _selectedBitcoin = initialBitcoin
               , _showMenu = stgShowMenu storage
               }
   -- run TUI app
-  (lastState, _) <- customMainWithInterval interval (Just inCh) (theApp outCh config) initialState
+  (lastState, _) <-
+    customMainWithInterval interval (Just inCh) (theApp outCh config initialTicker) initialState
 
   -- persistant parts of `TUIState`
   _ <- liftIO $ STG.save (STG.toStorage lastState) (cfgStorageDirectory config)
@@ -105,13 +116,14 @@ run = do
     chooseCursor TUIState{..} = chooseCursor' _currentView
       where
         chooseCursor' ConverterView = focusRingCursor formFocus _converterForm
+        chooseCursor' RatioView = focusRingCursor formFocus _ratioForm
         chooseCursor' _ = const Nothing
-    theApp :: TChan ApiEvent -> Config -> App TUIState TUIEvent TUIResource
-    theApp outCh conf =
+    theApp :: TChan ApiEvent -> Config -> Ticker -> App TUIState TUIEvent TUIResource
+    theApp outCh conf ticker =
       App
         { appDraw = drawApp conf
         , appChooseCursor = chooseCursor
         , appHandleEvent = appEvent outCh
-        , appStartEvent = startEvent outCh
+        , appStartEvent = startEvent ticker outCh
         , appAttrMap = const tuiAttrMap
         }

@@ -6,9 +6,7 @@ module TUI.Types where
 import Brick (EventM)
 import Brick.BChan (BChan)
 import Brick.Forms (Form)
-import Brick.Types (
 
- )
 import Control.Concurrent.STM (TChan)
 import Control.Monad.Reader (ReaderT)
 import qualified Data.Aeson as A
@@ -17,7 +15,17 @@ import Data.Time.LocalTime (TimeZone)
 import GHC.Generics (Generic)
 import Lens.Micro (Getting, to)
 import Lens.Micro.TH (makeLenses)
-import TUI.Service.Types (Amount, ApiEvent, Bitcoin (..), BlockRD, FeesRD, Fiat (..), PricesRD)
+import TUI.Service.Types (
+  Amount,
+  ApiEvent,
+  AssetPriceRD,
+  Bitcoin (..),
+  BlockRD,
+  FeesRD,
+  Fiat (..),
+  PricesRD,
+  Ticker,
+ )
 
 -- Resource names (needed to handle events of form elements etc.)
 -- https://github.com/jtdaugherty/brick/blob/master/docs/guide.rst#resource-names
@@ -25,6 +33,7 @@ data TUIResource
   = ConverterFiatField
   | ConverterBtcField
   | ConverterSatField
+  | RatioTickerField
   deriving (Eq, Ord, Show)
 
 newtype AppEventEnv = AppEventEnv
@@ -58,6 +67,7 @@ data TUIEvent
   = PriceUpdated PricesRD
   | FeesUpdated FeesRD
   | BlockUpdated BlockRD
+  | AssetPriceUpdated Ticker AssetPriceRD
   | FPSTick
   deriving (Show, Eq)
 
@@ -89,7 +99,16 @@ data ConverterField
 
 type ConverterForm = Form ConverterData TUIEvent TUIResource
 
-data View = FeesView | BlockView | ConverterView
+newtype RatioData = RatioData
+  { _rdTicker :: Ticker
+  }
+  deriving (Eq, Show)
+
+makeLenses ''RatioData
+
+type RatioForm = Form RatioData TUIEvent TUIResource
+
+data View = FeesView | BlockView | ConverterView | RatioView
   deriving (Eq, Show, Generic)
 
 instance A.FromJSON View
@@ -104,6 +123,9 @@ data TUIState = TUIState
   , _currentView :: View
   , _converterForm :: ConverterForm
   , _prevConverterForm :: Maybe ConverterForm
+  , _ratioForm :: RatioForm
+  , -- TODO: Check to remove it
+    _prevRatioForm :: Maybe RatioForm
   , _animate :: Bool
   , _extraInfo :: Bool
   , _tick :: Int
@@ -116,6 +138,7 @@ data TUIState = TUIState
   , _prices :: PricesRD
   , _fees :: FeesRD
   , _block :: BlockRD
+  , _assetPrice :: AssetPriceRD
   , _selectedFiat :: Fiat
   , _selectedBitcoin :: Bitcoin
   , _showMenu :: Bool

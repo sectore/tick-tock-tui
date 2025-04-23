@@ -82,6 +82,7 @@ drawFooter st config =
       [ (FeesView, "[f]ees")
       , (BlockView, "[b]lock")
       , (ConverterView, "[c]onverter")
+      , (RatioView, "[r]atio")
       ]
     v = st ^. currentView
     views =
@@ -94,7 +95,7 @@ drawFooter st config =
         | (v', label) <- viewLabels
         ]
     actionLabels =
-      [ "[r]eload data"
+      [ "[^r]eload data"
       , "[s]witch to " ++ if st ^. selectedBitcoin == BTC then "sat" else "btc"
       , "[t]oggle fiat"
       ]

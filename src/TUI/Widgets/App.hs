@@ -13,6 +13,7 @@ import TUI.Widgets.Converter (drawConverter)
 import TUI.Widgets.Fees (drawFees)
 import TUI.Widgets.Footer (drawFooter)
 import TUI.Widgets.Header (drawHeader)
+import TUI.Widgets.Ratio (drawRatio)
 
 drawApp :: Config -> TUIState -> [Widget TUIResource]
 drawApp conf st = [padTop (Pad 1) ui]
@@ -22,6 +23,7 @@ drawApp conf st = [padTop (Pad 1) ui]
       FeesView -> drawFees st
       BlockView -> drawBlock st
       ConverterView -> drawConverter st
+      RatioView -> drawRatio st
     ui =
       vBox
         [ drawHeader st
