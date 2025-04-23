@@ -33,6 +33,7 @@ import TUI.Types (
   cdSelectedFiat,
   cdUsd,
   converterForm,
+  editMode,
   prices,
   tick,
  )
@@ -75,13 +76,38 @@ mkConverterForm cd =
       BTC -> editShowableField cdBTC ConverterBtcField
       SATS -> editShowableField cdSATS ConverterSatField
 
+renderDisabledForm :: ConverterData -> Widget n
+renderDisabledForm cd =
+  vBox
+    [ str bitcoinStr
+    , str fiatStr
+    ]
+  where
+    fiatStr = case cd ^. cdSelectedFiat of
+      EUR -> show $ cd ^. cdEUR
+      CAD -> show $ cd ^. cdCAD
+      GBP -> show $ cd ^. cdGBP
+      AUD -> show $ cd ^. cdAUD
+      CHF -> show $ cd ^. cdCHF
+      JPY -> show $ cd ^. cdJPY
+      USD -> show $ cd ^. cdUsd
+    bitcoinStr = case cd ^. cdSelectedBitcoin of
+      BTC -> show $ cd ^. cdBTC
+      SATS -> show $ cd ^. cdSATS
+
 drawConverter :: TUIState -> Widget TUIResource
 drawConverter st =
   vBox
     [ padBottom (Pad 2) $ hCenter $ withBold $ str "CONVERTER" <+> padLeft (Pad 1) loadingAnimation
-    , padTopBottom 1 $ hCenter $ hLimit hSize $ renderForm (st ^. converterForm)
+    , padTopBottom 1 $
+        hCenter $
+          hLimit hSize $
+            if st ^. editMode
+              then renderForm cf
+              else renderDisabledForm $ formState cf
     ]
   where
+    cf = st ^. converterForm
     hSize =
       let cd = formState (st ^. converterForm)
           fiatL = case cd ^. cdSelectedFiat of

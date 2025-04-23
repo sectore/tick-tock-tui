@@ -142,6 +142,8 @@ data TUIState = TUIState
   , _selectedFiat :: Fiat
   , _selectedBitcoin :: Bitcoin
   , _showMenu :: Bool
+  , _changeScreenMode :: Bool
+  , _editMode :: Bool
   }
 
 makeLenses ''TUIState

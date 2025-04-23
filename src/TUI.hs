@@ -80,14 +80,15 @@ run = do
       let initialFiat = stgSelectedFiat storage
           initialBitcoin = stgSelectedBitcoin storage
           initialBtcAmount = stgBtcAmount storage
+          initialRatioForm = mkRatioForm $ initialRatioData initialTicker
        in pure
             TUIState
               { timeZone' = tz
               , _currentView = stgCurrentView storage
               , _converterForm = mkConverterForm $ initialConverterData initialFiat initialBitcoin initialBtcAmount
               , _prevConverterForm = Nothing
-              , _ratioForm = mkRatioForm $ initialRatioData initialTicker
-              , _prevRatioForm = Nothing
+              , _ratioForm = initialRatioForm
+              , _prevRatioForm = Just initialRatioForm
               , _animate = stgAnimate storage
               , _extraInfo = stgExtraInfo storage
               , _tick = 0
@@ -101,6 +102,8 @@ run = do
               , _selectedFiat = initialFiat
               , _selectedBitcoin = initialBitcoin
               , _showMenu = stgShowMenu storage
+              , _changeScreenMode = False
+              , _editMode = False
               }
   -- run TUI app
   (lastState, _) <-

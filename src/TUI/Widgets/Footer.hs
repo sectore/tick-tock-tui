@@ -31,7 +31,9 @@ import TUI.Types (
   TUIState,
   View (..),
   animate,
+  changeScreenMode,
   currentView,
+  editMode,
   extraInfo,
   selectedBitcoin,
   showMenu,
@@ -56,10 +58,25 @@ drawFooter st config =
                   columnBorders False $
                     setDefaultColAlignment AlignLeft $
                       table
-                        ( [ [col1 $ str "screens", views]
-                          , [col1 $ str "actions", actions]
-                          , [col1 emptyWidget, actions2]
+                        ( [ -- row: screens
+
+                            [ col1 $ str "screens"
+                            , if st ^. changeScreenMode then hBox [str "switch to ", views] else str "[^s]witch screen"
+                            ]
                           ]
+                            --  row: actions
+                            ++ [ [col1 $ str "actions", actions]
+                               , [col1 emptyWidget, actions2]
+                               ]
+                            --  row: actions
+                            ++ [ row | v == ConverterView || v == RatioView, row <-
+                                                                              [
+                                                                                [ col1 $ str "edit"
+                                                                                , if not $ st ^. editMode then str "[^e]nter edit mode" else edit
+                                                                                ]
+                                                                              ]
+                               ]
+                            -- row: extra info
                             ++ [ row | st ^. extraInfo, row <-
                                                           [
                                                             [ padTop (Pad 1) $ col1 $ str "endpoint"
@@ -79,10 +96,10 @@ drawFooter st config =
     col1 = padRight (Pad 6) . withBold
     foldWithSpace = foldl1 (\x y -> x <+> (padLeft $ Pad 2) y)
     viewLabels =
-      [ (FeesView, "[f]ees")
-      , (BlockView, "[b]lock")
-      , (ConverterView, "[c]onverter")
-      , (RatioView, "[r]atio")
+      [ (FeesView, "[1] fees")
+      , (BlockView, "[2] block")
+      , (ConverterView, "[3] converter")
+      , (RatioView, "[4] ratio")
       ]
     v = st ^. currentView
     views =
@@ -95,7 +112,7 @@ drawFooter st config =
         | (v', label) <- viewLabels
         ]
     actionLabels =
-      [ "[^r]eload data"
+      [ "[r]eload data"
       , "[s]witch to " ++ if st ^. selectedBitcoin == BTC then "sat" else "btc"
       , "[t]oggle fiat"
       ]
@@ -104,5 +121,10 @@ drawFooter st config =
       , "[a]nimation " ++ if st ^. animate then "stop" else "start"
       , "[q]uit"
       ]
+    editLabels =
+      [ "[ENTER] apply changes"
+      , "[ESC] skip changes"
+      ]
     actions = foldWithSpace $ str <$> actionLabels
     actions2 = foldWithSpace $ str <$> actionLabels2
+    edit = foldWithSpace $ str <$> editLabels
