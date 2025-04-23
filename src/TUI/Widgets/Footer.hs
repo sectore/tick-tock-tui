@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 module TUI.Widgets.Footer where
 
 import Brick.Types (
@@ -97,7 +95,7 @@ drawFooter st config =
         | (v', label) <- viewLabels
         ]
     actionLabels =
-      [ "[r]eload data"
+      [ "[^r]eload data"
       , "[s]witch to " ++ if st ^. selectedBitcoin == BTC then "sat" else "btc"
       , "[t]oggle fiat"
       ]

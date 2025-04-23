@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 module TUI.Widgets.App where
 
 import Brick.Types (

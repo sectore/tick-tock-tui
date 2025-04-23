@@ -117,10 +117,10 @@ drawRatio st =
     rdToRatioStr :: Widget n
     rdToRatioStr =
       let
-        -- `ratioStr` -> btc / asset in different precision based on value
         ratioStr :: Price USD -> Price USD -> Widget n
         ratioStr assetPrice' btcPrice = str $ formatRatio (unPrice btcPrice / unPrice assetPrice')
 
+        -- Use different precision based on value
         formatRatio :: Double -> String
         formatRatio ratio
           | ratio < 1 = printf "%.3f" ratio

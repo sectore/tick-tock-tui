@@ -178,11 +178,9 @@ handleKeyEvent e = do
           && not (null (invalidFields cf)) ->
           lift $ zoom converterForm $ handleFormEvent (VtyEvent ev)
     -- Special case for `RatioView`:
-    -- In case of a validation error an user needs still to type any chars
-    -- but without getting in conflict with other `KChar` events (to navigate etc.)
+    -- TODO: Refactor to check focus or edit mode
     ev@(V.EvKey (V.KChar _) [])
       | currentView' == RatioView
-          -- TODO: Refactor to check focus or edit mode
           && (not (null (invalidFields cf)) || (T.length (unTicker $ formState rf ^. rdTicker) <= 3)) ->
           lift $ zoom ratioForm $ handleFormEvent (VtyEvent ev)
     -- Action: navigate screens
@@ -261,7 +259,7 @@ handleKeyEvent e = do
         -- call API for valid data only
         V.EvKey V.KEnter [] | null (invalidFields rf) -> do
           setLoading assetPrice
-          -- update from state to have current ticker value always in uppercase
+          -- update form state to have current ticker value always in uppercase
           ratioForm %= \rf' -> updateFormState (formState rf' & rdTicker %~ (mkTicker . map toUpper . tickerToString)) rf'
           sendApiEvent $ FetchAssetPrice $ formState rf ^. rdTicker
         V.EvKey V.KEsc [] ->

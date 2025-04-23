@@ -72,7 +72,7 @@ run = do
       FetchFees -> M.fetchFees
       FetchPrices -> M.fetchPrices
       FetchBlock -> M.fetchBlock
-      FetchAssetPrice t -> K.fetchAssetPrice t
+      FetchAssetPrice ticker -> K.fetchAssetPrice ticker
       FetchAllData ticker -> C.fetchAllData ticker
 
   initialState <-

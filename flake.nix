@@ -34,14 +34,6 @@
           #
           # packages = {
           #   hlint.source = "3.8";
-          #   # latest hls 2.10
-          #   # @see https://github.com/haskell/haskell-language-server/releases/tag/2.10.0.0
-          #   haskell-language-server.source = pkgs.fetchFromGitHub {
-          #     owner = "haskell";
-          #     repo = "haskell-language-server";
-          #     rev = "2318c61db3a01e03700bd4b05665662929b7fe8b";
-          #     hash = "sha256-q4kDFyJDDeoGqfEtrZRx4iqMVEC2MOzCToWsFY+TOzY=";
-          #   };
           # };
           settings = {
             #  aeson = {
