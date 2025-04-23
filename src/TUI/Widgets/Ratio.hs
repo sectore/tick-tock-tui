@@ -13,6 +13,15 @@ import Brick.Forms (
  )
 
 import Brick.Widgets.Center
+import Brick.Widgets.Table (
+  ColumnAlignment (..),
+  columnBorders,
+  renderTable,
+  rowBorders,
+  setDefaultColAlignment,
+  surroundingBorder,
+  table,
+ )
 import Data.Char (isLetter)
 import qualified Data.Text as T
 import Lens.Micro ((^.))
@@ -31,6 +40,7 @@ import TUI.Types (
   TUIResource (..),
   TUIState,
   assetPrice,
+  extraInfo,
   prices,
   ratioForm,
   rdTicker,
@@ -65,24 +75,45 @@ mkRatioForm =
 drawRatio :: TUIState -> Widget TUIResource
 drawRatio st =
   vBox
-    [ padBottom (Pad 2) $ hCenter $ withBold $ str "RATIO" <+> padLeft (Pad 1) loadingAnimation
+    [ padBottom (Pad 2) $ hCenter $ withBold $ str "RATIO" <+> loadingAnimation
     , hCenter $
-        hBox
-          [ str "BTC/"
-          , hLimit 5 $ renderForm (st ^. ratioForm)
-          , str "= "
-          , rdToRatioStr
-          ]
+        renderTable $
+          surroundingBorder False $
+            rowBorders False $
+              columnBorders False $
+                setDefaultColAlignment AlignLeft $
+                  table
+                    [
+                      [ col1 $ str "pair"
+                      , col2 $
+                          padRight (Pad 12) $
+                            hBox
+                              [ str "BTC/"
+                              , hLimit 5 $ renderForm (st ^. ratioForm)
+                              ]
+                      ]
+                    ,
+                      [ col1 $
+                          str
+                            "ratio"
+                      , col2 $ (if st ^. extraInfo then withBold else id) rdToRatioStr
+                      ]
+                    ,
+                      [ emptyWidget
+                      , if st ^. extraInfo then col2 rdToPricesStr else emptyWidget
+                      ]
+                    ]
     ]
   where
     rdAssetPrice = st ^. assetPrice
     loadingAnimation =
-      let spinner = drawSpinner (st ^. tick)
+      let spinner = padLeft (Pad 1) $ drawSpinner (st ^. tick)
        in case rdAssetPrice of
             NotAsked -> spinner
             Loading _ -> spinner
             _ -> emptyStr
-
+    col1 = withBold . padRight (Pad 1) . padLeft (Pad 8)
+    col2 = padLeft (Pad 10) . padRight (Pad 1)
     rdToRatioStr :: Widget n
     rdToRatioStr =
       let
@@ -99,5 +130,16 @@ drawRatio st =
        in
         case liftA2 (,) rdAssetPrice (st ^. prices) of
           Success (p, ps) -> ratioStr p (pUSD ps)
+          Failure err -> withError $ str err
+          _ -> drawLoadingString4 (st ^. tick)
+
+    rdToPricesStr :: Widget n
+    rdToPricesStr =
+      let
+        pricesStr :: Price USD -> Price USD -> Widget n
+        pricesStr assetPrice' btcPrice = str $ show btcPrice ++ "/" ++ show assetPrice'
+       in
+        case liftA2 (,) rdAssetPrice (st ^. prices) of
+          Success (p, ps) -> pricesStr p (pUSD ps)
           Failure err -> withError $ str err
           _ -> drawLoadingString4 (st ^. tick)
