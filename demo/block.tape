@@ -4,8 +4,8 @@ Output demo/block.gif
 Set Theme "Belafonte Day"
 
 Set FontSize 14
-Set Width 800
-Set Height 600
+Set Width 1200
+Set Height 800
 Set Padding 0
 Set Margin 1
 

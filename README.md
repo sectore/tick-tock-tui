@@ -36,17 +36,16 @@ _Side note:_ Theme colors depend on your terminal preferences.
   <img alt="ratio" src="demo/ratio.gif" />
 </a>
 
-## Dashboard
-
-<a href="demo/dashboard.gif">
-  <img alt="dashboard" src="demo/dashboard.gif" />
-</a>
-
-
 ## Menu
 
 <a href="demo/menu.gif">
   <img alt="menu" src="demo/menu.gif" />
+</a>
+
+## Dashboard
+
+<a href="demo/dashboard.gif">
+  <img alt="dashboard" src="demo/dashboard.gif" />
 </a>
 
 # Installation

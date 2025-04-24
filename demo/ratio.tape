@@ -1,12 +1,11 @@
 Output demo/ratio.gif
 
 # https://github.com/charmbracelet/vhs/blob/main/THEMES.md
-# Set Theme "LiquidCarbon"
 Set Theme "iTerm2 Solarized Light"
 
 Set FontSize 14
-Set Width 800
-Set Height 600
+Set Width 1200
+Set Height 800
 Set Padding 0
 Set Margin 1
 
