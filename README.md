@@ -8,19 +8,52 @@ Most data is based on [Mempool REST API](https://mempool.space/docs/api/rest). T
 
 BTW: Connect `tick-tock-tui` to your own Mempool instance if you like. Check [FAQ](./#faq).
 
-## Preview
+# Preview
 
-<a href="demo/tick-tock-demo.gif">
-  <img alt="preview" src="demo/tick-tock-demo.gif" />
+_Side note:_ Theme colors depend on your terminal preferences.
+
+## Fees
+
+<a href="demo/fees.gif">
+  <img alt="fees" src="demo/fees.gif" />
 </a>
 
+## Block
 
-## Installation
+<a href="demo/block.gif">
+  <img alt="block" src="demo/block.gif" />
+</a>
+
+## Converter
+
+<a href="demo/converter.gif">
+  <img alt="converter" src="demo/converter.gif" />
+</a>
+
+## Ratio
+
+<a href="demo/ratio.gif">
+  <img alt="ratio" src="demo/ratio.gif" />
+</a>
+
+## Menu
+
+<a href="demo/menu.gif">
+  <img alt="menu" src="demo/menu.gif" />
+</a>
+
+## Dashboard
+
+<a href="demo/dashboard.gif">
+  <img alt="dashboard" src="demo/dashboard.gif" />
+</a>
+
+# Installation
 
 soon
 
 
-## CLI
+# CLI
 
 ```sh
 tick-tock-tui --help
@@ -44,17 +77,17 @@ Available options:
   -h,--help                Show this help text
 ```
 
-## Local development
+# Development
 
-### Requirements
+## Requirements
 
-#### Nix (recommended):
+### Nix (recommended):
 
 Install [`Nix`](https://zero-to-nix.com/start/install). Enable [`flakes`](https://zero-to-nix.com/concepts/flakes).
 
 `cd` into project directory to run `nix develop`. Check out available commands in a next chapter.
 
-#### Others:
+### Others:
 
 Following needs to be installed:
 
@@ -66,7 +99,7 @@ Following needs to be installed:
 
 When everything is installed, check out all the commands available below.
 
-#### Commands to build etc.
+### Commands to build etc.
 
 ```sh
 just --list
@@ -81,27 +114,27 @@ Available recipes:
     test               # run tests
 ```
 
-## FAQ
+# FAQ
 
-#### How to connect to a custom Mempool instance?
+### How to connect to a custom Mempool instance?
 
 Start the app with `-m` parameter:
 ```sh
 cabal run tick-tock-tui -- -m {custom-mempool-url}
 ```
 
-#### Do I need an API key to get asset price data from Kraken's API?
+### Do I need an API key to get asset price data from Kraken's API?
 
 Nope. Quote from [Kraken Support page](https://support.kraken.com/hc/en-us/articles/360000919966-How-to-create-an-API-key):
 
 > "API keys are not required to call the market data (public) API endpoints, as the market data endpoints are not associated with any specific Kraken account."
 
-#### Is any data stored locally?
+### Is any data stored locally?
 
 Yes, users settings are stored locally. That's needed to start the app with the latest user settings. Locations to persist data are defined by [`XdgState`](https://hackage.haskell.org/package/directory/docs/System-Directory.html#v:XdgState):
 - non-Windows `~/.local/state/tick-tock-tui/data{version}.json`
 - Windows: `%LOCALAPPDATA%` (e.g. `C:/Users/<user>/AppData/Local/tick-tock-tui/data{version}.json`)
 
-## License
+# License
 
 [MIT License](./LICENSE)
