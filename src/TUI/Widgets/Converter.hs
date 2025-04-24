@@ -100,12 +100,11 @@ drawConverter :: TUIState -> Widget TUIResource
 drawConverter st =
   vBox
     [ padBottom (Pad 2) $ hCenter $ withBold $ str "CONVERTER" <+> padLeft (Pad 1) loadingAnimation
-    , padTopBottom 1 $
-        hCenter $
-          hLimit hSize $
-            if st ^. editMode
-              then renderForm cf
-              else renderDisabledForm $ formState cf
+    , hCenter $
+        hLimit hSize $
+          if st ^. editMode
+            then renderForm cf
+            else renderDisabledForm $ formState cf
     ]
   where
     cf = st ^. converterForm

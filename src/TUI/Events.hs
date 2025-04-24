@@ -173,6 +173,9 @@ handleKeyEvent e = do
     -- enter `changeScreenMode``
     V.EvKey (V.KChar 's') [V.MCtrl] | not changeScreenMode' -> changeScreenMode .= True
     -- change views (in `changeScreenMod` only)
+    V.EvKey (V.KChar c) [] | c `elem` ['0', 'd'] && changeScreenMode' -> do
+      currentView .= DashboardView
+      changeScreenMode .= False
     V.EvKey (V.KChar c) [] | c `elem` ['1', 'f'] && changeScreenMode' -> do
       currentView .= FeesView
       changeScreenMode .= False
@@ -278,6 +281,11 @@ handleKeyEvent e = do
         RatioView -> do
           setLoading assetPrice
           sendApiEvent $ FetchAssetPrice $ formState rf ^. rdTicker
+        DashboardView -> do
+          setLoading fees
+          setLoading block
+          setLoading assetPrice
+          sendApiEvent $ FetchAllData $ formState rf ^. rdTicker
     -- Action: toggle extra info
     V.EvKey (V.KChar 'e') [] -> extraInfo %= not
     _ -> pure ()
