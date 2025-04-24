@@ -29,13 +29,13 @@ import TUI.Widgets.Loader (drawLoadingString4, drawSpinner)
 
 drawPrice :: TUIState -> Widget TUIResource
 drawPrice st =
-  vBox
-    [ (if st ^. extraInfo then withBold else id) $
+  hBox
+    [ if st ^. extraInfo then padLeft (Pad 2) $ rdToTimeStr rdPrices else emptyWidget
+    , (if st ^. extraInfo then withBold else id) $
         padRight (Pad 1) loadingAnimation
           <+> btcStr
           <+> padLeftRight 1 (str "=")
           <+> rdToStr rdPrices
-    , if st ^. extraInfo then padLeft (Pad 2) $ rdToTimeStr rdPrices else emptyWidget
     ]
   where
     rdPrices :: PricesRD

@@ -38,6 +38,7 @@ library
     TUI.Widgets.Block
     TUI.Widgets.Converter
     TUI.Widgets.Countdown
+    TUI.Widgets.Dashboard
     TUI.Widgets.Fees
     TUI.Widgets.Footer
     TUI.Widgets.Header

@@ -46,7 +46,7 @@ drawFooter st config =
     -- menu title + border + countdown
     [ hBox
         [ padLeftRight 1 $ str $ "[m]enu " <> if st ^. showMenu then "↓" else "↑"
-        , vLimit 1 $ fill $ BS.bsHorizontal BS.ascii
+        , vLimit 1 $ fill $ BS.bsHorizontal BS.defaultBorderStyle
         , padLeftRight 1 $ drawCountdown st
         ]
     ]
@@ -96,7 +96,8 @@ drawFooter st config =
     col1 = padRight (Pad 6) . withBold
     foldWithSpace = foldl1 (\x y -> x <+> (padLeft $ Pad 2) y)
     viewLabels =
-      [ (FeesView, "[1] fees")
+      [ (DashboardView, "[0] dashboard")
+      , (FeesView, "[1] fees")
       , (BlockView, "[2] block")
       , (ConverterView, "[3] converter")
       , (RatioView, "[4] ratio")
