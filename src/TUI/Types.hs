@@ -124,8 +124,7 @@ data TUIState = TUIState
   , _converterForm :: ConverterForm
   , _prevConverterForm :: Maybe ConverterForm
   , _ratioForm :: RatioForm
-  , -- TODO: Check to remove it
-    _prevRatioForm :: Maybe RatioForm
+  , _prevRatioForm :: Maybe RatioForm
   , _animate :: Bool
   , _extraInfo :: Bool
   , _tick :: Int
@@ -168,6 +167,7 @@ data TUIStorage = TUIStorage
   , stgShowMenu :: Bool
   , stgSelectedBitcoin :: Bitcoin
   , stgBtcAmount :: Amount BTC
+  , stgAssetTicker :: Ticker
   }
   deriving (Generic, Show)
 

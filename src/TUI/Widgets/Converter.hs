@@ -76,6 +76,7 @@ mkConverterForm cd =
       BTC -> editShowableField cdBTC ConverterBtcField
       SATS -> editShowableField cdSATS ConverterSatField
 
+-- Renders a simple `str` to simulate a disabled form (no input visible, just text)
 renderDisabledForm :: ConverterData -> Widget n
 renderDisabledForm cd =
   vBox

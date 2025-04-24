@@ -205,7 +205,7 @@ handleKeyEvent e = do
         V.EvKey (V.KChar '\t') [] -> updateConversion currentField
         V.EvKey V.KBackTab [] -> updateConversion currentField
         V.EvKey V.KEsc [] -> do
-          -- skip changes by restoring to previous form state
+          -- skip changes by restoring previous form state
           use prevConverterForm >>= traverse_ (converterForm .=)
           -- clear `editMode`
           editMode .= False
@@ -225,7 +225,7 @@ handleKeyEvent e = do
           -- clear `editMode`
           editMode .= False
         V.EvKey V.KEsc [] -> do
-          -- skip changes by restoring to previous form state
+          -- skip changes by restoring previous form state
           use prevRatioForm >>= traverse_ (ratioForm .=)
           -- clear `editMode`
           editMode .= False
