@@ -162,7 +162,6 @@ appEvent outCh e =
 handleKeyEvent :: V.Event -> AppEventM ()
 handleKeyEvent e = do
   currentView' <- use currentView
-  changeScreenMode' <- use changeScreenMode
   editMode' <- use editMode
   cf <- use converterForm
   rf <- use ratioForm
@@ -170,28 +169,12 @@ handleKeyEvent e = do
     -- Action: quit app (two ways)
     V.EvKey (V.KChar 'q') [V.MCtrl] -> lift halt
     V.EvKey (V.KChar 'q') [] -> lift halt
-    -- enter `changeScreenMode``
-    V.EvKey (V.KChar 's') [V.MCtrl] | not changeScreenMode' -> changeScreenMode .= True
-    -- change views (in `changeScreenMod` only)
-    V.EvKey (V.KChar c) [] | c `elem` ['0', 'd'] && changeScreenMode' -> do
-      currentView .= DashboardView
-      changeScreenMode .= False
-    V.EvKey (V.KChar c) [] | c `elem` ['1', 'f'] && changeScreenMode' -> do
-      currentView .= FeesView
-      changeScreenMode .= False
-    V.EvKey (V.KChar c) [] | c `elem` ['2', 'b'] && changeScreenMode' -> do
-      currentView .= BlockView
-      changeScreenMode .= False
-    V.EvKey (V.KChar c) [] | c `elem` ['3', 'c'] && changeScreenMode' -> do
-      currentView .= ConverterView
-      changeScreenMode .= False
-    V.EvKey (V.KChar c) [] | c `elem` ['4', 'r'] && changeScreenMode' -> do
-      currentView .= RatioView
-      changeScreenMode .= False
-    -- clear `changeScreenMode``
-    V.EvKey V.KEsc [] | changeScreenMode' -> changeScreenMode .= False
-    V.EvKey (V.KChar _) [] | changeScreenMode' -> changeScreenMode .= False
-    V.EvKey (V.KChar _) [V.MCtrl] | changeScreenMode' -> changeScreenMode .= False
+    -- change views
+    V.EvKey (V.KChar '0') [] | not editMode' -> currentView .= DashboardView
+    V.EvKey (V.KChar '1') [] | not editMode' -> currentView .= FeesView
+    V.EvKey (V.KChar '2') [] | not editMode' -> currentView .= BlockView
+    V.EvKey (V.KChar '3') [] | not editMode' -> currentView .= ConverterView
+    V.EvKey (V.KChar '4') [] | not editMode' -> currentView .= RatioView
     -- enter `editMode`
     V.EvKey (V.KChar 'e') [V.MCtrl]
       | (currentView' == ConverterView || currentView' == RatioView) && not editMode' ->

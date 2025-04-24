@@ -31,7 +31,6 @@ import TUI.Types (
   TUIState,
   View (..),
   animate,
-  changeScreenMode,
   currentView,
   editMode,
   extraInfo,
@@ -61,7 +60,7 @@ drawFooter st config =
                         ( [ -- row: screens
 
                             [ col1 $ str "screens"
-                            , if st ^. changeScreenMode then hBox [str "switch to ", views] else str "[^s]witch screen"
+                            , views
                             ]
                           ]
                             --  row: actions

@@ -100,7 +100,6 @@ run = do
               , _selectedFiat = initialFiat
               , _selectedBitcoin = initialBitcoin
               , _showMenu = stgShowMenu storage
-              , _changeScreenMode = False
               , _editMode = False
               }
   -- run TUI app
