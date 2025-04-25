@@ -2,17 +2,13 @@
 
 > TICK TOCK NEXT ₿LOCK
 
-Get the latest [Bitcoin](https://bitcoin.org) data in your terminal:
+Get the latest [Bitcoin](https://bitcoin.org) data in your terminal and more:
 - Latest `block`
 - Latest `fees`
 - `price` converter
 - `ratio` of any `BTC/Asset` pair
 
-Switch prices: `btc`, `sat`  and up to 7 `Fiat` currencies.
-
-Most data is based on [Mempool REST API](https://mempool.space/docs/api/rest). To calculate a `BTC/Asset` ratio [Kraken Spot Rest API](https://docs.kraken.com/api/docs/rest-api/get-ticker-information) is used to get latest prices for other assets.
-
-BTW: Connect `tick-tock-tui` to your private Mempool instance if you like. Check [FAQ](./#faq).
+Switch between `BTC`, `sat` and up to 7 `Fiat` currencies.
 
 # Table of Contents
 
@@ -101,22 +97,23 @@ Available options:
 | Key | Description |
 | --- | --- |
 | <kbd>0</kbd> | Dashboard |
-| <kbd>1</kbd> | Fees view |
-| <kbd>2</kbd> | Block view |
-| <kbd>3</kbd> | Ratio view |
+| <kbd>1</kbd> | Fees |
+| <kbd>2</kbd> | Block |
+| <kbd>3</kbd> | Price converter |
+| <kbd>4</kbd> | Ratio |
 
 ## Actions
 
 | Key | Description |
 | --- | --- |
 | <kbd>r</kbd> | Reload data |
-| <kbd>s</kbd> | Toggle `btc` vs. `sat` |
-| <kbd>t</kbd> | Toggle Fiat currencies |
+| <kbd>s</kbd> | Toggle BTC/sat |
+| <kbd>t</kbd> | Toggle Fiat |
 | <kbd>e</kbd> | Toggle extra information |
 | <kbd>a</kbd> | Toggle animation |
-| <kbd>Ctrl</kbd> + <kbd>q</kbd> | Quit |
+| <kbd>q</kbd> | Quit |
 
-## Edit mode
+## Edit mode (converter + ratio only)
 
 | Key | Description |
 | --- | --- |
@@ -134,7 +131,6 @@ Run following command from your project directory
 ```sh
 cabal install
 ```
-
 
 ## Nix
 
@@ -189,9 +185,16 @@ Check instructions [here](./demos/README.md).
 
 # FAQ
 
+### Where all the data is coming from?
+
+Most data is fetched from [Mempool REST API](https://mempool.space/docs/api/rest). Connect to your private Mempool instance if you like (see next question).
+
+To calculate a `BTC/Asset` ratio [Kraken Spot Rest API](https://docs.kraken.com/api/docs/rest-api/get-ticker-information) is used to get latest prices for other assets.
+
 ### How to connect to a custom Mempool instance?
 
 Start the app with `-m` parameter:
+
 ```sh
 cabal run tick-tock-tui -- -m {custom-mempool-url}
 ```
@@ -205,6 +208,7 @@ Nope. Quote from [Kraken Support page](https://support.kraken.com/hc/en-us/artic
 ### Is any data stored locally?
 
 Yes, users settings are stored locally. That's needed to start the app with the latest user settings. Locations to persist data are defined by [`XdgState`](https://hackage.haskell.org/package/directory/docs/System-Directory.html#v:XdgState):
+
 - non-Windows `~/.local/state/tick-tock-tui/data{version}.json`
 - Windows: `%LOCALAPPDATA%` (e.g. `C:/Users/<user>/AppData/Local/tick-tock-tui/data{version}.json`)
 
