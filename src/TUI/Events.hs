@@ -169,13 +169,7 @@ handleKeyEvent e = do
     -- Action: quit app (two ways)
     V.EvKey (V.KChar 'q') [V.MCtrl] -> lift halt
     V.EvKey (V.KChar 'q') [] -> lift halt
-    -- change views
-    V.EvKey (V.KChar '0') [] | not editMode' -> currentView .= DashboardView
-    V.EvKey (V.KChar '1') [] | not editMode' -> currentView .= FeesView
-    V.EvKey (V.KChar '2') [] | not editMode' -> currentView .= BlockView
-    V.EvKey (V.KChar '3') [] | not editMode' -> currentView .= ConverterView
-    V.EvKey (V.KChar '4') [] | not editMode' -> currentView .= RatioView
-    -- enter `editMode`
+    -- enter `editMode` and pipe all events into forms
     V.EvKey (V.KChar 'e') [V.MCtrl]
       | (currentView' == ConverterView || currentView' == RatioView) && not editMode' ->
           editMode .= True
@@ -216,6 +210,12 @@ handleKeyEvent e = do
           -- clear `editMode`
           editMode .= False
         _ -> pure ()
+    -- Screens
+    V.EvKey (V.KChar '0') [] -> currentView .= DashboardView
+    V.EvKey (V.KChar '1') [] -> currentView .= FeesView
+    V.EvKey (V.KChar '2') [] -> currentView .= BlockView
+    V.EvKey (V.KChar '3') [] -> currentView .= ConverterView
+    V.EvKey (V.KChar '4') [] -> currentView .= RatioView
     -- Action: toggle animation
     V.EvKey (V.KChar 'a') [] -> animate %= not
     -- Action: toggle menu

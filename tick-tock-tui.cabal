@@ -1,18 +1,17 @@
 cabal-version:   3.0
 name:            tick-tock-tui
-version:         0.0.1
-synopsis:        bitcoin mempool tui
-
--- description:
-stability:       alpha
+version:         1.0.0
+synopsis:        Get latest Bitcoin data in your terminal.
+stability:       stable
 homepage:        https://github.com/sectore/tick-tock-tui
 license:         MIT
 license-file:    LICENSE
-author:          jk
+author:          Jens Krause
 
 -- maintainer:
 -- copyright:
 category:        TUI
+tested-with:     GHC ==9.8.4
 build-type:      Simple
 extra-doc-files: CHANGELOG.md
 

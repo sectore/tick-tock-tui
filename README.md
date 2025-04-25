@@ -2,35 +2,53 @@
 
 > TICK TOCK NEXT ₿LOCK
 
-Get the latest [Bitcoin](https://bitcoin.org) data in your terminal: `blocks`, `fees`, `ratio` and `prices` incl. a `price` converter.
+Get the latest [Bitcoin](https://bitcoin.org) data in your terminal and more:
+- Latest `block`
+- Latest `fees`
+- `price` converter
+- `ratio` of any `BTC/Asset` pair
 
-Most data is based on [Mempool REST API](https://mempool.space/docs/api/rest). To calculate the `BTC/Asset` ratio [Kraken Spot Rest API](https://docs.kraken.com/api/docs/rest-api/get-ticker-information) is used to get latest prices for other assets.
+Switch between `BTC`, `sat` and up to 7 `Fiat` currencies.
 
-BTW: Connect `tick-tock-tui` to your own Mempool instance if you like. Check [FAQ](./#faq).
+# Table of Contents
+
+- [Preview](./#preview)
+- [CLI](./#cli)
+- [Keybindings](./#keybindings)
+- [Installation](./#installation)
+- [Development](./#development)
+- [FAQ](./#faq)
+- [License](./#license)
 
 # Preview
 
-_Side note:_ Theme colors depend on your terminal preferences.
+_(theme depends on your terminal preferences btw)_
 
-## Fees
+## Dashboard
+
+<a href="demo/dashboard.gif">
+  <img alt="dashboard" src="demo/dashboard.gif" />
+</a>
+
+## Latest fees
 
 <a href="demo/fees.gif">
   <img alt="fees" src="demo/fees.gif" />
 </a>
 
-## Block
+## Latest block
 
 <a href="demo/block.gif">
   <img alt="block" src="demo/block.gif" />
 </a>
 
-## Converter
+## Price converter
 
 <a href="demo/converter.gif">
   <img alt="converter" src="demo/converter.gif" />
 </a>
 
-## Ratio
+## Ratio `BTC/Asset`
 
 <a href="demo/ratio.gif">
   <img alt="ratio" src="demo/ratio.gif" />
@@ -41,17 +59,6 @@ _Side note:_ Theme colors depend on your terminal preferences.
 <a href="demo/menu.gif">
   <img alt="menu" src="demo/menu.gif" />
 </a>
-
-## Dashboard
-
-<a href="demo/dashboard.gif">
-  <img alt="dashboard" src="demo/dashboard.gif" />
-</a>
-
-# Installation
-
-soon
-
 
 # CLI
 
@@ -76,6 +83,64 @@ Available options:
                            default data instead.
   -h,--help                Show this help text
 ```
+
+# Keybindings
+
+## Menu
+
+| Key | Description |
+| --- | --- |
+| <kbd>↑</kbd> / <kbd>↓</kbd> or <kbd>m</kbd> | Toggle menu |
+
+## Screens
+
+| Key | Description |
+| --- | --- |
+| <kbd>0</kbd> | Dashboard |
+| <kbd>1</kbd> | Fees |
+| <kbd>2</kbd> | Block |
+| <kbd>3</kbd> | Price converter |
+| <kbd>4</kbd> | Ratio |
+
+## Actions
+
+| Key | Description |
+| --- | --- |
+| <kbd>r</kbd> | Reload data |
+| <kbd>s</kbd> | Toggle BTC/sat |
+| <kbd>t</kbd> | Toggle Fiat |
+| <kbd>e</kbd> | Toggle extra information |
+| <kbd>a</kbd> | Toggle animation |
+| <kbd>q</kbd> | Quit |
+
+## Edit mode (converter + ratio only)
+
+| Key | Description |
+| --- | --- |
+| <kbd>Ctrl</kbd> + <kbd>e</kbd> | Enter edit mode |
+| <kbd>ENTER</kbd> | Apply changes (in edit mode only) |
+| <kbd>ESC</kbd> | Skip changes (in edit mode only) |
+
+
+# Installation
+
+## Cabal
+
+Run following command from your project directory
+
+```sh
+cabal install
+```
+
+## Nix
+
+### NixOS
+
+soon
+
+### Home Manager
+
+soon
 
 # Development
 
@@ -114,11 +179,22 @@ Available recipes:
     test               # run tests
 ```
 
+### Build demos
+
+Check instructions [here](./demos/README.md).
+
 # FAQ
+
+### Where all the data is coming from?
+
+Most data is fetched from [Mempool REST API](https://mempool.space/docs/api/rest). Connect to your private Mempool instance if you like (see next question).
+
+To calculate a `BTC/Asset` ratio [Kraken Spot Rest API](https://docs.kraken.com/api/docs/rest-api/get-ticker-information) is used to get latest prices for other assets.
 
 ### How to connect to a custom Mempool instance?
 
 Start the app with `-m` parameter:
+
 ```sh
 cabal run tick-tock-tui -- -m {custom-mempool-url}
 ```
@@ -132,6 +208,7 @@ Nope. Quote from [Kraken Support page](https://support.kraken.com/hc/en-us/artic
 ### Is any data stored locally?
 
 Yes, users settings are stored locally. That's needed to start the app with the latest user settings. Locations to persist data are defined by [`XdgState`](https://hackage.haskell.org/package/directory/docs/System-Directory.html#v:XdgState):
+
 - non-Windows `~/.local/state/tick-tock-tui/data{version}.json`
 - Windows: `%LOCALAPPDATA%` (e.g. `C:/Users/<user>/AppData/Local/tick-tock-tui/data{version}.json`)
 
