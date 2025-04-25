@@ -12,13 +12,13 @@ Switch between `BTC`, `sat` and up to 7 `Fiat` currencies.
 
 # Table of Contents
 
-- [Preview](./preview)
-- [CLI](./cli)
-- [Keybindings](./keybindings)
-- [Installation](./installation)
-- [Development](./development)
-- [FAQ](./faq)
-- [License](./license)
+- [Preview](./#preview)
+- [CLI](./#cli)
+- [Keybindings](./#keybindings)
+- [Installation](./#installation)
+- [Development](./#development)
+- [FAQ](./#faq)
+- [License](./#license)
 
 # Preview
 
@@ -118,8 +118,8 @@ Available options:
 | Key | Description |
 | --- | --- |
 | <kbd>Ctrl</kbd> + <kbd>e</kbd> | Enter edit mode |
-| <kbd>ENTER</kbd> | Apply changes (edit mode only) |
-| <kbd>ESC</kbd> | Skip changes (edit mode only) |
+| <kbd>ENTER</kbd> | Apply changes (in edit mode only) |
+| <kbd>ESC</kbd> | Skip changes (in edit mode only) |
 
 
 # Installation
