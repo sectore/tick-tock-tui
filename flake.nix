@@ -56,6 +56,8 @@
               inherit
                 (pkgs)
                 just
+                nixd
+                alejandra
                 zlib
                 pkg-config
                 ;
