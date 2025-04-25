@@ -85,21 +85,21 @@ updateConversion focusedField = do
             .= updateFormState
               ( st
                   & cdUsd
-                  .~ btcToFiat newBtcAmount (pUSD ps)
+                    .~ btcToFiat newBtcAmount (pUSD ps)
                   & cdCAD
-                  .~ btcToFiat newBtcAmount (pCAD ps)
+                    .~ btcToFiat newBtcAmount (pCAD ps)
                   & cdEUR
-                  .~ btcToFiat newBtcAmount (pEUR ps)
+                    .~ btcToFiat newBtcAmount (pEUR ps)
                   & cdGBP
-                  .~ btcToFiat newBtcAmount (pGBP ps)
+                    .~ btcToFiat newBtcAmount (pGBP ps)
                   & cdAUD
-                  .~ btcToFiat newBtcAmount (pAUD ps)
+                    .~ btcToFiat newBtcAmount (pAUD ps)
                   & cdJPY
-                  .~ btcToFiat newBtcAmount (pJPY ps)
+                    .~ btcToFiat newBtcAmount (pJPY ps)
                   & cdCHF
-                  .~ btcToFiat newBtcAmount (pCHF ps)
+                    .~ btcToFiat newBtcAmount (pCHF ps)
                   & cdSATS
-                  .~ toSats newBtcAmount
+                    .~ toSats newBtcAmount
               )
               cf
 
@@ -111,21 +111,21 @@ updateConversion focusedField = do
             .= updateFormState
               ( st
                   & cdUsd
-                  .~ satsToFiat newSatsAmount (pUSD ps)
+                    .~ satsToFiat newSatsAmount (pUSD ps)
                   & cdCAD
-                  .~ satsToFiat newSatsAmount (pCAD ps)
+                    .~ satsToFiat newSatsAmount (pCAD ps)
                   & cdEUR
-                  .~ satsToFiat newSatsAmount (pEUR ps)
+                    .~ satsToFiat newSatsAmount (pEUR ps)
                   & cdGBP
-                  .~ satsToFiat newSatsAmount (pGBP ps)
+                    .~ satsToFiat newSatsAmount (pGBP ps)
                   & cdAUD
-                  .~ satsToFiat newSatsAmount (pAUD ps)
+                    .~ satsToFiat newSatsAmount (pAUD ps)
                   & cdJPY
-                  .~ satsToFiat newSatsAmount (pJPY ps)
+                    .~ satsToFiat newSatsAmount (pJPY ps)
                   & cdCHF
-                  .~ satsToFiat newSatsAmount (pCHF ps)
+                    .~ satsToFiat newSatsAmount (pCHF ps)
                   & cdBTC
-                  .~ toBtc newSatsAmount
+                    .~ toBtc newSatsAmount
               )
               cf
 
@@ -144,9 +144,9 @@ updateConversion focusedField = do
             .= updateFormState
               ( st
                   & cdBTC
-                  .~ newBtcAmount
+                    .~ newBtcAmount
                   & cdSATS
-                  .~ toSats newBtcAmount
+                    .~ toSats newBtcAmount
               )
               cf
 
