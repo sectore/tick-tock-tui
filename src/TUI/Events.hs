@@ -85,21 +85,21 @@ updateConversion focusedField = do
             .= updateFormState
               ( st
                   & cdUsd
-                    .~ btcToFiat newBtcAmount (pUSD ps)
+                  .~ btcToFiat newBtcAmount (pUSD ps)
                   & cdCAD
-                    .~ btcToFiat newBtcAmount (pCAD ps)
+                  .~ btcToFiat newBtcAmount (pCAD ps)
                   & cdEUR
-                    .~ btcToFiat newBtcAmount (pEUR ps)
+                  .~ btcToFiat newBtcAmount (pEUR ps)
                   & cdGBP
-                    .~ btcToFiat newBtcAmount (pGBP ps)
+                  .~ btcToFiat newBtcAmount (pGBP ps)
                   & cdAUD
-                    .~ btcToFiat newBtcAmount (pAUD ps)
+                  .~ btcToFiat newBtcAmount (pAUD ps)
                   & cdJPY
-                    .~ btcToFiat newBtcAmount (pJPY ps)
+                  .~ btcToFiat newBtcAmount (pJPY ps)
                   & cdCHF
-                    .~ btcToFiat newBtcAmount (pCHF ps)
+                  .~ btcToFiat newBtcAmount (pCHF ps)
                   & cdSATS
-                    .~ toSats newBtcAmount
+                  .~ toSats newBtcAmount
               )
               cf
 
@@ -111,21 +111,21 @@ updateConversion focusedField = do
             .= updateFormState
               ( st
                   & cdUsd
-                    .~ satsToFiat newSatsAmount (pUSD ps)
+                  .~ satsToFiat newSatsAmount (pUSD ps)
                   & cdCAD
-                    .~ satsToFiat newSatsAmount (pCAD ps)
+                  .~ satsToFiat newSatsAmount (pCAD ps)
                   & cdEUR
-                    .~ satsToFiat newSatsAmount (pEUR ps)
+                  .~ satsToFiat newSatsAmount (pEUR ps)
                   & cdGBP
-                    .~ satsToFiat newSatsAmount (pGBP ps)
+                  .~ satsToFiat newSatsAmount (pGBP ps)
                   & cdAUD
-                    .~ satsToFiat newSatsAmount (pAUD ps)
+                  .~ satsToFiat newSatsAmount (pAUD ps)
                   & cdJPY
-                    .~ satsToFiat newSatsAmount (pJPY ps)
+                  .~ satsToFiat newSatsAmount (pJPY ps)
                   & cdCHF
-                    .~ satsToFiat newSatsAmount (pCHF ps)
+                  .~ satsToFiat newSatsAmount (pCHF ps)
                   & cdBTC
-                    .~ toBtc newSatsAmount
+                  .~ toBtc newSatsAmount
               )
               cf
 
@@ -144,9 +144,9 @@ updateConversion focusedField = do
             .= updateFormState
               ( st
                   & cdBTC
-                    .~ newBtcAmount
+                  .~ newBtcAmount
                   & cdSATS
-                    .~ toSats newBtcAmount
+                  .~ toSats newBtcAmount
               )
               cf
 
@@ -169,13 +169,7 @@ handleKeyEvent e = do
     -- Action: quit app (two ways)
     V.EvKey (V.KChar 'q') [V.MCtrl] -> lift halt
     V.EvKey (V.KChar 'q') [] -> lift halt
-    -- change views
-    V.EvKey (V.KChar '0') [] | not editMode' -> currentView .= DashboardView
-    V.EvKey (V.KChar '1') [] | not editMode' -> currentView .= FeesView
-    V.EvKey (V.KChar '2') [] | not editMode' -> currentView .= BlockView
-    V.EvKey (V.KChar '3') [] | not editMode' -> currentView .= ConverterView
-    V.EvKey (V.KChar '4') [] | not editMode' -> currentView .= RatioView
-    -- enter `editMode`
+    -- enter `editMode` and pipe all events into forms
     V.EvKey (V.KChar 'e') [V.MCtrl]
       | (currentView' == ConverterView || currentView' == RatioView) && not editMode' ->
           editMode .= True
@@ -216,6 +210,12 @@ handleKeyEvent e = do
           -- clear `editMode`
           editMode .= False
         _ -> pure ()
+    -- Screens
+    V.EvKey (V.KChar '0') [] -> currentView .= DashboardView
+    V.EvKey (V.KChar '1') [] -> currentView .= FeesView
+    V.EvKey (V.KChar '2') [] -> currentView .= BlockView
+    V.EvKey (V.KChar '3') [] -> currentView .= ConverterView
+    V.EvKey (V.KChar '4') [] -> currentView .= RatioView
     -- Action: toggle animation
     V.EvKey (V.KChar 'a') [] -> animate %= not
     -- Action: toggle menu
