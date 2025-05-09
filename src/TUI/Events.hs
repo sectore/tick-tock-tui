@@ -196,7 +196,7 @@ handleKeyEvent e = do
       case ev of
         -- call API for valid data only
         V.EvKey V.KEnter [] | null (invalidFields rf) -> do
-          setLoading assetPrice
+          assetPrice .= NotAsked
           -- update form state to have current ticker value always in uppercase
           ratioForm %= \rf' -> updateFormState (formState rf' & rdTicker %~ (mkTicker . map toUpper . tickerToString)) rf'
           sendApiEvent $ FetchAssetPrice $ formState rf ^. rdTicker

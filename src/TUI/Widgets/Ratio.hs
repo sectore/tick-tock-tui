@@ -134,6 +134,7 @@ drawRatio st =
           | otherwise = printf "%.0f" ratio
        in
         case liftA2 (,) rdAssetPrice (st ^. prices) of
+          Loading (Just (p, ps)) -> ratioStr p (pUSD ps)
           Success (p, ps) -> ratioStr p (pUSD ps)
           Failure err -> withError $ str err
           _ -> drawLoadingString4 (st ^. tick)
@@ -145,6 +146,7 @@ drawRatio st =
         pricesStr assetPrice' btcPrice = str $ show btcPrice ++ "/" ++ show assetPrice'
        in
         case liftA2 (,) rdAssetPrice (st ^. prices) of
+          Loading (Just (p, ps)) -> pricesStr p (pUSD ps)
           Success (p, ps) -> pricesStr p (pUSD ps)
           Failure err -> withError $ str err
           _ -> drawLoadingString4 (st ^. tick)
