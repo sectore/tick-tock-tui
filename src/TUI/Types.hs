@@ -117,9 +117,10 @@ instance A.ToJSON View
 
 data TUIState = TUIState
   { timeZone' :: TimeZone
-  -- ^ private
-  -- Never get/set value from/to `maxFetchTick'` directly.
-  -- Use `maxFetchTick` (without `'`) to read data
+  {- ^ private
+  Never get/set value from/to `maxFetchTick'` directly.
+  Use `maxFetchTick` (without `'`) to read data
+  -}
   , _currentView :: View
   , _converterForm :: ConverterForm
   , _prevConverterForm :: Maybe ConverterForm
@@ -131,9 +132,10 @@ data TUIState = TUIState
   , _fetchTick :: Int
   , _lastFetchTick :: Int
   , maxFetchTick' :: Int
-  -- ^ private
-  -- Never get/set value from/to `maxFetchTick'` directly.
-  -- Use `maxFetchTick` (without `'`) to read data
+  {- ^ private
+  Never get/set value from/to `maxFetchTick'` directly.
+  Use `maxFetchTick` (without `'`) to read data
+  -}
   , _prices :: PricesRD
   , _fees :: FeesRD
   , _block :: BlockRD
