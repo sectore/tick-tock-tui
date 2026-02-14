@@ -1,6 +1,8 @@
 module TUI.Config where
 
+import Data.Version (showVersion)
 import Options.Applicative
+import qualified Paths_tick_tock_tui as P
 
 import TUI.Types (MempoolUrl (..))
 
@@ -55,7 +57,10 @@ getConfig defaultMempoolUrl defaultStorageDirectory = do
     opts :: ParserInfo Config
     opts =
       info
-        (parser defaultStorageDirectory defaultMempoolUrl <**> helper)
+        ( parser defaultStorageDirectory defaultMempoolUrl
+            <**> helper
+            <**> simpleVersioner (showVersion P.version)
+        )
         ( fullDesc
             <> progDesc
               "Get the latest Bitcoin data in your terminal: fees, blocks, ratio and prices incl. a price converter. Most data is provided by Mempool. Connect to your own Mempool instance if you like. Latest prices of other assets come from Krakens Spot API."
