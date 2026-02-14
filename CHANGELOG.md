@@ -1,10 +1,16 @@
 # Changelog
 
-## [Unreleased]
+## v1.0.1 - 2026-02-15
 
 ### Fixes
 
-- fix: ratio loading state [#43](https://github.com/sectore/tick-tock-tui/pull/43)
+- ci: update release actions [#47](https://github.com/sectore/tick-tock-tui/pull/47)
+- cli: support `--version` [#46](https://github.com/sectore/tick-tock-tui/pull/46)
+- ratio view: fix loading state [#43](https://github.com/sectore/tick-tock-tui/pull/43)
+
+### Misc.
+
+- support `ghc-9.10.3` [#45](https://github.com/sectore/tick-tock-tui/pull/45)
 
 ## v1.0.0 - 2025-04-25
 
