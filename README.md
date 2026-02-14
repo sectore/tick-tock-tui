@@ -2,11 +2,11 @@
 
 > TICK TOCK NEXT ₿LOCK
 
-Get the latest [Bitcoin](https://bitcoin.org) data in your terminal and more:
-- Latest `block`
-- Latest `fees`
-- `price` converter
-- `ratio` of any `BTC/Asset` pair
+Latest [Bitcoin](https://bitcoin.org) data in your terminal:
+- `blocks`
+- `fees`
+- `price` converter `BTC/Fiat`
+- `ratio` of `BTC/Asset` pair
 
 Switch between `BTC`, `sat` and up to 7 `Fiat` currencies.
 
