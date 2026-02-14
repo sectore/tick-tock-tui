@@ -51,43 +51,47 @@ drawFooter st config =
     ]
       -- menu content
       <> ( [ padLeftRight 1 $
-            renderTable $
-              surroundingBorder False $
-                rowBorders False $
-                  columnBorders False $
-                    setDefaultColAlignment AlignLeft $
-                      table
-                        ( [ -- row: screens
+               renderTable $
+                 surroundingBorder False $
+                   rowBorders False $
+                     columnBorders False $
+                       setDefaultColAlignment AlignLeft $
+                         table
+                           ( [ -- row: screens
 
-                            [ col1 $ str "screens"
-                            , views
-                            ]
-                          ]
-                            --  row: actions
-                            ++ [ [col1 $ str "actions", actions]
-                               , [col1 emptyWidget, actions2]
+                               [ col1 $ str "screens"
+                               , views
                                ]
-                            --  row: actions
-                            ++ [ row | v == ConverterView || v == RatioView, row <-
-                                                                              [
-                                                                                [ col1 $ str "edit"
-                                                                                , if not $ st ^. editMode then str "[^e]nter edit mode" else edit
-                                                                                ]
-                                                                              ]
-                               ]
-                            -- row: extra info
-                            ++ [ row | st ^. extraInfo, row <-
-                                                          [
-                                                            [ padTop (Pad 1) $ col1 $ str "endpoint"
-                                                            , padTop (Pad 1) $ txt $ unMempoolUrl $ cfgMempoolUrl config
-                                                            ]
-                                                          ,
-                                                            [ col1 $ str "storage"
-                                                            , str $ getStoragePath $ cfgStorageDirectory config
-                                                            ]
-                                                          ]
-                               ]
-                        )
+                             ]
+                               --  row: actions
+                               ++ [ [col1 $ str "actions", actions]
+                                  , [col1 emptyWidget, actions2]
+                                  ]
+                               --  row: actions
+                               ++ [ row
+                                  | v == ConverterView || v == RatioView
+                                  , row <-
+                                      [
+                                        [ col1 $ str "edit"
+                                        , if not $ st ^. editMode then str "[^e]nter edit mode" else edit
+                                        ]
+                                      ]
+                                  ]
+                               -- row: extra info
+                               ++ [ row
+                                  | st ^. extraInfo
+                                  , row <-
+                                      [
+                                        [ padTop (Pad 1) $ col1 $ str "endpoint"
+                                        , padTop (Pad 1) $ txt $ unMempoolUrl $ cfgMempoolUrl config
+                                        ]
+                                      ,
+                                        [ col1 $ str "storage"
+                                        , str $ getStoragePath $ cfgStorageDirectory config
+                                        ]
+                                      ]
+                                  ]
+                           )
            | st ^. showMenu
            ]
          )
@@ -106,9 +110,9 @@ drawFooter st config =
       foldWithSpace
         -- create a list of view labels
         [ if v' == v
-          then -- bold label for `currentView`
-            withBold (str label)
-          else str label
+            then -- bold label for `currentView`
+              withBold (str label)
+            else str label
         | (v', label) <- viewLabels
         ]
     actionLabels =
