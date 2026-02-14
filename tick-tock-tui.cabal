@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            tick-tock-tui
-version:         1.0.0
+version:         1.0.0.1
 synopsis:        Get latest Bitcoin data in your terminal.
 stability:       stable
 homepage:        https://github.com/sectore/tick-tock-tui
@@ -22,6 +22,7 @@ library
   import:             warnings
   exposed-modules:    TUI
   other-modules:
+    Paths_tick_tock_tui
     TUI.Attr
     TUI.Config
     TUI.Events
