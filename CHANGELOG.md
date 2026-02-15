@@ -4,6 +4,7 @@
 
 ### Fixes
 
+- cli: simplify help text by removing `fullDesc` [#49](https://github.com/sectore/tick-tock-tui/pull/49)
 - ci: update release actions [#47](https://github.com/sectore/tick-tock-tui/pull/47)
 - cli: support `--version` [#46](https://github.com/sectore/tick-tock-tui/pull/46)
 - ratio view: fix loading state [#43](https://github.com/sectore/tick-tock-tui/pull/43)
