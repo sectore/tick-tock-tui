@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Misc.
+
+- bump `ghc912` [#50](https://github.com/sectore/tick-tock-tui/pull/50)
+
 ## v1.0.1 - 2026-02-15
 
 ### Fixes

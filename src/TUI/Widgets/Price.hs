@@ -10,6 +10,7 @@ import TUI.Service.Types (
   Amount (..),
   Bitcoin (..),
   Fiat (..),
+  Price,
   Prices (..),
   PricesRD,
   RemoteData (..),
@@ -53,7 +54,8 @@ drawPrice st =
     btcStr = str $ if btcSelected then "1 BTC" else show sAmount
     priceStr :: Prices -> Widget n
     priceStr =
-      let toPriceStr price =
+      let toPriceStr :: (Show (Amount a)) => Price a -> Widget n
+          toPriceStr price =
             str . show $
               if btcSelected
                 then btcToFiat bAmount price

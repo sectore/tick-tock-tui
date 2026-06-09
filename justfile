@@ -1,6 +1,6 @@
 # The `--fmt` command is currently unstable.
 
-set unstable := true
+set unstable
 
 default:
     @just --list
@@ -27,6 +27,7 @@ format:
     just --fmt
     fourmolu -i app src test
     cabal-fmt tick-tock-tui.cabal -i
+    nixfmt flake.nix
 
 alias fc := format-check
 
