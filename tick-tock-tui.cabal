@@ -22,7 +22,12 @@ common warnings
 
 library
   import:             warnings
-  exposed-modules:    TUI
+  exposed-modules:
+    TUI
+    TUI.Service.Types
+    TUI.Types
+    TUI.Utils
+
   other-modules:
     Paths_tick_tock_tui
     TUI.Attr
@@ -32,10 +37,7 @@ library
     TUI.Service.Common
     TUI.Service.Kraken
     TUI.Service.Mempool
-    TUI.Service.Types
     TUI.Storage
-    TUI.Types
-    TUI.Utils
     TUI.Widgets.App
     TUI.Widgets.Block
     TUI.Widgets.Converter
@@ -94,17 +96,12 @@ executable tick-tock-tui
 test-suite tick-tock-tui-test
   import:             warnings
   default-language:   GHC2024
-  other-modules:
-    TUI.Service.Types
-    TUI.Types
-    TUI.Utils
-
   default-extensions:
     NoImportQualifiedPost
     OverloadedStrings
 
   type:               exitcode-stdio-1.0
-  hs-source-dirs:     test src
+  hs-source-dirs:     test
   main-is:            Main.hs
   build-depends:
     , aeson                 >=2.3.0.0
